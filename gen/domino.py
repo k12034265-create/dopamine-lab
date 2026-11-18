@@ -3,18 +3,21 @@ import os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from collections import deque
 import lib
-lib.DUR = 30.0; lib.NF = int(30.0 * 60)
+lib.DUR = 26.0; lib.NF = int(26.0 * 60)
 from lib import *
 DUR = lib.DUR; NF = lib.NF
 
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 2
+PIC = sys.argv[2] if len(sys.argv) > 2 else 'sunset'
+OUT = sys.argv[3] if len(sys.argv) > 3 else 'domino_short.mp4'
+import pics
 rng = np.random.default_rng(SEED)
 GW_, GH_ = 44, 66
 CS = 22
 X0 = (W - GW_ * CS) // 2
 Y0 = 390
 # random spanning tree over grid (randomized BFS-ish growth from start) -> each domino has a parent direction
-S = (GW_ // 2, GH_ - 1)
+S = (GW_ // 2, int(GH_ * 0.4))
 parent = -np.ones((GH_, GW_, 2), int)
 depth = np.full((GH_, GW_), -1)
 depth[S[1], S[0]] = 0
@@ -30,38 +33,15 @@ while frontier:
     parent[ny, nx] = (x, y)
     frontier.append((nx, ny))
 DMAX = depth.max()
-T0, TF = 1.2, 24.0
-# accelerate: fall time = T0 + TF * (d/DMAX)^0.8
-fall_t = T0 + TF * (depth / DMAX) ** 0.85
+TF = 29.0
+START = 0.3
+# accelerate; shift so START fraction of depth is already down at t=0
+fall_t = TF * ((depth / DMAX) ** 0.85 - START ** 0.85)
 FALL_DUR = 0.18
 TEND = fall_t.max() + FALL_DUR
 print('dominoes', GW_ * GH_, 'depth', DMAX, 'end', round(TEND, 1))
 
-# hidden picture: original sunset-over-sea landscape
-img_src = np.zeros((GH_, GW_, 3), np.float32)
-for y in range(GH_):
-    for x in range(GW_):
-        v = y / GH_
-        if v < 0.55:  # sky
-            h = 0.74 + 0.36 * (v / 0.55) ** 1.3
-            c = colorsys.hsv_to_rgb(h % 1, 0.75, 0.55 + 0.45 * v / 0.55)
-        else:  # sea
-            c = colorsys.hsv_to_rgb(0.6, 0.8, 0.45 - 0.25 * (v - 0.55) / 0.45)
-        img_src[y, x] = c
-sx, sy, sr = GW_ / 2, GH_ * 0.47, 9.5
-for y in range(GH_):
-    for x in range(GW_):
-        d = np.hypot(x + 0.5 - sx, (y + 0.5 - sy) * 1.0)
-        if d < sr and y < GH_ * 0.55:
-            img_src[y, x] = (1.0, 0.85 - 0.3 * (y - (sy - sr)) / (2 * sr), 0.35)
-        # reflection stripes
-        if y >= GH_ * 0.55 and abs(x + 0.5 - sx) < sr * (1 - (y - GH_ * 0.55) / (GH_ * 0.45)) * 1.2 and (y % 3 != 0):
-            img_src[y, x] = (1.0, 0.65, 0.3)
-# mountains silhouette
-for x in range(GW_):
-    hm = GH_ * 0.55 - (5 + 4 * np.sin(x * 0.35) + 3 * np.sin(x * 0.11 + 1)) * (1 if x < 14 or x > 30 else 0.25)
-    for y in range(int(hm), int(GH_ * 0.55)):
-        img_src[y, x] = (0.12, 0.08, 0.2)
+img_src = pics.pic(PIC, GW_, GH_, SEED)
 img_bgr = (img_src[..., ::-1] * 255).astype(np.uint8)
 
 # audio: clicks by number of dominoes hitting per small window
@@ -72,6 +52,7 @@ b, a = butter(2, [1800 / (SR / 2), 7000 / (SR / 2)], 'band')
 clicks = [lfilter(b, a, rng.normal(0, 1, len(tk))) * np.exp(-tk * 160) for _ in range(6)]
 hits = np.sort((fall_t + FALL_DUR).ravel())
 binw = 0.012
+hits = hits[hits >= 0]
 cnt = np.bincount((hits / binw).astype(int))
 for k, c in enumerate(cnt):
     if c == 0: continue
@@ -79,7 +60,8 @@ for k, c in enumerate(cnt):
     au.add(clicks[k % 6] * (1 + rng.normal(0, 0.1)), t, float(rng.uniform(0.3, 0.7)), min(0.55, 0.12 * np.sqrt(c)))
 PENT = [0, 2, 4, 7, 9]
 for k in range(0, 40):
-    t = T0 + TF * (k / 40) ** 0.85 * 1.0
+    t = TF * ((k / 40) ** 0.85 - START ** 0.85)
+    if t < 0: continue
     au.add(au.pluck(220 * 2 ** ((PENT[k % 5] + 12 * (k // 10)) / 12), decay=6, dur=0.7, bright=0.2), t, 0.5, 0.18)
 au.riser(TEND, 4.0, 0.6)
 au.add(au.smash(7), TEND, 0.5, 0.85)
@@ -89,14 +71,14 @@ n = int(DUR * SR)
 outw = np.tanh(np.stack([au.L[:n], au.R[:n]], 1) * 1.3) * 0.92
 fd = int(0.4 * SR); outw[-fd:] *= np.linspace(1, 0.3, fd)[:, None]
 from scipy.io import wavfile
-wavfile.write('domino.wav', SR, (outw * 32767).astype(np.int16))
+wavfile.write(OUT + '.wav', SR, (outw * 32767).astype(np.int16))
 
 # video
 bg = make_bg(960, (26, 22, 30))
-enc = Enc('domino_v.mp4')
+enc = Enc(OUT + '.v.mp4')
 first_img = None
 flash = 0.0
-standing_col = (215, 210, 200)
+standing_col = (235, 225, 210)
 for f in range(NF):
     t = f / FPS
     lay = np.zeros((H, W, 3), np.uint8)
@@ -131,7 +113,7 @@ for f in range(NF):
         put(img, f'{int(fallen.sum()):,} / {GW_ * GH_:,}', 540, 1880, 60)
     else:
         s = 1 + 1.4 * np.exp(-(t - TEND) * 7)
-        put(img, '夕焼けの海でした', 540, 230, 96, (255, 226, 60), s)
+        put(img, pics.TITLES[PIC] + 'でした', 540, 230, 96, (255, 226, 60), s)
         put(img, '何の絵か当てられた？', 540, 1880, 60)
     if flash > 0.02:
         img = cv2.addWeighted(img, 1.0, np.full_like(img, 255), flash, 0)
@@ -142,4 +124,4 @@ for f in range(NF):
         img = cv2.addWeighted(img, 1 - k2, first_img, k2, 0)
     enc.write(img)
 enc.close()
-mux('domino_v.mp4', 'domino.wav', 'domino_short.mp4')
+mux(OUT + '.v.mp4', OUT + '.wav', OUT); os.remove(OUT + '.v.mp4'); os.remove(OUT + '.wav')

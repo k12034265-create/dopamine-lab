@@ -3,11 +3,12 @@ import os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from collections import deque
 import lib
-lib.DUR = 28.0; lib.NF = int(28.0 * 60)
+lib.DUR = 21.0; lib.NF = int(21.0 * 60)
 from lib import *
 DUR = lib.DUR; NF = lib.NF
 
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 5
+OUT = sys.argv[2] if len(sys.argv) > 2 else 'maze_short.mp4'
 rng = np.random.default_rng(SEED)
 CW, CH = 25, 35          # cells
 CS = 38                   # px per cell (wall grid 2x+1)
@@ -36,9 +37,9 @@ for _ in range(int(CW * CH * 0.06)):
     x, y = rng.integers(1, 2 * CW), rng.integers(1, 2 * CH)
     if (x + y) % 2 == 1 and 0 < x < 2 * CW and 0 < y < 2 * CH:
         order.append((x, y))
-GEN_T = 6.0
+GEN_T = 0.0
 for k, (gx, gy) in enumerate(order):
-    carve_t[gy, gx] = k / len(order) * GEN_T
+    carve_t[gy, gx] = -1.0
     grid[gy, gx] = 1
 # BFS flood from start
 S = (1, 1); G = (GW - 2, GH - 2)
@@ -53,7 +54,7 @@ while q:
         if grid[ny, nx] and dist[ny, nx] < 0:
             dist[ny, nx] = dist[y, x] + 1; par[(nx, ny)] = (x, y); q.append((nx, ny))
 DMAX = dist.max()
-FL0, FL_T = GEN_T + 0.8, 15.0
+FL0, FL_T = -1.5, 16.0
 flood_t = np.where(dist >= 0, FL0 + dist / DMAX * FL_T, np.inf)
 goal_t = flood_t[G[1], G[0]]
 path = [G]
@@ -82,12 +83,12 @@ n = int(DUR * SR)
 outw = np.tanh(np.stack([au.L[:n], au.R[:n]], 1) * 1.3) * 0.92
 fd = int(0.4 * SR); outw[-fd:] *= np.linspace(1, 0.3, fd)[:, None]
 from scipy.io import wavfile
-wavfile.write('maze.wav', SR, (outw * 32767).astype(np.int16))
+wavfile.write(OUT + '.wav', SR, (outw * 32767).astype(np.int16))
 
 # video
 bg = make_bg(960, (40, 26, 18))
 hue = np.where(dist >= 0, 0.55 + dist / DMAX * 0.95, 0)
-enc = Enc('maze_v.mp4')
+enc = Enc(OUT + '.v.mp4')
 first_img = None
 ys, xs = np.mgrid[0:GH, 0:GW]
 for f in range(NF):
@@ -120,9 +121,9 @@ for f in range(NF):
     # start / goal marks
     put(img, 'S', X0 + 1.5 * PX, Y0 + 1.5 * PX, 34, (255, 255, 255))
     put(img, 'G', X0 + (GW - 1.5) * PX, Y0 + (GH - 1.5) * PX, 34, (255, 226, 60), 1 + 0.15 * np.sin(t * 8))
-    if t < GEN_T:
+    if False:
         put(img, '迷路に水を流すと…', 540, 200, 86)
-        put(img, '迷路を作成中', 540, 310, 50, (120, 230, 255))
+        put(img, 'ゴールまで何秒？', 540, 310, 56, (255, 226, 60))
     elif t < goal_t:
         put(img, '迷路に水を流すと…', 540, 200, 86)
         put(img, 'ゴールまで何秒？', 540, 310, 56, (255, 226, 60), 1 + 0.05 * np.sin(t * 6))
@@ -138,4 +139,4 @@ for f in range(NF):
         img = cv2.addWeighted(img, 1 - k2, first_img, k2, 0)
     enc.write(img)
 enc.close()
-mux('maze_v.mp4', 'maze.wav', 'maze_short.mp4')
+mux(OUT + '.v.mp4', OUT + '.wav', OUT); os.remove(OUT + '.v.mp4'); os.remove(OUT + '.wav')
