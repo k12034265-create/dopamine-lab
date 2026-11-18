@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, '/home/claude')
+import os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import *
 
 CX, CY, R = 540.0, 960.0, 470.0

@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, '/home/claude')
+import os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import lib
 lib.DUR = 34.0; lib.NF = int(34.0 * 60)

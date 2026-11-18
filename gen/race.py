@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, '/home/claude')
+import os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib import *
 
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1] != 'tune' else 3

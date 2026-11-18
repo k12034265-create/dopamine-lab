@@ -1,5 +1,5 @@
 import sys, colorsys
-sys.path.insert(0, '/home/claude')
+import os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from collections import deque
 import lib
