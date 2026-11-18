@@ -6,3 +6,8 @@
 | 2026-11-18 | 6色マーブルレース、1位はどの色？ | マーブルレース | 2026-11-18 20:0x | https://youtube.com/shorts/kxI5yJs9lBM |
 | 2026-11-18 | ドミノ2904枚倒したら、何の絵が出る？ | ドミノ（夕焼けの海） | 2026-11-18 20:2x | https://youtube.com/shorts/0P1LAEJSFcg |
 | 2026-11-18 | 迷路に水を流したら、ゴールまで何秒？ | 迷路 seed5 | 2026-11-19 12:00 予約 | https://youtube.com/shorts/GnVRkWcKhPU |
+| 2026-11-19 | 真ん中から倒れるドミノ、最後に出てくる絵は？ | ドミノ（星空）中心スタート | 2026-11-19 20:00 予約 | https://youtube.com/shorts/VJ6hUe_dQ2c |
+| 2026-11-19 | 砂を2万粒流し込んだら、何の絵になる？ | 砂（富士山）新型 | 2026-11-20 12:00 予約 | https://youtube.com/shorts/5UxYKxzGkNM |
+| 2026-11-19 | 巨大迷路に水を流したら、ゴールまで何秒？ | 迷路 seed11 即スタート | 2026-11-20 20:00 予約 | https://youtube.com/shorts/VNq_D1_E_v8 |
+| 2026-11-19 | ドミノを倒したら、夜空がカラフルに…？ | ドミノ（花火）中心スタート | 2026-11-21 12:00 予約 | https://youtube.com/shorts/qvi10A9HfMQ |
+| 2026-11-19 | カラフルな砂を流し込んだら、どんな景色になる？ | 砂（夕焼けの海） | 2026-11-21 20:00 予約 | https://youtube.com/shorts/7sAVpHhWj5U |
