@@ -1,7 +1,7 @@
 """Original procedural pictures for reveal-type videos. pic(name, w, h) -> float32 (h,w,3) RGB in 0..1"""
 import numpy as np, colorsys
 
-TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山'}
+TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま'}
 
 
 def _hsv(h, s, v):
@@ -78,4 +78,50 @@ def pic(name, w, h, seed=0):
         lake = v > 0.82
         img[lake] = (0.2, 0.4, 0.75)
         img[lake & ((yy.astype(int) % 3) == 0)] = (0.4, 0.6, 0.9)
+    elif name == 'snowman':
+        top = np.array([0.04, 0.07, 0.25]); bot = np.array([0.18, 0.3, 0.6])
+        img[:] = top + (bot - top) * np.clip(v / 0.8, 0, 1)[..., None]
+        # moon top-left
+        dm = np.hypot((u - 0.18) * w, (v - 0.1) * h) / w
+        img[dm < 0.1] = (1.0, 0.88, 0.45)
+        # falling snow
+        n = max(4, int(w * h * 0.03))
+        sx, sy = rng.integers(0, w, n), rng.integers(0, int(h * 0.8), n)
+        for x, y in zip(sx, sy):
+            img[y, x] = (0.75, 0.82, 0.95)
+        ar = h / w
+        # ground
+        gnd = v > 0.82 - 0.03 * np.sin(u * 5)
+        img[gnd] = (0.78, 0.84, 0.95)
+        img[gnd & (v > 0.92)] = (0.62, 0.72, 0.9)
+        # arms (sticks)
+        for sgn in (-1, 1):
+            arm = (np.abs((v - 0.6) + 0.55 * sgn * (u - 0.5) / ar * ar * 0.9 + 0.0) < 0.018 * ar) & (np.abs(u - 0.5) > 0.22) & (np.abs(u - 0.5) < 0.44) & (v < 0.62) & (v > 0.42)
+            img[arm] = (0.45, 0.28, 0.12)
+        snow = np.array([0.9, 0.93, 0.98]); shade = np.array([0.65, 0.74, 0.92])
+        def ball(cx, cy, r):
+            d = np.hypot(u - cx, (v - cy) * ar)
+            m = d < r
+            # light from upper-left: right/bottom side shaded
+            sh = ((u - cx) * 0.7 + (v - cy) * ar * 0.7) / r > 0.45
+            img[m] = snow; img[m & sh] = shade
+            return m
+        ball(0.5, 0.72, 0.29)
+        ball(0.5, 0.45, 0.2)
+        hy = 0.45 - 0.2 / ar
+        # hat
+        img[(np.abs(u - 0.5) < 0.17) & (v > hy - 0.03) & (v < hy + 0.01)] = (0.12, 0.1, 0.16)
+        img[(np.abs(u - 0.5) < 0.11) & (v > hy - 0.15) & (v <= hy - 0.03)] = (0.12, 0.1, 0.16)
+        img[(np.abs(u - 0.5) < 0.11) & (v > hy - 0.06) & (v <= hy - 0.03)] = (0.85, 0.15, 0.2)
+        # eyes, carrot nose
+        for ex in (0.42, 0.58):
+            img[(np.abs(u - ex) < 0.035) & (np.abs(v - 0.42) < 0.02)] = (0.08, 0.08, 0.12)
+        img[(u > 0.5) & (u < 0.64) & (np.abs(v - 0.475) < 0.022 * (1 - (u - 0.5) / 0.16) + 0.006)] = (1.0, 0.5, 0.1)
+        # scarf
+        ny = 0.45 + 0.2 / ar
+        img[(np.abs(u - 0.5) < 0.2) & (np.abs(v - ny) < 0.028)] = (0.9, 0.15, 0.2)
+        img[(u > 0.54) & (u < 0.63) & (v > ny) & (v < ny + 0.12)] = (0.9, 0.15, 0.2)
+        # buttons
+        for by in (0.66, 0.74, 0.82):
+            img[(np.abs(u - 0.5) < 0.035) & (np.abs(v - by) < 0.018)] = (0.15, 0.12, 0.18)
     return np.clip(img, 0, 1)
