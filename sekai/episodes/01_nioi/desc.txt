@@ -1,87 +1,33 @@
-恋人が置いていった服に、こっそり顔をうずめてしまう。ところが、その匂いのもとになる体臭が少ない人の割合は、日本人では世界でも珍しいほど高い。
+恋人の服の匂いに惹かれるのは、なぜなのか。
+免疫の遺伝子、涙の匂い、そして源氏物語。日本人が体の匂いを消して香りを足してきた理由をネタバレします！
 
-1995年、スイスの大学で行われた実験では、女子学生たちが、男子学生が二晩着たTシャツを嗅ぎ比べました。彼女たちが「心地よい」と答えたのは、自分と免疫の遺伝子が違う男性の匂いでした。
+▼目次
+00:00 プロローグ
+00:50 第1章：匂わない体
+01:56 第2章：鼻は何を読んでいるのか
+04:12 第3章：体が漏らす合図
+05:55 第4章：薫と匂宮
+07:36 エピローグ
 
-ところが、その後の研究は、話をそう単純にはしてくれませんでした。ピルを飲み始めると好みがずれる。恋人がいるかどうかで好みが逆になる。そして実際の夫婦を調べると、鼻の力はずっと弱かった。
+▼参考文献
+・Wedekind et al. (1995) https://doi.org/10.1098/rspb.1995.0087
+・Roberts et al. (2008) https://doi.org/10.1098/rspb.2008.0825
+・Winternitz et al. (2017) https://doi.org/10.1111/mec.13920
+・Herz & Inzlicht (2002)
+・Havlíček et al. (2008) https://doi.org/10.1016/j.paid.2008.06.019
+・Havlíček & Roberts (2009)
+・Ihara et al. (2000) https://www.jstage.jst.go.jp/article/ase1993/108/2/108_2_199/_article
+・Kromer et al. (2016) https://doi.org/10.1038/srep32550
+・Gelstein et al. (2011) https://doi.org/10.1126/science.1198331
+・Miller et al. (2007) https://doi.org/10.1016/j.evolhumbehav.2007.06.002
+・Yoshiura et al. (2006) https://doi.org/10.1038/ng1733
+・Nakano et al. (2009) https://doi.org/10.1186/1471-2156-10-42
+・尾崎左永子『源氏の薫り』講談社 https://www.kodansha.co.jp/book/products/0000420894
+・紫式部『源氏物語』匂兵部卿
+・『古今和歌集』巻三・夏歌・139番
+・Yamazaki et al. (1976) https://doi.org/10.1084/jem.144.5.1324
+・Ober et al. (1997) https://doi.org/10.1086/515511
+※研究の多くは小規模で、結果が分かれているものもあります。
 
-一方で、女性の涙の匂いは男性の欲望にブレーキをかけ、ナイトクラブのダンサーのチップは生理周期とともに上下していました。
-
-それでも日本人は、千年前から体ではなく、衣にたきしめた香りで恋をしてきました。汗を止め、体臭を消し、香りを足す。その習慣は、いったい何を隠しているのか。
-今回は、遺伝学と免疫学、そして源氏物語から、日本人が体の匂いを消して香りを足してきた理由をネタバレしました。
-
-----------------------------
-▼タイムスタンプ
-00:00 - プロローグ
-00:50 - 第1章：匂わない体
-01:56 - 第2章：鼻は何を読んでいるのか
-04:12 - 第3章：体が漏らす合図
-05:55 - 第4章：薫と匂宮
-07:36 - エピローグ
-----------------------------
-▼参考文献・データ出典
-[1] Wedekind, C., Seebeck, T., Bettens, F., & Paepke, A. J. (1995). MHC-dependent mate preferences in humans. Proceedings of the Royal Society B, 260(1359), 245–249.
-（Tシャツを2晩着用、女子学生が6枚の匂いを評価。MHCが違う男性の匂いを心地よいと評価し、ピル服用者では逆。被験者は小規模。）
-https://doi.org/10.1098/rspb.1995.0087
-
-[2] Roberts, S. C., Gosling, L. M., Carter, V., & Petrie, M. (2008). MHC-correlated odour preferences in humans and the use of oral contraceptives. Proceedings of the Royal Society B, 275(1652), 2715–2722.
-（ピル服用前後の縦断研究。服用開始後に似たMHCの方向へ好みがずれた。初回テストでは非類似への選好は有意でなく、恋人なし→類似、恋人あり→非類似。）
-https://doi.org/10.1098/rspb.2008.0825
-
-[3] Winternitz, J., Abbate, J. L., Huchard, E., Havlíček, J., & Garamszegi, L. Z. (2017). Patterns of MHC-dependent mate selection in humans and nonhuman primates: a meta-analysis. Molecular Ecology, 26(2), 668–688.
-（30研究・58の効果量のメタ分析。MHC非類似への選好の効果は弱い。）
-https://doi.org/10.1111/mec.13920
-
-[4] Herz, R. S., & Inzlicht, M. (2002). Sex differences in response to physical and social factors involved in human mate selection: The importance of smell for women. Evolution and Human Behavior, 23(5), 359–364.
-（女性は配偶者選びで匂いを重視するという自己報告の調査。実際の行動ではなくアンケート。）
-
-[5] Havlíček, J., Saxton, T. K., Roberts, S. C., et al. (2008). He sees, she smells? Male and female reports of sensory reliance in mate choice and non-mate choice contexts. Personality and Individual Differences, 45(6), 565–570.
-（チェコの高校生717人。女性は嗅覚、男性は視覚を重視する傾向を再現。自己報告。）
-https://doi.org/10.1016/j.paid.2008.06.019
-
-[6] Havlíček, J., & Roberts, S. C. (2009). MHC-correlated mate choice in humans: A review. Psychoneuroendocrinology, 34(4), 497–512.
-（匂いの実験の多くは非類似への選好を示すが、実際の夫婦の研究は結果がばらつく。）
-
-[7] Ihara, Y., Aoki, K., Tokunaga, K., Takahashi, K., & Juji, T. (2000). HLA and human mate choice: Tests on Japanese couples. Anthropological Science, 108(2), 199–214.
-（東北6県の約150組と全国16都道府県の約300組を分析。HLA-A・HLA-Cで強い非類似婚は否定。）
-https://www.jstage.jst.go.jp/article/ase1993/108/2/108_2_199/_article
-
-[8] Kromer, J., Hummel, T., Pietrowski, D., et al. (2016). Influence of HLA on human partnership and sexual satisfaction. Scientific Reports, 6, 32550.
-（N=508。HLAの非類似度とパートナー関係・性的満足度に相関。相関であり因果ではない。）
-https://doi.org/10.1038/srep32550
-
-[9] Gelstein, S., Yeshurun, Y., Rozenkrantz, L., et al. (2011). Human tears contain a chemosignal. Science, 331(6014), 226–230.
-（女性の情動の涙を嗅いだ男性で、性的興奮の自己評価・生理指標・テストステロンが低下。涙の提供者は少数。）
-https://doi.org/10.1126/science.1198331
-
-[10] Miller, G., Tybur, J. M., & Jordan, B. D. (2007). Ovulatory cycle effects on tip earnings by lap dancers: economic evidence for human estrus? Evolution and Human Behavior, 28(6), 375–381.
-（ダンサー18人・60日・296シフト（約5300回）。5時間シフトあたり排卵期約335ドル、黄体期約260ドル、生理中約185ドル。ピル服用者に山なし。何が客に伝わったかは不明。）
-https://doi.org/10.1016/j.evolhumbehav.2007.06.002
-
-[11] Yoshiura, K., Kinoshita, A., Ishida, T., et al. (2006). A SNP in the ABCC11 gene is the determinant of human earwax type. Nature Genetics, 38(3), 324–330.
-（ABCC11遺伝子の1塩基の違いで耳あかの乾型・湿型が決まる。乾型は東アジアで80〜95%、欧州・アフリカでは非常にまれ。）
-https://doi.org/10.1038/ng1733
-
-[12] Nakano, M., Miwa, N., Hirano, A., Yoshiura, K., & Niikawa, N. (2009). A strong association of axillary osmidrosis with the wet earwax type determined by genotyping of the ABCC11 gene. BMC Genetics, 10, 42.
-（わきの匂いが強い人の98.7%が湿型の遺伝子型。九州の一般住民では湿型は35.4%。）
-https://doi.org/10.1186/1471-2156-10-42
-
-[13] 尾崎左永子『源氏の薫り』講談社。
-（源氏物語における香り（薫物・移り香・薫と匂宮の香りの違い）の解説。）
-https://www.kodansha.co.jp/book/products/0000420894
-
-[14] 紫式部『源氏物語』匂兵部卿（匂宮）巻。
-（薫の生まれつきの芳香と、香を調合してまとう匂宮の対比。）
-
-[15] 『古今和歌集』巻三・夏歌・139番（よみ人しらず）「五月まつ花橘の香をかげば昔の人の袖の香ぞする」
-（匂いが昔の恋人の記憶を呼び起こす歌。）
-
-[16] Yamazaki, K., Boyse, E. A., Miké, V., et al. (1976). Control of mating preferences in mice by genes in the major histocompatibility complex. Journal of Experimental Medicine, 144(5), 1324–1335.
-（オスのマウスがMHCの異なるメスを交配相手として好む傾向。）
-https://doi.org/10.1084/jem.144.5.1324
-
-[17] Ober, C., Weitkamp, L. R., Cox, N., et al. (1997). HLA and mate choice in humans. American Journal of Human Genetics, 61(3), 497–504.
-（フッター派411組。自分と同じHLAハプロタイプを持つ配偶者を避ける傾向。閉じた共同体での結果。）
-https://doi.org/10.1086/515511
-----------------------------
-※紹介している研究の多くは対象人数が少なく、後の研究で結果が分かれているものもあります。内容に誤りがあればコメントで教えてください。概要欄で訂正します。
-※音声：VOICEVOX:青山龍星
+音声：VOICEVOX:青山龍星
+#匂い #恋愛心理学 #世界のネタバレ
