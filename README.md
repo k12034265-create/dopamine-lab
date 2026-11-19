@@ -4,3 +4,4 @@ YouTubeショートチャンネル「ドーパミンラボ」(@dopamin-lab) の�
 
 - `gen/` 動画生成スクリプト（Python + OpenCV + ffmpeg）
 - `videos/` 投稿待ちの動画
+- `sekai/` 解説チャンネル「世界のネタバレ」の制作パイプラインと投稿手順（`sekai/CLAUDE.md`）

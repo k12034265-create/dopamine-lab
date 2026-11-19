@@ -1,0 +1,41 @@
+# 世界のネタバレ 制作・投稿手順
+
+解説チャンネル「世界のネタバレ」（@sekainonetabare、チャンネルID `UCnitdCImoZ2PO3ZSo4J9Pvg`）の長尺動画を作って投稿する手順。オーナーはKOH。
+ドーパミンラボ（リポジトリ直下の CLAUDE.md）とは別チャンネル・別Googleアカウント。混ぜないこと。
+
+## 方針（KOH決定）
+- お手本は「考えすぎる葦」。型（構成・タイトルの付け方・概要欄の形式）は寄せる。内容はパクらない。
+- 当面は恋愛・性・モテ系を多め。少しエロ寄りでよいが、BAN・年齢制限は絶対に避ける（年齢制限で伸びなくなる）。
+- 量産済みのネタと被らないよう、切り口で勝負する。シミュレーション・実データの図解、地方目線のネタも今後増やす。
+- 8分以上（ミッドロール広告のため）。
+- ナレーション：VOICEVOX 青山龍星 ノーマル（style id 13）、話速1.1。クレジット「VOICEVOX:青山龍星」を概要欄に必ず入れる。
+- 概要欄：導入文（です・ます）→タイムスタンプ→参考文献（DOI付き）→注意書き→音声クレジット。
+- 締めのセリフ：「今日のネタバレは、ここまで。よければチャンネル登録と高評価をお願いします。それでは、また次のネタバレで。」
+
+## 投稿の流れ（KOH決定）
+1. Claudeがテーマ案→台本→動画まで作る。
+2. 完成した動画を KOH に送り、**OKをもらってから公開する**（完全放置の量産はしない）。
+3. 公開はファイル選択を使わない GitHub 方式で行う（下記）。
+
+## 制作パイプライン（`sekai/pipeline/`）
+新しい作業環境ではまず `bash sekai/setup_voicevox.sh`。
+1. `sekai/episodes/NN_テーマ/` を作り、`script.py`（SCENES・REFS・READINGS）と `scenes.js`（各シーンの図解）を書く。01_nioi が見本。
+   - SCENES は (パート名, ナレーション, 画面の指示, 出典, 読みメモ) のタプル。パート名が変わったところが章の区切り（タイムスタンプ）。
+2. `EP=$PWD/sekai/episodes/NN_xxx bash sekai/pipeline/make.sh tts` で音声 → `snap.py` で数フレームを確認。
+3. `make.sh render` → `make.sh mux` で `work/final.mp4`。最後に表示されるタイムスタンプを概要欄に使う。
+4. `title.txt` `desc.txt` `tags.txt` をエピソードフォルダに置く。
+5. 台本Excelが要るときは `EP=... python3 sekai/pipeline/build_xlsx.py`。
+- `work/` は git に入れない（.gitignore）。
+
+## 投稿手順（GitHub方式）
+- 内蔵ブラウザ（`mcp__remote-devices__Claude_Browser__*`）で操作。Studio は `?authuser=2`（vivivimhwib アカウント）。
+1. `work/final.mp4` を `sekai/videos/NN_xxx.mp4` にコピーして commit & push（100MB未満にする）。
+2. Studio のアップロード画面を開き、`sekai/upload.js` の関数を javascript_tool で実行：
+   `putFile('https://raw.githubusercontent.com/k12034265-create/dopamine-lab/main/sekai/videos/NN_xxx.mp4','NN_xxx.mp4')`
+   → `details(タイトル, 説明, タグ配列)` → `visibility('PUBLIC')`（KOHのOK後。予約ならスケジュール設定）。
+3. 公開できたら `sekai/videos/` の動画を削除して push。`sekai/log.md` に追記。
+- サムネイルは現状なし（カスタムサムネには電話番号の確認が必要。KOHに確認してから）。
+
+## チャンネル設定メモ
+- アイコン：「日食の瞳」（黒地に日食の光の輪、瞳が地球）。
+- バナー：未作成（同じテイストで作る予定）。
