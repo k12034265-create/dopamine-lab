@@ -6,7 +6,7 @@ from common import W, EP
 from timeline import build
 TL = build(); FPS = 30
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))  # sekai/
-OUT = f'{W}/clips3d'; os.makedirs(OUT, exist_ok=True)
+OUT = os.environ.get('OUTDIR', f'{W}/clips3d'); os.makedirs(OUT, exist_ok=True)
 PORT = int(os.environ.get('PORT', '8790'))
 
 def serve():
