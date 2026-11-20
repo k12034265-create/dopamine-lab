@@ -35,6 +35,7 @@
 2. Studio のアップロード画面を開き、`sekai/upload.js` の関数を javascript_tool で実行：
    `putFile('https://raw.githubusercontent.com/k12034265-create/dopamine-lab/main/sekai/videos/NN_xxx.mp4','NN_xxx.mp4')`
    → `details(タイトル, 説明, タグ配列)` → `visibility('PUBLIC')`（KOHのOK後。予約ならスケジュール設定）。
+   - 注意（02で発生）：ページを開いた直後の fetch は失敗することがある → 数秒待って再実行。ファイル投入後「リンクを作成しています…」のまま止まったら、ページを開き直して投入からやり直す。動画リンク（youtu.be/…）が出てから details を入れる。公開後は編集画面でタイトル・タグ・各設定が保存されたか確認する。
 3. 公開できたら `sekai/videos/` の動画を削除して push。`sekai/log.md` に追記。
 - サムネイルは現状なし（カスタムサムネには電話番号の確認が必要。KOHに確認してから）。
 
