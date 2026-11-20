@@ -26,7 +26,8 @@ async def main(ids, snaps):
         b = await p.chromium.launch(args=['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
         pg = await b.new_page(viewport={'width': 1920, 'height': 1080})
         pg.on('pageerror', lambda e: print('PAGEERROR', e, flush=True))
-        await pg.goto(f'http://127.0.0.1:{PORT}/pipeline3d/page.html?scenes=/{rel}/scenes3d.js')
+        sf = os.environ.get('SCENES', f'/{rel}/scenes3d.js')
+        await pg.goto(f'http://127.0.0.1:{PORT}/pipeline3d/page.html?scenes={sf}')
         await pg.wait_for_function('window.READY===true', timeout=120000)
         for i in ids:
             sc = TL[i]
