@@ -37,7 +37,7 @@
 新しい作業環境ではまず `bash sekai/setup_voicevox.sh`。
 1. `sekai/episodes/NN_テーマ/` を作り、`script.py`（SCENES・REFS・READINGS）と `scenes.js`（各シーンの図解）を書く。01_nioi が見本。
    - SCENES は (パート名, ナレーション, 画面の指示, 出典, 読みメモ) のタプル。パート名が変わったところが章の区切り（タイムスタンプ）。
-2. `EP=$PWD/sekai/episodes/NN_xxx bash sekai/pipeline/make.sh tts` で音声 → `snap.py` で数フレームを確認。
+2. `EP=$PWD/sekai/episodes/NN_xxx bash sekai/pipeline/make.sh tts` で音声 → `EP=... python3 sekai/pipeline/check_reading.py` で実際の読み（カナ）を全文出して目で確認し、読み違いは script.py の READINGS で直す（「は」→ワ、「間」→カン、数字の読みなど） → `snap.py` で数フレームを確認。
 3. `make.sh render` → `make.sh mux` で `work/final.mp4`。最後に表示されるタイムスタンプを概要欄に使う。
 4. `title.txt` `desc.txt` `tags.txt` をエピソードフォルダに置く。
 5. 台本Excelが要るときは `EP=... python3 sekai/pipeline/build_xlsx.py`。

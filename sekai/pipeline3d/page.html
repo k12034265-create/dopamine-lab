@@ -23,6 +23,7 @@ function wrap(sub){ if(!sub) return ''; const max=30; if(sub.length<=max) return
   let mid=Math.floor(sub.length/2), best=-1; for(let d=0;d<14&&best<0;d++){for(const k of [mid+d,mid-d]){if('、，'.includes(sub[k])){best=k;break;}}} if(best<0)best=mid;
   return sub.slice(0,best+1)+'<br>'+sub.slice(best+1); }
 window.FRAME=async(i,t,dur,sub,frameNo)=>{
+  window.__CUR=i;
   if(!cache[i]) cache[i]=SC[i].build();
   const S=cache[i]; const html=S.update(t,dur)||'';
   S.render();

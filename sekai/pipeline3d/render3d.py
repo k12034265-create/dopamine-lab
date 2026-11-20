@@ -49,6 +49,10 @@ async def main(ids, snaps):
                 if k % 60 == 0: print(i, k, sc['frames'], round(time.time() - t0, 1), flush=True)
             ff.stdin.close(); rc = ff.wait()
             if rc == 0: os.rename(tmp, fn)
+            try:
+                cues = await pg.evaluate('(i)=>(window.__SFX||{})[i]||[]', i)
+                import json as _j; open(f'{OUT}/sfx_c{i:02d}.json', 'w').write(_j.dumps(cues))
+            except Exception as e: print('sfx err', e)
             print('done', i, sc['frames'], round(time.time() - t0, 1), flush=True)
         await b.close()
 
