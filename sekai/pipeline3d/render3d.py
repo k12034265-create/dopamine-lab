@@ -33,7 +33,7 @@ async def main(ids, snaps):
             sc = TL[i]
             if snaps:
                 for t in snaps:
-                    await pg.evaluate('([i,t,d,s,f])=>FRAME(i,t,d,s,f)', [i, t, sc['dur'], subat(sc, t), int(t * FPS)])
+                    await pg.evaluate('([i,t,d,s,f])=>FRAME(i,t,d,s,f)', [i, t, sc['dur'], ('' if os.environ.get('NOSUB') else subat(sc, t)), int(t * FPS)])
                     await pg.screenshot(path=f'{OUT}/snap_{i:02d}_{t}.jpg', type='jpeg', quality=90)
                 print('snap', i, flush=True); continue
             fn = f'{OUT}/c{i:02d}.mp4'
