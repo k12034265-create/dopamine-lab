@@ -1,0 +1,27 @@
+<html><head><style>
+body{margin:0}.t{width:1280px;height:720px;position:relative;overflow:hidden;font-family:'Noto Sans CJK JP';font-weight:900}
+.bg{position:absolute;inset:0;background-size:cover;background-position:center}
+.L{position:absolute;white-space:nowrap;line-height:1}
+.L span{position:relative;display:inline-block}
+.L .b{position:absolute;left:0;top:0;-webkit-text-stroke:22px #0a0a0a;color:#0a0a0a;filter:drop-shadow(6px 10px 0 rgba(0,0,0,.6)) drop-shadow(0 0 20px rgba(0,0,0,.6));z-index:0}
+.L .m{position:absolute;left:0;top:0;-webkit-text-stroke:8px #fff;color:#fff;z-index:1}
+.L .f{position:relative;z-index:2;-webkit-background-clip:text;background-clip:text;color:transparent}
+.silver{background:linear-gradient(180deg,#ffffff 0%,#e9eef5 45%,#9aa3b0 55%,#f4f6fa 100%)}
+.gold{background:linear-gradient(180deg,#fff7c4 0%,#ffd84a 40%,#c58a12 55%,#ffe27a 100%)}
+.fire{background:linear-gradient(180deg,#ffd27a 0%,#ff6a2a 35%,#d4140e 60%,#7a0606 100%)}
+.ice{background:linear-gradient(180deg,#e8fbff 0%,#5ad8ff 40%,#1660d8 62%,#9aeaff 100%)}
+</style></head><body>
+<script>
+function W(txt,cls,size){return `<span style="font-size:${size}px"><span class="b">${txt}</span><span class="m">${txt}</span><span class="f ${cls}">${txt}</span></span>`}
+document.body.innerHTML=`
+<div class="t" id="D"><div class="bg" style="background-image:url(nD.jpg)"></div>
+ <div style="position:absolute;left:0;right:0;bottom:0;height:330px;background:linear-gradient(0deg,rgba(0,0,0,.75),rgba(0,0,0,0))"></div>
+ <div class="L" style="left:34px;top:410px">${W('もしも','silver',84)}${W('人前で','gold',118)}</div>
+ <div class="L" style="left:30px;top:540px">${W('キス','fire',168)}${W('すると','silver',112)}</div>
+</div>
+<div class="t" id="A"><div class="bg" style="background-image:url(nA.jpg)"></div>
+ <div class="L" style="left:40px;top:120px">${W('1946年','silver',80)}</div>
+ <div class="L" style="left:30px;top:250px">${W('キス','fire',176)}${W('を','silver',100)}</div>
+ <div class="L" style="left:30px;top:450px">${W('命令','gold',176)}${W('された','silver',110)}</div>
+</div>`;
+</script></body></html>

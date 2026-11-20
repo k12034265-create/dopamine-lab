@@ -1,5 +1,6 @@
 // 03 キス — サムネ専用シーン（A:命令 / B:風俗 / C:口吸い）
 import { THREE, makeScene, mat, glow, box, cyl, plane, dust, beam, lamp, canvasTex, rng, SERIF } from '/pipeline3d/lib3d.js';
+import { human } from '/pipeline3d/sets3d.js';
 
 // ---- 横顔のシルエット（右向き。woman=true で長い髪） ----
 function profile(g, x, y, s, dir, woman, color) {
@@ -99,6 +100,35 @@ T.push({ build() {
   lamp(s, '#ffc890', 4, 5, -1.6, 1.2, 1.2, true);
   dust(s, 260, [-2, 2, 0.3, 3, -3, 1], '#ffe0b0', 0.02, 0.45, 8);
   return { ...S, update() { S.cam.position.set(0.85, 1.25, 2.3); S.cam.lookAt(-0.4, 0.8, -1.2); S.cam.fov = 40; S.cam.updateProjectionMatrix(); return ''; } };
+} });
+
+
+// ================= D：VAIENCE型「もしも人前でキスすると」（夜の交差点、群衆が一斉に見る）
+T.push({ build() {
+  const S = makeScene({ bg: '#05060c', hemi: 0.35, sky: '#4a5a9a', ground: '#1a0a10', exposure: 1.35, bloom: 0.5, bloomTh: 0.8, fov: 30, fog: ['#0a0614', 10, 34] });
+  const s = S.s;
+  const road = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshStandardMaterial({ color: '#15151c', roughness: .18, metalness: .6 })); road.rotation.x = -Math.PI / 2; road.receiveShadow = true; s.add(road);
+  for (let i = -6; i <= 6; i++) box(s, 0.5, 0.01, 4, glow('#d8d8e0', .25), i * 0.9, 0.006, -1.5);   // 横断歩道
+  // ネオンのビル
+  const r = rng(11); const neon = ['#ff2a5a', '#2ad8ff', '#ffb02a', '#b34aff', '#ff3a2a'];
+  for (let i = 0; i < 18; i++) { const x = -14 + i * 1.7 + r() * .6, z = -9 - r() * 6, h = 5 + r() * 9; box(s, 1.5, h, 1.5, mat('#0c0c14'), x, h / 2, z);
+    for (let k = 0; k < 3; k++) if (r() > .35) box(s, 0.9 + r() * .4, 0.35 + r() * .5, 0.05, glow(neon[(i + k) % 5], 1.2 + r()), x, 1.5 + r() * (h - 2), z + 0.8); }
+  // 2人（中央、キス）
+  const a = human(s, { top: '#1e2230', bottom: '#14161c', hair: '#120e0c' }); a.position.set(-0.17, 0, -1.2); a.rotation.y = Math.PI / 2;
+  const b = human(s, { top: '#c8202e', bottom: '#2a1418', hair: '#120e0c', hairStyle: 'long', scale: 0.95 }); b.position.set(0.17, 0, -1.2); b.rotation.y = -Math.PI / 2;
+  [a, b].forEach(h => { h.userData.head.position.z += 0.06; const ar = h.userData.arms || []; ar.forEach(x => { x.rotation.x = -1.2; x.rotation.z = 0.3; }); });
+  // 群衆（全員が2人を見る）
+  const cols = ['#3a3f4a', '#5a4a3a', '#2a3a5a', '#4a2a3a', '#6a6a70', '#2a2a2a', '#7a5a3a'];
+  const crowd = [];
+  for (let i = 0; i < 46; i++) { const ang = r() * Math.PI * 2, rad = 1.6 + r() * 4.5; const x = Math.cos(ang) * rad, z = -1.2 + Math.sin(ang) * rad; if (z > -0.4 && Math.abs(x) < 2.6) continue; if (z > 1.0) continue;
+    const h = human(s, { top: cols[i % 7], bottom: '#1a1a20', hair: r() > .5 ? '#1a1410' : '#3a2a1a', hairStyle: r() > .6 ? 'long' : 'short', scale: 0.9 + r() * .15 }); h.position.set(x, 0, z); h.rotation.y = Math.atan2(-x, -1.2 - z); crowd.push(h);
+    if (r() > .6) { const ph = box(s, 0.07, 0.13, 0.01, glow('#e8f4ff', 1.5), x * 0.94, 1.35, z + (-1.2 - z) * 0.06); ph.lookAt(0, 1.4, -1.2); } }   // スマホを向ける
+  // 上からのスポット（2人だけ）
+  const sp = new THREE.SpotLight('#ffd0e0', 60, 14, 0.28, 0.5, 1.2); sp.position.set(0, 7, 0); sp.target.position.set(0, 1.2, -1.2); sp.castShadow = true; s.add(sp, sp.target);
+  beam(s, new THREE.Vector3(0, 8, -0.6), new THREE.Vector3(0, 0, -1.2), 0.1, 1.1, '#ffd6e8', 0.04);
+  lamp(s, '#ff2a5a', 6, 9, -3, 2.5, -4, false); lamp(s, '#2ad8ff', 6, 9, 3, 2.5, -4, false); lamp(s, '#ffe8f0', 3, 8, 0.5, 2.2, 2.0, false);
+  dust(s, 400, [-3, 3, 0.3, 5, -4, 1], '#ffe0f0', 0.025, 0.5, 2);
+  return { ...S, update() { S.cam.position.set(0.7, 1.45, 4.6); S.cam.lookAt(0.1, 1.3, -1.6); return ''; } };
 } });
 
 export const SCENES = T;
