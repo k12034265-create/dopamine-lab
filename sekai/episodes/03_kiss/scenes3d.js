@@ -4,6 +4,15 @@ import { PAL, dataTex, D, room, windowPane, bookshelf, desk, chair, deskLamp, pl
 import { theater, office, washitsu, street, label } from './proto3d.js';
 
 // ---------- helpers ----------
+// 3Dの面には文字を描かない。文字・グラフは正面向きの平らなカード（HTML）で見せる
+let CUR = [];
+const FR = { chalk: 'border:12px solid #5b4330;', screen: 'border:10px solid #15171b;', phone: 'border:14px solid #111317;', paper: '' };
+const cardImg = (cv, x, y, w, fr = '', rad = 12) => `<img src="${cv.toDataURL('image/jpeg', 0.92)}" style="position:absolute;left:${x}px;top:${y}px;width:${w}px;${fr}border-radius:${rad}px;box-shadow:0 18px 50px rgba(0,0,0,.6)">`;
+function twin(w, h, theme, draw, lay = {}) {
+  const tex = dataTex(w, h, theme, draw), blank = theme === 'phone' ? canvasTex(64, 128, (g, W, H) => { const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#2a2f3a'); gr.addColorStop(1, '#0c0e12'); g.fillStyle = gr; g.fillRect(0, 0, W, H); }) : dataTex(w, h, theme, () => {});
+  CUR.push(t => (lay.show && !lay.show(t)) ? '' : cardImg(tex.image, lay.x ?? 100, lay.y ?? 96, lay.w ?? 1040, FR[theme] || '', theme === 'phone' ? 40 : 12));
+  return { tex, blank };
+}
 function shots(cam, t, dur, list) {
   let i = 0; while (i + 1 < list.length && t >= list[i + 1][0]) i++;
   const [t0, a, b, la, lb, fov] = list[i]; const t1 = i + 1 < list.length ? list[i + 1][0] : dur;
@@ -24,8 +33,8 @@ function lab(drawBoard, o = {}) {
   room(s, { w: 13, d: 9, wall: '#6b6254', floor: '#7a5e46' });
   windowPane(s, 4.3, 2.5, -4.38, 2.2, 1.9, o.sky || 'dusk');
   bookshelf(s, -5.0, -4.1, 0, { seed: 3 }); bookshelf(s, -3.3, -4.1, 0, { seed: 8 });
-  const tex = dataTex(1600, 900, 'chalk', drawBoard);
-  board(s, 4.4, 2.48, tex, 0.4, 2.35, -4.35, 0, { tray: true });
+  const { tex, blank } = twin(1600, 900, 'chalk', drawBoard, o.card);
+  board(s, 4.4, 2.48, blank, 0.4, 2.35, -4.35, 0, { tray: true });
   desk(s, -1.6, -2.2, 0.15, { w: 2.0 }); chair(s, -1.6, -1.4, Math.PI + 0.15);
   const gl = globe(s, -2.3, 1.18, -2.3, 0.33, worldTex(o.dots || [])); deskLamp(s, -0.9, 0.79, -2.5, { i: 5 });
   plant(s, 5.6, -3.7, 1.3);
@@ -67,8 +76,8 @@ function biolab(drawScreen, o = {}) {
   const s = S.s;
   room(s, { w: 12, d: 9, wall: '#4a5664', floor: '#56606a' });
   box(s, 6, 0.08, 1.2, mat('#d9dde2'), 0, 0.92, -3.4); box(s, 6, 0.9, 1.1, mat('#5a6470'), 0, 0.45, -3.4);
-  const tex = dataTex(1600, 900, 'screen', drawScreen);
-  board(s, 2.6, 1.46, tex, 0.4, 1.95, -3.75, 0, { monitor: true, frame: false, glow: 1.0 });
+  const { tex, blank } = twin(1600, 900, 'screen', drawScreen, o.card);
+  board(s, 2.6, 1.46, blank, 0.4, 1.95, -3.75, 0, { monitor: true, frame: false, glow: 0.6 });
   const m = mat('#e8ecf0', { m: .2, r: .4 }); box(s, 0.3, 0.05, 0.4, m, -1.8, 0.98, -3.3); cyl(s, 0.03, 0.03, 0.5, m, -1.8, 1.22, -3.45, 8);
   const tube = cyl(s, 0.05, 0.05, 0.35, mat('#2a2f36'), -1.8, 1.38, -3.3, 10); tube.rotation.x = 0.5;
   for (let i = 0; i < 4; i++) { const x = 1.8 + (i % 2) * 0.35, z = -3.2 + Math.floor(i / 2) * 0.32; cyl(s, 0.14, 0.14, 0.03, new THREE.MeshStandardMaterial({ color: '#dff5ff', transparent: true, opacity: .55 }), x, 0.97, z, 20); cyl(s, 0.12, 0.12, 0.012, glow(['#ff8a3d', '#3dc6c1', '#c98af0', '#f0d36a'][i], 0.8), x, 0.965, z, 20); }
@@ -110,12 +119,12 @@ function filmset(o = {}) {
   return { S, s, people };
 }
 function editroom() {
-  const S = makeScene({ bg: '#15120e', hemi: 0.6, exposure: 1.4, bloom: 0.4, bloomTh: 0.9, fov: 32 });
+  const S = makeScene({ bg: '#15120e', hemi: 0.6, exposure: 1.25, bloom: 0.25, bloomTh: 0.95, fov: 32 });
   const s = S.s;
   room(s, { w: 10, d: 8, wall: '#5a4e42', floor: '#3a2e24' });
   desk(s, 0, -2.2, 0, { w: 3.0, d: 1.2 });
-  box(s, 1.6, 0.04, 0.8, glow('#fff3dc', 0.3), 0, 0.81, -2.2);
-  lamp(s, '#ffe7c0', 5, 4, 0, 1.4, -2.0, false);
+  box(s, 1.6, 0.04, 0.8, mat('#3a3028'), 0, 0.81, -2.2);
+  lamp(s, '#ffe7c0', 2.5, 4, 0, 1.4, -2.0, false);
   for (const [x, z] of [[-1.2, -2.4], [1.25, -2.4]]) { cyl(s, 0.32, 0.32, 0.04, mat('#9aa0a6', { m: .7, r: .3 }), x, 0.85, z, 24); for (let k = 0; k < 6; k++) box(s, 0.05, 0.05, 0.5, mat('#3a3a3a'), x, 0.875, z, k * Math.PI / 6); cyl(s, 0.22, 0.22, 0.045, mat('#1a1410'), x, 0.86, z, 24); }
   const sc = new THREE.Group(); s.add(sc); sc.position.set(0.9, 0.84, -1.75);
   box(sc, 0.32, 0.01, 0.03, mat('#cfd3d8', { m: .8, r: .2 }), 0.12, 0, 0).rotation.y = 0.15; box(sc, 0.32, 0.01, 0.03, mat('#cfd3d8', { m: .8, r: .2 }), 0.12, 0.01, 0).rotation.y = -0.15;
@@ -132,7 +141,7 @@ SC.push({ build: theater }, { build: office }, { build: washitsu }, { build: str
 // 4 第1章：地球儀に168の点
 SC.push({ build() {
   const dots = []; const r = rng(168); for (let i = 0; i < 168; i++) dots.push([0.08 + r() * 0.85, 0.15 + r() * 0.65, '#ffcf6b', 5]);
-  const L = lab((g, W, H, T) => { D.title(g, T, 80, 120, '168の文化を調べた', 64); D.text(g, T, 80, 200, '2015年　アメリカの研究チーム', 40, { color: T.dim }); D.text(g, T, 80, 330, '問い：恋人同士のキスはあるか？', 52, { color: T.accent }); }, { dots });
+  const L = lab((g, W, H, T) => { D.title(g, T, 80, 120, '168の文化を調べた', 64); D.text(g, T, 80, 200, '2015年　アメリカの研究チーム', 40, { color: T.dim }); D.text(g, T, 80, 330, '問い：恋人同士のキスはあるか？', 52, { color: T.accent }); }, { dots, card: { show: t => t > 3.4 && t < 5, w: 900, y: 120 } });
   const tex = L.globe.userData.sphere.material.map;
   return { ...L.S, update(t, dur) { L.tex.redraw(); if (tex.redraw) tex.redraw(clamp((t - 3) / 5)); L.globe.rotation.y = t * 0.12;
     shots(L.S.cam, t, dur, [[0, [-0.4, 1.9, 2.6], [-1.0, 1.6, 0.8], [-2.0, 1.3, -2.4], [-2.2, 1.2, -2.3], 34], [5.0, [-1.4, 1.4, -0.9], [-1.7, 1.35, -1.25], [-2.3, 1.2, -2.3], [-2.3, 1.2, -2.3], 30]]);
@@ -253,15 +262,15 @@ SC.push({ build() {
 // 16 男性59% 女性66%
 SC.push({ build() {
   const C = cafe({ people: [{ pose: 'sit', at: [-0.62, 0, -1.5], ry: Math.PI / 2, top: '#c0574a', hairStyle: 'long', hair: '#3a2418' }], chairs: [[-0.6, -1.5, Math.PI / 2]] });
-  const tx = dataTex(640, 1360, 'phone', (g, W, H, T, k = 0) => { D.text(g, T, 40, 90, 'アンケート結果', 44); D.text(g, T, 40, 150, '最初のキスで冷めた経験', 30, { color: T.dim });
-    D.vbars(g, T, 80, 260, 480, 800, [{ label: '男性', v: 59, c: T.accent2, txt: '59%' }, { label: '女性', v: 66, c: T.accent, txt: '66%' }], 80, k, { gap: 100, ls: 38, vs: 60 }); });
-  const ph = phone(C.s, tx, 0.0, 1.05, -1.3, 1.2); ph.rotation.x = -0.9; ph.rotation.y = -0.4;
+  const { tex: tx, blank: txb } = twin(640, 1360, 'phone', (g, W, H, T, k = 0) => { D.text(g, T, 40, 90, 'アンケート結果', 44); D.text(g, T, 40, 150, '最初のキスで冷めた経験', 30, { color: T.dim });
+    D.vbars(g, T, 80, 260, 480, 800, [{ label: '男性', v: 59, c: T.accent2, txt: '59%' }, { label: '女性', v: 66, c: T.accent, txt: '66%' }], 80, k, { gap: 100, ls: 38, vs: 60 }); }, { x: 1440, y: 70, w: 360 });
+  const ph = phone(C.s, txb, 0.0, 1.05, -1.3, 1.2); ph.rotation.x = -0.9; ph.rotation.y = -0.4;
   return { ...C.S, update(t, dur) { tx.redraw(clamp((t - 0.8) / 4)); shots(C.S.cam, t, dur, [[0, [0.75, 1.85, 0.0], [0.55, 1.75, -0.35], [0.0, 1.05, -1.3], [0.0, 1.05, -1.3], 32], [4.8, [1.2, 1.5, 0.6], [0.9, 1.45, 0.2], [-0.3, 1.0, -1.4], [-0.3, 1.0, -1.4], 34]]);
     return (t > 4.8 ? label(110, 120, 'たった一度のキスが、恋を終わらせる', { serif: 1, size: 50, op: clamp((t - 5) / .5) }) : '') + note('Hughes, Harrison & Gallup (2007)'); } }; } });
 
 // 17 天秤
 SC.push({ build() {
-  const L = lab(() => {}, {});
+  const L = lab(() => {}, { card: { show: () => false } });
   const s = L.s; const bal = new THREE.Group(); bal.position.set(-1.6, 0.79, -2.2); s.add(bal); const br = mat('#b08a4a', { m: .7, r: .3 });
   cyl(bal, 0.12, 0.15, 0.04, br, 0, 0.02, 0, 16); cyl(bal, 0.02, 0.02, 0.6, br, 0, 0.32, 0, 8); const beamG = new THREE.Group(); beamG.position.y = 0.62; bal.add(beamG); box(beamG, 0.8, 0.025, 0.03, br, 0, 0, 0);
   const pans = [-1, 1].map(sx => { const pg = new THREE.Group(); pg.position.x = sx * 0.38; beamG.add(pg); cyl(pg, 0.004, 0.004, 0.25, br, 0, -0.125, 0, 4); cyl(pg, 0.12, 0.09, 0.03, br, 0, -0.26, 0, 16); return pg; });
@@ -314,7 +323,7 @@ SC.push({ build() {
     D.text(g, T, 800, 520, '≠', 140, { align: 'center', color: T.fg, a: clamp(k * 2) }); D.text(g, T, 800, 820, '自分と違う遺伝子の相手を、鼻で選ぶ？', 44, { align: 'center', color: T.dim }); },
     { people: [{ at: [-1.2, 0, -2.4], ry: 0.3, top: '#f2f2f2', bottom: '#33384a', hairStyle: 'bun', hair: '#2a2018' }] });
   return { ...B.S, update(t, dur) { B.tex.redraw(clamp(t / 6)); shots(B.S.cam, t, dur, [[0, [1.6, 1.9, 1.6], [0.9, 1.95, 0.6], [0.4, 1.9, -3.7], [0.4, 1.95, -3.7], 34], [7.7, [-2.4, 1.7, -0.6], [-2.0, 1.75, -1.0], [0.3, 1.8, -3.7], [0.3, 1.85, -3.7], 32]]);
-    return t > 7.7 ? `<div style="position:absolute;left:110px;top:120px;opacity:${clamp((t - 7.8) / .5)};border:2px solid #3dc6c1;border-radius:24px;padding:6px 22px;font-size:30px;font-weight:700;color:#3dc6c1">1本目：匂いの回</div>` : ''; } }; } });
+    return ''; } }; } });
 
 // 22 10秒で8000万個
 SC.push({ build() {
@@ -353,17 +362,19 @@ SC.push({ build() {
   return { ...L.S, update(t, dur) { L.tex.redraw(clamp((t - .5) / 3)); shots(L.S.cam, t, dur, [[0, [0.4, 2.3, 2.0], [0.4, 2.35, 0.9], [0.4, 2.35, -4.3], [0.4, 2.35, -4.3], 36]]); return ''; } }; } });
 
 // 和室の巻物（26-29, 33）
-function scrollScene(drawScroll, cam, overlay) {
-  return { build() { const W0 = washitsu(); const sc = W0.s.children.find(o => o.geometry && o.geometry.parameters && o.geometry.parameters.width === 1.4 && o.geometry.parameters.height === 0.48);
+function scrollScene(drawScroll, cam, overlay, lay = {}) {
+  return { build() { const { flat, ...W0 } = washitsu(); const sc = W0.s.children.find(o => o.geometry && o.geometry.parameters && o.geometry.parameters.width === 1.4 && o.geometry.parameters.height === 0.48);
     const tex = canvasTex(1400, 480, (g, w, h, k = 0) => { g.fillStyle = '#e9dfc4'; g.fillRect(0, 0, w, h); const r = rng(5); g.globalAlpha = .08; for (let i = 0; i < 900; i++) { g.fillStyle = '#6a5a3a'; g.fillRect(r() * w, r() * h, 3, 3); } g.globalAlpha = 1; drawScroll(g, w, h, k); });
-    if (sc) sc.material = new THREE.MeshStandardMaterial({ map: tex, roughness: .95, emissive: '#fff', emissiveMap: tex, emissiveIntensity: 0.12 });
+    const plain = canvasTex(1400, 480, (g, w, h) => { g.fillStyle = '#e9dfc4'; g.fillRect(0, 0, w, h); const r = rng(9); g.fillStyle = '#2b2520'; for (let c = 0; c < 26; c++) { const x = w - 60 - c * 50; let y = 40; while (y < h - 50) { const hh = 14 + r() * 26; g.globalAlpha = .5 + r() * .3; g.fillRect(x + r() * 6, y, 6 + r() * 8, hh); y += hh + 8 + r() * 10; } } g.globalAlpha = 1; });
+    if (sc) sc.material = new THREE.MeshStandardMaterial({ map: plain, roughness: .95, emissive: '#fff', emissiveMap: plain, emissiveIntensity: 0.12 });
+    CUR.push(t => (lay.show && !lay.show(t)) ? '' : cardImg(tex.image, lay.x ?? 160, lay.y ?? 200, lay.w ?? 1000, 'border:6px solid #6b3f22;', 6));
     return { ...W0, update(t, dur) { W0.update(t, dur); if (sc) sc.material.emissiveIntensity = 0.12; tex.redraw(clamp(t / (dur * 0.75))); shots(W0.cam, t, dur, cam); return overlay ? overlay(t, dur) : ''; } }; } };
 }
 const inkT = (g, x, y, s, size = 52, c = '#1e1a16', a = 1) => { g.globalAlpha = a; g.font = `bold ${size}px ${SERIF}`; g.fillStyle = c; g.textAlign = 'center'; g.fillText(s, x, y); g.textAlign = 'left'; g.globalAlpha = 1; };
 const camScroll = [[0, [1.6, 1.5, 1.2], [1.0, 1.35, 0.6], [0, 0.4, -0.9], [0, 0.4, -0.9], 34], [5.0, [0.3, 1.25, 0.0], [0.2, 1.15, -0.15], [0, 0.4, -0.9], [0, 0.4, -0.9], 34]];
 // 26 第3章
 SC.push(scrollScene((g, w, h, k) => { g.fillStyle = '#6a5a4a'; g.fillRect(80, 260, (w - 160) * clamp(k * 1.5), 4); if (k > .3) { g.fillStyle = '#b8261d'; g.beginPath(); g.arc(260, 262, 16, 0, Math.PI * 2); g.fill(); inkT(g, 260, 200, '898年', 56); inkT(g, 260, 340, '紀長谷雄', 40, '#4a3a2a'); inkT(g, 260, 400, '「口吸ひ」', 44, '#b8261d'); } },
-  camScroll, (t) => chapterCard(t, 'Chapter 3', '口吸いの国')));
+  camScroll, (t) => chapterCard(t, 'Chapter 3', '口吸いの国'), { show: t => t > 3.4 }));
 // 27 年表
 SC.push(scrollScene((g, w, h, k) => { g.fillStyle = '#6a5a4a'; g.fillRect(80, 260, w - 160, 4);
   [[260, '898年', '紀長谷雄'], [600, '1120年ごろ', '今昔物語'], [900, '室町時代', '御伽草子'], [1180, '江戸', '遊郭「おさしみ」']].forEach(([x, a, b], i) => { const al = i === 0 ? 1 : clamp(k * 4 - i + 0.5); if (al <= 0) return; g.globalAlpha = al; g.fillStyle = '#b8261d'; g.beginPath(); g.arc(x, 262, 14, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1; inkT(g, x, 200, a, 44, '#1e1a16', al); inkT(g, x, 340, b, 38, '#4a3a2a', al); }); },
@@ -381,7 +392,7 @@ SC.push(scrollScene((g, w, h, k) => { inkT(g, 360, 90, '書き残された', 44)
 // 30-31 春画のパネル（人物は描かない）
 function shungaPanel(kind) {
   return { build() {
-    const pt = dataTex(1600, 900, 'screen', (g, W, H, T, k = 0) => {
+    const { tex: pt, blank: ptb } = twin(1600, 900, 'screen', (g, W, H, T, k = 0) => {
       if (kind === 0) { D.title(g, T, 80, 100, '江戸の春画で、着物を着たまま描かれた割合', 50);
         D.donut(g, T, 480, 500, 220, [{ v: 80, c: T.accent }, { v: 20, c: 'rgba(255,255,255,.12)' }], k); D.text(g, T, 480, 525, '約8割', 80, { align: 'center' }); D.text(g, T, 480, 820, '男女とも', 40, { align: 'center', color: T.dim });
         D.donut(g, T, 1120, 500, 220, [{ v: 90, c: T.accent2 }, { v: 10, c: 'rgba(255,255,255,.12)' }], clamp(k * 1.2 - .2)); D.text(g, T, 1120, 525, '約9割', 80, { align: 'center' }); D.text(g, T, 1120, 820, '女性', 40, { align: 'center', color: T.dim }); }
@@ -389,8 +400,8 @@ function shungaPanel(kind) {
         for (let i = 0; i < 6; i++) { g.fillStyle = i % 2 ? '#8a2a3a' : '#2a4a6a'; g.fillRect(220 + i * 60, 220, 60, 420); } g.fillStyle = 'rgba(255,255,255,.15)'; for (let i = 0; i < 30; i++) { g.beginPath(); g.arc(220 + (i * 53) % 360, 220 + (i * 97) % 420, 12, 0, Math.PI * 2); g.fill(); }
         D.text(g, T, 400, 730, '日本：着物を着たまま', 44, { align: 'center', color: T.accent });
         g.globalAlpha = clamp(k * 2); g.fillStyle = 'rgba(232,210,180,.5)'; g.fillRect(1020, 220, 360, 420); g.globalAlpha = 1; D.text(g, T, 1200, 730, '中国：ほとんどが裸', 44, { align: 'center', color: T.dim, a: clamp(k * 2) });
-        D.text(g, T, 800, 840, '※明代後期以降の中国春画（色面のみで表現）', 26, { align: 'center', color: T.dim }); } });
-    const M = museum(it => { box(it, 0.8, 0.55, 0.04, mat('#2a1a10'), 0, 0.6, 0); plane(it, 0.72, 0.47, new THREE.MeshStandardMaterial({ map: canvasTex(256, 170, (g, w, h) => { for (let i = 0; i < 8; i++) { g.fillStyle = ['#8a2a3a', '#2a4a6a', '#c9a43a', '#3d6b4f'][i % 4]; g.fillRect(i * 32, 0, 32, h); } g.fillStyle = 'rgba(255,240,220,.25)'; for (let i = 0; i < 40; i++) { g.beginPath(); g.arc((i * 37) % w, (i * 61) % h, 6, 0, Math.PI * 2); g.fill(); } }), roughness: .9 }), 0, 0.6, 0.025); }, { panelTex: pt, wall: '#4a3a3e' });
+        D.text(g, T, 800, 840, '※明代後期以降の中国春画（色面のみで表現）', 26, { align: 'center', color: T.dim }); } }, { x: 120 });
+    const M = museum(it => { box(it, 0.8, 0.55, 0.04, mat('#2a1a10'), 0, 0.6, 0); plane(it, 0.72, 0.47, new THREE.MeshStandardMaterial({ map: canvasTex(256, 170, (g, w, h) => { for (let i = 0; i < 8; i++) { g.fillStyle = ['#8a2a3a', '#2a4a6a', '#c9a43a', '#3d6b4f'][i % 4]; g.fillRect(i * 32, 0, 32, h); } g.fillStyle = 'rgba(255,240,220,.25)'; for (let i = 0; i < 40; i++) { g.beginPath(); g.arc((i * 37) % w, (i * 61) % h, 6, 0, Math.PI * 2); g.fill(); } }), roughness: .9 }), 0, 0.6, 0.025); }, { panelTex: ptb, wall: '#4a3a3e' });
     return { ...M.S, update(t, dur) { pt.redraw(clamp((t - 0.6) / 4)); shots(M.S.cam, t, dur, kind === 0 ? [[0, [3.6, 2.0, -1.2], [3.1, 2.1, -2.6], [3.0, 2.2, -5.8], [3.0, 2.2, -5.8], 34]] : [[0, [1.5, 2.1, 0.0], [2.8, 2.2, -3.0], [3.0, 2.2, -5.8], [3.0, 2.2, -5.8], 36]]);
       return note('鈴木堅弘「春画と衣装」日文研'); } }; } };
 }
@@ -398,14 +409,16 @@ SC.push(shungaPanel(0), shungaPanel(1));
 
 // 32 明治：洋書と「接吻」
 SC.push({ build() {
-  const S = makeScene({ bg: '#2a2018', hemi: 0.7, exposure: 1.45, bloom: 0.6, bloomTh: 0.8, fov: 32 });
+  const S = makeScene({ bg: '#2a2018', hemi: 0.6, exposure: 1.2, bloom: 0.4, bloomTh: 0.9, fov: 32 });
   const s = S.s; room(s, { w: 10, d: 8, wall: '#7a6450', floor: '#5a4030' }); windowPane(s, 2.6, 2.3, -3.88, 1.8, 2.0, 'day', { frame: '#e8e0d0' });
   desk(s, 0, -2.0, 0, { w: 2.2 }); deskLamp(s, -0.8, 0.79, -2.3, { i: 4, metal: '#8a7a5a' }); bookshelf(s, -3.6, -3.6, 0, { seed: 12 });
   const bt = canvasTex(1024, 640, (g, w, h, k = 0) => { g.fillStyle = '#efe6d0'; g.fillRect(0, 0, w, h); g.fillStyle = '#8a7a64'; g.fillRect(w / 2 - 2, 0, 4, h);
     g.font = `italic 34px Georgia,serif`; g.fillStyle = '#3a2e24'; ['CHAPTER IV', 'and then he', 'gave her a', 'tender KISS', 'upon the lips...'].forEach((s0, i) => g.fillText(s0, 60, 90 + i * 60));
     g.font = `bold 120px ${SERIF}`; g.globalAlpha = clamp(k); g.fillStyle = '#b8261d'; g.fillText('接吻', 600, 360); g.font = `40px ${SERIF}`; g.fillText('＝ キス', 640, 440); g.globalAlpha = 1; });
-  paperOn(s, 0.9, 0.56, bt, 0.1, 0.8, -1.9, -0.05);
-  sun(s, '#fff1d6', 1.8, 3, 6, -6, 6);
+  const btb = canvasTex(1024, 640, (g, w, h) => { g.fillStyle = '#c4b89e'; g.fillRect(0, 0, w, h); g.fillStyle = '#8a7a64'; g.fillRect(w / 2 - 2, 0, 4, h); g.fillStyle = 'rgba(58,46,36,.35)'; for (let i = 0; i < 9; i++) { g.fillRect(60, 70 + i * 60, 380, 10); g.fillRect(580, 70 + i * 60, 380, 10); } });
+  paperOn(s, 0.9, 0.56, btb, 0.1, 0.8, -1.9, -0.05);
+  CUR.push(t => cardImg(bt.image, 980, 330, 820, '', 8));
+  sun(s, '#fff1d6', 1.1, 3, 6, -6, 6);
   return { ...S, update(t, dur) { bt.redraw(clamp((t - 4.0) / 1)); shots(S.cam, t, dur, [[0, [1.8, 1.7, 0.8], [1.0, 1.5, 0.0], [0, 0.8, -1.9], [0.1, 0.8, -1.9], 34], [4.4, [0.3, 1.45, -1.3], [0.2, 1.35, -1.45], [0.1, 0.8, -1.9], [0.1, 0.8, -1.9], 32]]);
     return t < 4.4 ? big(110, 140, '明治', { size: 68, op: clamp((t - .4) / .5) }) + label(116, 240, '「愛の象徴」としてのキスが入ってくる', { size: 34, op: clamp((t - 1) / .5), w: 500 }) : `<div style="position:absolute;left:0;top:0;width:1100px;height:240px;background:linear-gradient(90deg,rgba(10,6,4,.85) 40%,rgba(10,6,4,0))"></div>` + label(110, 120, '1887年ごろ「接吻」が広まる', { serif: 1, size: 52, color: '#ff8a3d', op: clamp((t - 4.5) / .5) }); } }; } });
 
@@ -418,13 +431,15 @@ SC.push(scrollScene((g, w, h, k) => { g.font = `italic 40px Georgia,serif`; g.fi
 SC.push({ build() {
   const E = editroom(); const s = E.s;
   const ft = canvasTex(1600, 260, (g, w, h, k = 0) => { g.fillStyle = '#1a1612'; g.fillRect(0, 0, w, h); for (let i = 0; i < 40; i++) { g.fillStyle = '#d8d0c0'; g.fillRect(i * 40 + 8, 12, 22, 22); g.fillRect(i * 40 + 8, h - 34, 22, 22); }
-    for (let f = 0; f < 6; f++) { const x = 40 + f * 260; g.fillStyle = '#cfc6b4'; g.fillRect(x, 50, 220, 160); g.fillStyle = '#2a2622'; if (f === 3 || f === 4) { g.beginPath(); g.arc(x + 80, 120, 34, 0, Math.PI * 2); g.arc(x + 140, 120, 34, 0, Math.PI * 2); g.fill(); g.fillRect(x + 50, 150, 120, 60); } else { g.beginPath(); g.arc(x + 110, 110, 26, 0, Math.PI * 2); g.fill(); } }
+    for (let f = 0; f < 6; f++) { const x = 40 + f * 260; g.fillStyle = '#9c917e'; g.fillRect(x, 50, 220, 160); g.fillStyle = '#2a2622'; if (f === 3 || f === 4) { g.beginPath(); g.arc(x + 80, 120, 34, 0, Math.PI * 2); g.arc(x + 140, 120, 34, 0, Math.PI * 2); g.fill(); g.fillRect(x + 50, 150, 120, 60); } else { g.beginPath(); g.arc(x + 110, 110, 26, 0, Math.PI * 2); g.fill(); } }
     const c = clamp(k); if (c > .4) { g.fillStyle = '#1a1612'; g.fillRect(40 + 3 * 260 - 20, 0, 520 * clamp((c - .4) * 3), h); }
-    if (c > .7) { g.save(); g.translate(1100, 140); g.rotate(-0.15); g.globalAlpha = clamp((c - .7) * 4); g.strokeStyle = '#c0261e'; g.lineWidth = 8; g.strokeRect(-130, -70, 260, 140); g.fillStyle = '#c0261e'; g.font = `bold 96px ${SERIF}`; g.textAlign = 'center'; g.fillText('風俗', 0, 34); g.restore(); } });
-  const strip = plane(s, 1.6, 0.26, new THREE.MeshStandardMaterial({ map: ft, roughness: .7, emissive: '#fff', emissiveMap: ft, emissiveIntensity: 0.25 }), 0, 0.845, -2.2); strip.rotation.x = -Math.PI / 2;
+  });
+  const strip = plane(s, 1.6, 0.26, new THREE.MeshStandardMaterial({ map: ft, roughness: .7, emissive: '#fff', emissiveMap: ft, emissiveIntensity: 0.08 }), 0, 0.845, -2.2); strip.rotation.x = -Math.PI / 2;
   return { ...E.S, update(t, dur) { ft.redraw(clamp((t - 2) / 8)); const c = clamp((t - 3) / 3); E.scissors.position.set(lerp(0.9, 0.25, ease(c)), 0.86, lerp(-1.75, -2.1, ease(c))); E.scissors.rotation.y = Math.sin(t * 8) * 0.15 * (c > 0 && c < 1 ? 1 : 0);
     shots(E.S.cam, t, dur, [[0, [1.4, 1.7, 0.4], [0.9, 1.6, -0.4], [0, 0.82, -2.2], [0.1, 0.82, -2.2], 34], [7.3, [0.35, 1.35, -1.5], [0.3, 1.3, -1.7], [0.3, 0.82, -2.2], [0.3, 0.82, -2.2], 30]]);
-    return big(110, 140, '戦前の映画検閲', { size: 60, op: clamp((t - .4) / .5) }) + label(116, 230, '抱き合う場面・同じ寝床の場面を切除', { size: 32, op: clamp((t - 1) / .5), w: 500 }) + note('国立映画アーカイブ「内務省 切除フィルム」'); } }; } });
+    const sa = clamp((t - 7.6) / .3);
+    return big(110, 140, '戦前の映画検閲', { size: 60, op: clamp((t - .4) / .5) }) + label(116, 230, '抱き合う場面・同じ寝床の場面を切除', { size: 32, op: clamp((t - 1) / .5), w: 500 }) + note('国立映画アーカイブ「内務省 切除フィルム」')
+      + `<div style="position:absolute;left:0;right:0;top:380px;text-align:center;opacity:${sa}"><span class="serif" style="display:inline-block;border:10px solid #c0261e;color:#c0261e;font-size:130px;font-weight:900;padding:0 36px;transform:rotate(-8deg) scale(${1.4 - 0.4 * easeOut(clamp((t - 7.6) / .3))});background:rgba(255,250,240,.9)">風俗</span></div>`; } }; } });
 
 // 35 スクリーンに「風俗」
 SC.push({ build() { const T0 = theater();
@@ -478,17 +493,17 @@ SC.push({ build() {
 const couple = [{ pose: 'sit', at: [-1.0, 0, -2.25], ry: 0.15, top: '#7a8a9a' }, { pose: 'sit', at: [-0.25, 0, -2.25], ry: -0.15, top: '#c08a6a', hairStyle: 'long', hair: '#3a2418' }];
 SC.push({ build() {
   const Lv = living({ people: couple });
-  const tx = dataTex(640, 1360, 'phone', (g, W, H, T, k = 0) => { D.text(g, T, 40, 90, 'パートナーとキスする？', 40); D.text(g, T, 40, 150, '20〜50代 既婚 200人', 28, { color: T.dim });
-    D.donut(g, T, 320, 620, 200, [{ v: 56, c: T.accent }, { v: 44, c: '#d8d8de' }], k); D.text(g, T, 320, 650, '56%', 96, { align: 'center', color: T.accent }); D.text(g, T, 320, 1000, 'キスをする', 44, { align: 'center' }); D.text(g, T, 320, 1260, '2023年 民間調査', 26, { align: 'center', color: T.dim }); });
-  const ph = phone(Lv.s, tx, 0.6, 1.0, -1.2, 1.3); ph.rotation.y = -0.5; ph.rotation.x = -0.2;
+  const { tex: tx, blank: txb } = twin(640, 1360, 'phone', (g, W, H, T, k = 0) => { D.text(g, T, 40, 90, 'パートナーとキスする？', 40); D.text(g, T, 40, 150, '20〜50代 既婚 200人', 28, { color: T.dim });
+    D.donut(g, T, 320, 620, 200, [{ v: 56, c: T.accent }, { v: 44, c: '#d8d8de' }], k); D.text(g, T, 320, 650, '56%', 96, { align: 'center', color: T.accent }); D.text(g, T, 320, 1000, 'キスをする', 44, { align: 'center' }); D.text(g, T, 320, 1260, '2023年 民間調査', 26, { align: 'center', color: T.dim }); }, { x: 1420, y: 90, w: 360 });
+  const ph = phone(Lv.s, txb, 0.6, 1.0, -1.2, 1.3); ph.rotation.y = -0.5; ph.rotation.x = -0.2;
   return { ...Lv.S, update(t, dur) { tx.redraw(clamp((t - 3.3) / 2.5)); shots(Lv.S.cam, t, dur, [[0, [1.8, 1.6, 2.2], [1.2, 1.5, 1.2], [-0.6, 0.9, -2.2], [-0.4, 0.95, -2.0], 36], [3.3, [1.55, 1.25, 0.25], [1.4, 1.2, 0.0], [0.6, 1.0, -1.2], [0.6, 1.0, -1.2], 32]]); return note('リベルタ「デンティス」調査 (2023) N=200'); } }; } });
 
 // 43 頻度
 SC.push({ build() {
   const Lv = living({ people: couple });
-  const tx = dataTex(1600, 900, 'screen', (g, W, H, T, k = 0) => { D.title(g, T, 80, 100, 'キスをする夫婦のうち', 50);
+  const { tex: tx, blank: txb } = twin(1600, 900, 'screen', (g, W, H, T, k = 0) => { D.title(g, T, 80, 100, 'キスをする夫婦のうち', 50);
     D.hbars(g, T, 640, 230, 760, [{ label: '週に1回以上', v: 73, txt: '73%' }, { label: '毎日', v: 30, txt: '約30%', c: T.accent2 }, { label: '結婚15年以上でも', v: 46, txt: '46%', c: '#c98af0' }], 100, k, { bh: 90, gap: 80, ls: 44, vs: 52 }); });
-  board(Lv.s, 2.4, 1.35, tx, -0.6, 1.9, -4.35, 0, { monitor: true, frame: false, glow: 1.0 });
+  board(Lv.s, 2.4, 1.35, txb, -0.6, 1.9, -4.35, 0, { monitor: true, frame: false, glow: 0.6 });
   return { ...Lv.S, update(t, dur) { tx.redraw(clamp((t - .4) / 8)); shots(Lv.S.cam, t, dur, [[0, [-0.6, 1.5, 2.4], [-0.6, 1.7, 1.2], [-0.6, 1.6, -4.3], [-0.6, 1.8, -4.3], 34]]); return note('リベルタ「デンティス」調査 (2023)'); } }; } });
 
 // 44 家の窓
@@ -503,23 +518,33 @@ SC.push({ build() {
   const lip = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.028, 8, 18), glow('#e0564b', .6)); lip.scale.y = .55; lip.position.set(-3.8, y + 0.1, -4.0); s.add(lip);
   lamp(s, '#ffd9a0', 3, 3, -4.4, 2.6, -3.4, false);
   return { ...Lv.S, update(t, dur) { [per, key, lip].forEach((o, i) => o.rotation.y = Math.sin(t * .6 + i) * .3); shots(Lv.S.cam, t, dur, [[0, [-3.3, 2.3, -1.6], [-3.7, 2.2, -2.4], [-4.4, 1.9, -4.0], [-4.4, 1.9, -4.0], 32]]);
-    const L0 = (x, s0, a) => label(x, 860, s0, { size: 34, op: a }); return L0(340, '1本目：匂いを消す', clamp((t - .3) / .5)) + L0(780, '2本目：家の外のホテル', clamp((t - 2.3) / .5)) + L0(1260, '3本目：人前で見せない', clamp((t - 5.9) / .5)); } }; } });
+    const L0 = (x, s0, a) => label(x, 860, s0, { size: 34, op: a }); return L0(380, '匂いを消す', clamp((t - .3) / .5)) + L0(800, '家の外のホテル', clamp((t - 2.3) / .5)) + L0(1260, '人前で見せない', clamp((t - 5.9) / .5)); } }; } });
 
-// 46 引き出しにしまう
+// 46 引き出しにしまう（開いた引き出しに3つの小物 → 閉まる）
 SC.push({ build() {
-  const S = makeScene({ bg: '#2a2018', hemi: 0.7, exposure: 1.5, bloom: 0.6, bloomTh: 0.8, fov: 30 });
+  const S = makeScene({ bg: '#2a2018', hemi: 0.7, exposure: 1.45, bloom: 0.5, bloomTh: 0.85, fov: 30 });
   const s = S.s; room(s, { w: 8, d: 6, wall: '#6a5a4c', floor: '#4a3626' });
-  box(s, 1.6, 0.9, 0.7, mat('#5a3e2b'), 0, 0.45, -1.8); const dr = new THREE.Group(); s.add(dr); box(dr, 1.4, 0.3, 0.6, mat('#6b4a33'), 0, 0.7, -1.7); box(dr, 0.3, 0.04, 0.04, mat('#c9a43a', { m: .7 }), 0, 0.72, -1.38);
-  const items = new THREE.Group(); dr.add(items); box(items, 0.12, 0.16, 0.08, new THREE.MeshStandardMaterial({ color: '#f0c0a0', transparent: true, opacity: .7 }), -0.35, 0.92, -1.6); box(items, 0.1, 0.18, 0.02, mat('#8a2a2a'), 0, 0.93, -1.6);
-  const lip = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.022, 8, 16), glow('#e0564b', .6)); lip.scale.y = .55; lip.position.set(0.35, 0.92, -1.6); items.add(lip);
-  deskLamp(s, 0.6, 0.9, -2.0, { i: 4 });
-  return { ...S, update(t, dur) { const c = ease(clamp((t - 1.2) / 2.5)); dr.position.z = lerp(0.45, 0, c); items.position.y = lerp(0, -0.18, c);
-    shots(S.cam, t, dur, [[0, [0.9, 1.7, 0.6], [0.6, 1.6, 0.2], [0, 0.8, -1.6], [0, 0.75, -1.7], 30]]);
+  const wd = mat('#5a3e2b', { r: .5 }), wd2 = mat('#6b4a33', { r: .5 });
+  box(s, 1.6, 0.9, 0.7, wd, 0, 0.45, -1.8);                                  // 本体（前面 z=-1.45）
+  box(s, 1.66, 0.04, 0.74, mat('#4a3020'), 0, 0.92, -1.8);                    // 天板
+  const dr = new THREE.Group(); s.add(dr);
+  box(dr, 1.4, 0.3, 0.04, wd2, 0, 0.62, -1.43);                               // 前板
+  box(dr, 0.3, 0.035, 0.04, mat('#c9a43a', { m: .7, r: .3 }), 0, 0.64, -1.40); // 取っ手
+  box(dr, 1.3, 0.02, 0.6, mat('#3a281c'), 0, 0.5, -1.75);                     // 底板
+  box(dr, 0.02, 0.2, 0.6, wd2, -0.65, 0.6, -1.75); box(dr, 0.02, 0.2, 0.6, wd2, 0.65, 0.6, -1.75); box(dr, 1.3, 0.2, 0.02, wd2, 0, 0.6, -2.05);
+  const it = new THREE.Group(); dr.add(it);
+  box(it, 0.12, 0.16, 0.08, new THREE.MeshStandardMaterial({ color: '#f0c0a0', transparent: true, opacity: .75, roughness: .1 }), -0.35, 0.59, -1.72);
+  cyl(it, 0.025, 0.025, 0.05, mat('#c9a43a', { m: .7 }), -0.35, 0.69, -1.72, 8);
+  const key = box(it, 0.1, 0.17, 0.02, mat('#8a2a2a'), 0.0, 0.52, -1.72); key.rotation.x = -Math.PI / 2;
+  const lip = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.022, 8, 16), glow('#e0564b', .6)); lip.scale.y = .55; lip.rotation.x = -Math.PI / 2; lip.position.set(0.35, 0.53, -1.72); it.add(lip);
+  deskLamp(s, 0.6, 0.94, -2.0, { i: 4 });
+  return { ...S, update(t, dur) { const c = ease(clamp((t - 1.2) / 2.5)); dr.position.z = lerp(0.42, 0, c);
+    shots(S.cam, t, dur, [[0, [0.7, 1.75, 0.5], [0.5, 1.65, 0.2], [0, 0.55, -1.6], [0, 0.6, -1.7], 32]]);
     return label(110, 780, '見えない場所に、しまってきた', { serif: 1, size: 52, op: clamp((t - 3.0) / .5) }); } }; } });
 
 // 47 巻物の「口吸ふ」がもう一度灯る
 SC.push({ build() { const W0 = washitsu(); return { ...W0, update(t, dur) { W0.update(4.5 + t, 12); shots(W0.cam, t, dur, [[0, [0.35, 1.25, 0.15], [0.15, 1.05, -0.2], [0, 0.4, -0.9], [0, 0.4, -0.9], 32]]);
-  return label(110, 120, '千年前、口吸いは恋の歌には詠まれなかった', { serif: 1, size: 44, op: clamp((t - .4) / .5) }) + label(116, 200, 'それでも、こっそり書き残されていた', { size: 34, op: clamp((t - 3.6) / .5), w: 500 }); } }; } });
+  return label(150, 560, '千年前、口吸いは恋の歌には詠まれなかった', { serif: 1, size: 44, op: clamp((t - .4) / .5) }) + label(156, 640, 'それでも、こっそり書き残されていた', { size: 34, op: clamp((t - 3.6) / .5), w: 500 }); } }; } });
 
 // 48 夜の窓の2人
 SC.push({ build() { const St = street(); return { ...St, update(t, dur) { St.update(Math.min(1.5 + t * 0.45, 5), 8); shots(St.cam, t, dur, [[0, [-3.2, 2.9, -9.5], [-4.0, 3.0, -11.2], [-5.25, 3.0, -13.55], [-5.3, 3.0, -13.55], 34]]);
@@ -533,4 +558,8 @@ SC.push({ build() { const St = street(); return { ...St, update(t, dur) { St.upd
       <div style="display:inline-block;margin-top:40px;background:#ff8a3d;color:#111;font-size:38px;font-weight:700;padding:16px 50px;border-radius:50px;opacity:${clamp((t - 2) / .6)}">チャンネル登録</div>
       <div style="font-size:26px;color:rgba(255,255,255,.7);margin-top:40px;opacity:${clamp((t - 3) / .6)}">音声：VOICEVOX:青山龍星</div></div>`; } }; } });
 
-export const SCENES = SC;
+export const SCENES = SC.map(sc => ({ build() {
+  CUR = []; const b = sc.build(); const cs = CUR; CUR = [];
+  if (b.flat) cs.push(b.flat);
+  return { ...b, update(t, d) { const h = b.update(t, d) || ''; return cs.map(f => f(t)).join('') + h; } };
+} }));

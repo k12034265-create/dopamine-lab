@@ -100,7 +100,7 @@ function office() {
   box(s, 0.8, 0.22, 0.55, mat('#1d1f22', { m: .3, r: .5 }), -1.0, 1.16, -0.35); box(s, 0.75, 0.12, 0.2, mat('#121315'), -1.0, 1.3, -0.55); cyl(s, 0.05, 0.05, 0.85, mat('#0c0c0c'), -1.0, 1.36, -0.55).rotation.z = Math.PI / 2;
   // folders + stamp
   box(s, 0.7, 0.05, 0.5, mat('#c9b07a'), 0.6, 1.08, -0.3, 0.15);
-  const stampTex = canvasTex(256, 128, (g, w, h) => { g.strokeStyle = '#b23a2e'; g.lineWidth = 6; g.strokeRect(10, 10, w - 20, h - 20); g.fillStyle = '#b23a2e'; g.font = `bold 52px ${SANS}`; g.textAlign = 'center'; g.fillText('C I E', w / 2, 84); });
+  const stampTex = canvasTex(256, 128, (g, w, h) => { g.strokeStyle = '#b23a2e'; g.lineWidth = 6; g.strokeRect(10, 10, w - 20, h - 20); });
   const st = plane(s, 0.34, 0.17, new THREE.MeshStandardMaterial({ map: stampTex, transparent: true, roughness: .9 }), 0.62, 1.111, -0.3); st.rotation.x = -Math.PI / 2; st.rotation.z = -0.15;
   // script paper (animated red pen)
   const paperTex = canvasTex(900, 1200, (g, w, h, k = 0) => {
@@ -114,14 +114,16 @@ function office() {
     if (p > 0) { g.strokeStyle = '#c0261e'; g.lineWidth = 8; g.lineCap = 'round'; g.beginPath(); g.ellipse(430, 680, 330, 120, -0.05, -Math.PI * 0.6, -Math.PI * 0.6 + Math.PI * 2 * clamp(p * 1.6)); g.stroke(); }
     if (p > 0.55) { g.save(); g.globalAlpha = clamp((p - 0.55) / 0.2); g.fillStyle = '#c0261e'; g.font = `italic bold 150px Georgia, ${SERIF}`; g.translate(220, 1040); g.rotate(-0.12); g.fillText('KISS!', 0, 0); g.restore(); }
   });
-  const paper = plane(s, 0.62, 0.83, new THREE.MeshStandardMaterial({ map: paperTex, roughness: .95 }), -0.25, 1.06, 0.45); paper.rotation.x = -Math.PI / 2; paper.rotation.z = 0.06; paper.receiveShadow = true;
+  const paperBlank = canvasTex(900, 1200, (g, w, h) => { g.fillStyle = '#efe7d4'; g.fillRect(0, 0, w, h); const rr = rng(5); g.fillStyle = 'rgba(109,102,92,.6)'; g.fillRect(70, 80, 260, 50); g.fillRect(70, 170, 480, 60); for (let i = 0; i < 22; i++) g.fillRect(80, 340 + i * 36, 300 + rr() * 460, 7); });
+  const paper = plane(s, 0.62, 0.83, new THREE.MeshStandardMaterial({ map: paperBlank, roughness: .95 }), -0.25, 1.06, 0.45); paper.rotation.x = -Math.PI / 2; paper.rotation.z = 0.06; paper.receiveShadow = true;
   // red pen
   const pen = cyl(s, 0.012, 0.012, 0.28, mat('#8e1a14'), 0, 1.07, 0.6, 8); pen.rotation.z = Math.PI / 2; pen.rotation.y = 0.5;
   // coffee cup + ashtray
   cyl(s, 0.07, 0.06, 0.12, mat('#e8e2d6'), 0.45, 1.11, 0.75, 12); cyl(s, 0.09, 0.09, 0.02, mat('#e8e2d6'), 0.45, 1.06, 0.75, 12);
   dust(s, 300, [-2, 2, 1.1, 3.4, -2.8, 1.5], '#fff2d6', 0.006, 0.45, 4);
+  const FLAT_OFFICE = t => `<img src="${paperTex.image.toDataURL('image/jpeg', 0.92)}" style="position:absolute;right:110px;top:70px;width:430px;transform:rotate(2deg);box-shadow:0 18px 50px rgba(0,0,0,.6)">`;
   return {
-    ...S,
+    ...S, flat: FLAT_OFFICE,
     update(t, dur) {
       const k = clamp((t - 3.5) / 3.2); paperTex.redraw(k);
       pen.position.set(lerp(0.1, -0.1, ease(k)), 1.07 + (k > 0 && k < 1 ? 0.01 : 0), lerp(0.62, 0.5, ease(k)));
@@ -153,6 +155,7 @@ function washitsu() {
   // low desk (文机) + scroll
   const wood = mat('#3b2416', { r: .5 });
   box(s, 1.6, 0.06, 0.6, wood, 0, 0.36, -0.9); box(s, 0.06, 0.33, 0.55, wood, -0.74, 0.17, -0.9); box(s, 0.06, 0.33, 0.55, wood, 0.74, 0.17, -0.9);
+  let blankMode = false, lastK = 0;
   const scrollTex = canvasTex(1400, 480, (g, w, h, k = 0) => {
     g.fillStyle = '#e9dfc4'; g.fillRect(0, 0, w, h);
     const rr = rng(9); g.fillStyle = '#2b2520';
@@ -163,21 +166,23 @@ function washitsu() {
     const p = clamp(k);
     g.fillStyle = '#e9dfc4'; g.fillRect(w / 2 - 50, 40, 100, h - 80);
     g.font = `bold 84px ${SERIF}`; g.textAlign = 'center';
-    const chars = ['口', '吸', 'ふ'];
+    const chars = blankMode ? [] : ['口', '吸', 'ふ'];
     chars.forEach((ch, i) => { g.globalAlpha = 0.85; g.fillStyle = '#1e1a16'; g.fillText(ch, w / 2, 140 + i * 110); });
-    if (p > 0) { g.globalAlpha = p; g.strokeStyle = '#b8261d'; g.lineWidth = 5; g.strokeRect(w / 2 - 62, 60, 124, 360); }
+    if (p > 0 && !blankMode) { g.globalAlpha = p; g.strokeStyle = '#b8261d'; g.lineWidth = 5; g.strokeRect(w / 2 - 62, 60, 124, 360); }
     g.globalAlpha = 1;
   });
-  const scroll = plane(s, 1.4, 0.48, new THREE.MeshStandardMaterial({ map: scrollTex, roughness: .95, emissive: '#ffffff', emissiveMap: scrollTex, emissiveIntensity: 0.0 }), 0, 0.395, -0.9);
+  const flatCv = document.createElement('canvas'); flatCv.width = 1400; flatCv.height = 480;
+  const scroll3d = canvasTex(1400, 480, (g, w, h) => { g.drawImage(scrollTex.image, 0, 0); });
+  const scroll = plane(s, 1.4, 0.48, new THREE.MeshStandardMaterial({ map: scroll3d, roughness: .95, emissive: '#ffffff', emissiveMap: scroll3d, emissiveIntensity: 0.0 }), 0, 0.395, -0.9);
   scroll.rotation.x = -Math.PI / 2; scroll.receiveShadow = true;
   cyl(s, 0.03, 0.03, 0.52, mat('#6b3f22'), -0.72, 0.42, -0.9, 8).rotation.x = Math.PI / 2; cyl(s, 0.045, 0.045, 0.52, mat('#6b3f22'), 0.73, 0.43, -0.9, 8).rotation.x = Math.PI / 2;
   // ink stone + brush
   box(s, 0.16, 0.03, 0.24, mat('#141414'), 0.95, 0.4, -0.75); const br = cyl(s, 0.01, 0.014, 0.3, mat('#8a6a3a'), 0.95, 0.43, -1.0, 6); br.rotation.z = Math.PI / 2; br.rotation.y = 0.3;
   dust(s, 260, [-1.5, 2.5, 0.4, 2.4, -2.6, 0.6], '#ffe2b0', 0.006, 0.45, 21);
   return {
-    ...S,
+    ...S, flat: t => lastK <= 0 ? '' : `<img src="${flatCv.toDataURL('image/jpeg', 0.92)}" style="position:absolute;left:150px;top:110px;width:1000px;border:6px solid #6b3f22;border-radius:6px;box-shadow:0 18px 50px rgba(0,0,0,.6)">`,
     update(t, dur) {
-      const k = clamp((t - 4.4) / 0.8); scrollTex.redraw(k); scroll.material.emissiveIntensity = 0.12 * k;
+      const k = clamp((t - 4.4) / 0.8); lastK = k; blankMode = true; scrollTex.redraw(k); scroll3d.redraw(); blankMode = false; scrollTex.redraw(k); flatCv.getContext('2d').drawImage(scrollTex.image, 0, 0); scroll.material.emissiveIntensity = 0.12 * k;
       al.intensity = 6 * (0.95 + 0.05 * Math.sin(t * 9) * Math.sin(t * 3.7));
       if (t < 4.3) camMove(S.cam, [2.6, 1.7, 2.6], [1.9, 1.45, 1.9], [0, 0.45, -1.0], [0, 0.42, -0.95], ease(t / 4.3));
       else camMove(S.cam, [0.35, 1.25, 0.15], [0.25, 1.1, -0.05], [0, 0.4, -0.9], [0, 0.4, -0.9], ease((t - 4.3) / (dur - 4.3)));
