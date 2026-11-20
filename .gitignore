@@ -1,2 +1,3 @@
 sekai/episodes/*/work/
 __pycache__/
+node_modules/
