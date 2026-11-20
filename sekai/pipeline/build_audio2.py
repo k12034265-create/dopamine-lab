@@ -49,7 +49,7 @@ bgm = bgm / np.max(np.abs(bgm))
 env = np.convolve(np.abs(nar), np.ones(int(SR * .05)) / (SR * .05), mode='same')
 speak = (env > .01).astype(float)
 sm = int(SR * .35); speak = np.convolve(speak, np.ones(sm) / sm, mode='same'); speak = np.clip(speak * 1.5, 0, 1)
-duck = .085 - .045 * speak
+duck = (.085 - .045 * speak) * float(os.environ.get('BGM', '0.5'))  # KOH: 1段階下げる（-6dB）
 fade = np.clip(np.minimum(t / 2.5, (total - t) / 3), 0, 1)
 bgm = bgm * duck * fade
 
@@ -97,6 +97,7 @@ for x in TL:
         lastt = ct; s = int((x['start'] + ct) * SR); w = sfx(kind) * VOL.get(kind, .1)
         fx[s:s + len(w)] += w; used.append(kind)
 fx = fx[:N]
+if os.environ.get('SFX', '0') != '1': fx[:] = 0; used = []  # KOH: 効果音は全部なし（うるさい）
 
 L = nar * .95 + bgm + fx; R = nar * .95 + bgm + fx
 # 少しだけ広がり：BGMを左右で微妙にずらす
