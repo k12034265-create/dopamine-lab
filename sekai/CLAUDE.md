@@ -21,6 +21,9 @@
 2. 完成した動画を KOH に送り、**OKをもらってから公開する**（完全放置の量産はしない）。
 3. 公開はファイル選択を使わない GitHub 方式で行う（下記）。
 
+## 映像スタイル
+- **動画を作る前に必ず `sekai/STYLE.md` を読む**（考えすぎる葦の研究結果と、3Dローポリへの移行方針）。
+
 ## 制作パイプライン（`sekai/pipeline/`）
 新しい作業環境ではまず `bash sekai/setup_voicevox.sh`。
 1. `sekai/episodes/NN_テーマ/` を作り、`script.py`（SCENES・REFS・READINGS）と `scenes.js`（各シーンの図解）を書く。01_nioi が見本。
