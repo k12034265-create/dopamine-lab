@@ -1,7 +1,7 @@
 """Original procedural pictures for reveal-type videos. pic(name, w, h) -> float32 (h,w,3) RGB in 0..1"""
 import numpy as np, colorsys
 
-TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま'}
+TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま', 'tulips': 'チューリップ畑'}
 
 
 def _hsv(h, s, v):
@@ -124,4 +124,35 @@ def pic(name, w, h, seed=0):
         # buttons
         for by in (0.66, 0.74, 0.82):
             img[(np.abs(u - 0.5) < 0.035) & (np.abs(v - by) < 0.018)] = (0.15, 0.12, 0.18)
+    elif name == 'tulips':
+        ar = h / w
+        top = np.array([0.18, 0.42, 0.85]); bot = np.array([0.55, 0.75, 0.95])
+        img[:] = top + (bot - top) * np.clip(v / 0.45, 0, 1)[..., None]
+        ds = np.hypot((u - 0.22) * w, (v - 0.12) * h) / w
+        img[ds < 0.09] = (1.0, 0.82, 0.25)
+        for cx, cy, r in ((0.68, 0.16, 0.07), (0.78, 0.15, 0.06), (0.73, 0.12, 0.06)):
+            img[np.hypot(u - cx, (v - cy) * ar) < r] = (0.92, 0.94, 0.98)
+        # hills
+        img[v > 0.42 + 0.04 * np.sin(u * 4 + 1)] = (0.3, 0.6, 0.3)
+        img[v > 0.47 + 0.03 * np.sin(u * 6)] = (0.22, 0.5, 0.25)
+        # flower rows in the distance
+        rowcols = [(0.95, 0.25, 0.3), (1.0, 0.8, 0.2), (0.95, 0.45, 0.7), (0.65, 0.35, 0.85), (1.0, 0.55, 0.2)]
+        for k in range(5):
+            y0 = 0.5 + k * 0.045
+            band = (v > y0) & (v < y0 + 0.022 + k * 0.004) & ((np.floor(u * (40 - k * 5)) % 2) == 0)
+            img[band] = rowcols[k]
+        img[v > 0.74] = (0.18, 0.42, 0.2)
+        # big tulips in front
+        cols = [(0.95, 0.2, 0.25), (1.0, 0.78, 0.15), (0.95, 0.4, 0.68), (0.95, 0.2, 0.25), (0.6, 0.3, 0.85)]
+        for k, cx in enumerate((0.12, 0.31, 0.5, 0.69, 0.88)):
+            cy = 0.76 + (0.03 if k % 2 else 0.0)
+            img[(np.abs(u - cx) < 0.018) & (v > cy) & (v < 1.0)] = (0.15, 0.55, 0.2)
+            leaf = (np.abs((u - cx) - 0.6 * (v - 0.92) * (1 if k % 2 else -1) / ar * 0) < 0.06 * (1 - np.abs(v - 0.9) / 0.06)) & (np.abs(v - 0.9) < 0.06) & (np.abs(u - cx) > 0.015)
+            img[leaf] = (0.2, 0.62, 0.25)
+            head = (((u - cx) / 0.075) ** 2 + ((v - (cy - 0.05)) / 0.05) ** 2 < 1) & (v > cy - 0.075) | ((np.abs(u - cx) < 0.072) & (v > cy - 0.08) & (v <= cy - 0.05))
+            img[head] = cols[k]
+            for px in (-0.05, 0.0, 0.05):
+                tip = (np.abs(u - (cx + px)) < 0.022 * np.clip((v - (cy - 0.11)) / 0.035, 0, 1)) & (v > cy - 0.11) & (v <= cy - 0.075)
+                img[tip] = cols[k]
+            img[head & (u > cx + 0.035)] = np.array(cols[k]) * 0.78
     return np.clip(img, 0, 1)

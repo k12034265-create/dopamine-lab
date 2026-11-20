@@ -172,7 +172,8 @@ for f in range(NF):
         put(img, '何の絵になる？', 540, 280, 60, (255, 226, 60), 1 + 0.04 * np.sin(t * 5))
     else:
         s = 1 + 1.4 * np.exp(-(t - TDONE) * 7)
-        put(img, pics.TITLES[PIC] + 'でした！', 540, 220, 96, (255, 226, 60), s)
+        _tt = pics.TITLES[PIC] + 'でした！'
+        put(img, _tt, 540, 220, min(96, 950 // len(_tt)), (255, 226, 60), s)
         put(img, '何の絵か当てられた？', 540, 1840, 60)
     if flash > 0.02:
         img = cv2.addWeighted(img, 1.0, np.full_like(img, 255), flash, 0)
