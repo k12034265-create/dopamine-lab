@@ -41,6 +41,7 @@
    `putFile('https://raw.githubusercontent.com/k12034265-create/dopamine-lab/main/sekai/videos/NN_xxx.mp4','NN_xxx.mp4')`
    → `details(タイトル, 説明, タグ配列)` → `visibility('PUBLIC')`（KOHのOK後。予約ならスケジュール設定）。
    - 注意（02で発生）：ページを開いた直後の fetch は失敗することがある → 数秒待って再実行。ファイル投入後「リンクを作成しています…」のまま止まったら、ページを開き直して投入からやり直す。動画リンク（youtu.be/…）が出てから details を入れる。公開後は編集画面でタイトル・タグ・各設定が保存されたか確認する。
+   - サムネ：`sekai/videos/NN_xxx_thumb.jpg` も push しておき、アップロード後に編集画面で `putThumb(rawURL)` → `#save`。（input に直接入れても反応しない。ボタンのクリックで呼ばれる input.click を横取りする）
 3. 公開できたら `sekai/videos/` の動画を削除して push。`sekai/log.md` に追記。
 - サムネイル：電話番号の確認済み（2026-11-20）。カスタムサムネを使う。作り方は STYLE.md の「サムネイルとタイトル」。サムネ専用の3Dシーン（例：03_kiss/thumb3d.js）を組み、HTMLで文字を重ねる。動画の切り抜きだけで済ませない。
 

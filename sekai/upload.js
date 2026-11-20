@@ -35,3 +35,12 @@ async function visibility(mode) {
   D().querySelector('#done-button').click(); await S(4000);
   return [...document.querySelectorAll('a')].map(a => a.href).find(h => /youtu\.be\//.test(h));
 }
+// 4) カスタムサムネ（編集画面 /video/<id>/edit で実行）。ファイル選択を横取りして画像を入れる → その後 #save をクリック
+async function putThumb(url) {
+  const b = await (await fetch(url + '?x=' + Date.now())).blob();
+  const f = new File([b], 'thumb.jpg', { type: 'image/jpeg' });
+  const orig = HTMLInputElement.prototype.click; let hit = 0;
+  HTMLInputElement.prototype.click = function () { if (this.type === 'file') { hit++; const dt = new DataTransfer(); dt.items.add(f); this.files = dt.files; setTimeout(() => this.dispatchEvent(new Event('change', { bubbles: true })), 50); return; } return orig.call(this); };
+  document.querySelector('ytcp-video-custom-still-editor [aria-label="ファイルをアップロード"]').click(); await S(5000);
+  HTMLInputElement.prototype.click = orig; return hit;
+}
