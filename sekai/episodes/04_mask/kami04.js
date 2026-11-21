@@ -1,5 +1,5 @@
 // 04 マスク — 全場面 紙芝居。字幕は灰色の帯（body.band）。男性=青 女性=ピンク 強調=黄
-import { C, W, H, SERIF, clamp, ease, easeOut, pop, txt, note, head, counter, icon, person, card, arrow, stamp, bubble,
+import { maps, C, W, H, SERIF, clamp, ease, easeOut, pop, txt, note, head, counter, icon, person, card, arrow, stamp, bubble,
   vbars, timeline, worldMap, worldCentroid, japanMap, loadMaps, run, kami } from '/pipeline3d/kami.js';
 await loadMaps();
 try { document.body.classList.add('band'); } catch (e) {}
@@ -37,6 +37,9 @@ const chapEls = (num, title) => [
 const crowd = (n, maskK, y0 = 560, s = 46) => { let s0 = ''; for (let i = 0; i < n; i++) { const x = 200 + i * (1520 / (n - 1)); const m = i % 2 ? M : F; s0 += person(x, y0, s, m, i % 2 ? 'm' : 'f'); if (maskK(i)) s0 += `<rect x="${x - s * .3}" y="${y0 - s * 1.02}" width="${s * .6}" height="${s * .24}" rx="${s * .08}" fill="#f4f4f2"/>`; } return s0; };
 const twoBars = (k, up) => { const base = 820, a = 360, b = up ? 470 : 250; return bar(760, base, 200, a * easeOut(k), C.gray, 'マスクなし') + bar(1160, base, 200, (up ? 360 + (b - 360) * easeOut((k - .6) / .8) : 360 - (360 - b) * easeOut((k - .6) / .8)) * clamp(k * 3), up ? Y : '#7a7a84', 'マスクあり'); };
 
+const jpPin = (x, y, sc, key, label) => { const p = maps().japan.pts[key]; return pin(x + p[0] * sc, y + p[1] * sc, label); };
+const hi = (name) => (id, n) => n === name ? Y : '#4d4a45';
+const wPin = (x, y, sc, name, label) => { const c = worldCentroid(name); return pin(x + c[0] * sc, y + c[1] * sc, label); };
 const SC = [];
 // ===== プロローグ =====
 SC[0] = K((t) => R([
@@ -50,8 +53,8 @@ SC[1] = K((t) => R([
   { at: 3.2, f: (lt) => `<g transform="translate(1260,640) scale(${pop(lt / .4)})">${txt(0, 30, 'ただの気のせい？', { size: 70, color: Y, serif: true })}</g>` },
 ], t), 0, { enter: 'right', leave: 'left' });
 SC[2] = K((t) => R([
-  { at: 0, slide: 0, f: () => japanMap(560, 170, .62) },
-  { at: .8, f: (lt) => `<g opacity="${clamp(lt / .3)}">${pin(1200, 290, '北海道')}</g>` },
+  { at: 0, slide: 0, f: () => japanMap(200, 60, .9) },
+  { at: .8, f: (lt) => `<g opacity="${clamp(lt / .3)}">${jpPin(200, 60, .9, 'sapporo', '北海道大学')}</g>` },
   { at: 1.6, f: () => txt(1450, 560, '2016年', { size: 90, color: Y, serif: true }) + txt(1450, 640, '日本の研究チーム', { size: 44 }) },
   ref('Miyazaki & Kawahara (2016)'),
 ], t), 0, { enter: 'right', leave: 'left' });
@@ -127,7 +130,7 @@ SC[25] = K((t) => R([{ at: 0, f: () => txt(CX, 480, '美人が、マスクでさ
 SC[26] = K((t) => R([{ at: 0, slide: 0, f: () => grp(1, 150, 0, -90, { crown: t > 1.5 }) }, { at: 2.0, f: () => txt(CX, 170, '得をしたのは、素顔に自信がない人', { size: 52, color: Y, serif: true }) }], t), 2, { enter: 'fade', leave: 'left' });
 SC[27] = K((t) => { const g = (x, lab, k) => [0, 1].map(j => { const up = j === 0; const h = (j ? 420 : 220) + (up ? 140 * easeOut(k) : 0);
     return `<rect x="${x + j * 190}" y="${820 - h}" width="150" height="${h}" rx="8" fill="${up ? Y : C.gray}"/>` + txt(x + 75 + j * 190, 870, j ? '元が高い' : '元が低い', { size: 28 }); }).join('') + txt(x + 170, 300, lab, { size: 44 });
-  return R([{ at: 0, slide: 0, f: () => worldMap(80, 170, .3) + pin(80 + worldCentroid('Canada')[0] * .3, 170 + worldCentroid('Canada')[1] * .3, 'カナダ') },
+  return R([{ at: 0, slide: 0, f: () => worldMap(60, 170, .36, hi('Canada')) + wPin(60, 170, .36, 'Canada', '') + txt(60 + 288, 170 + 310 + 50, 'カナダの大学', { size: 40, color: Y }) },
     { at: 1.4, f: (lt) => g(680, '若い人の顔', clamp((lt - .5) / 1)) + g(1240, '年配の人の顔', clamp((lt - .8) / 1)) }, IM, ref('Pazhoohi & Kingstone (2022)')], t); }, 2, { enter: 'right' });
 // ===== 第3章 =====
 SC[28] = K((t) => R([...chapEls('第3章', '脳は、隠れた顔を平均で埋める')], t), 3, { enter: 'zoom' });
@@ -167,7 +170,7 @@ SC[44] = K((t) => R([{ at: 0, slide: 0, f: () => `<ellipse cx="${CX}" cy="420" r
   { at: 1.6, f: () => txt(CX, 230, '大事な目元は残す', { size: 54, color: Y, serif: true }) }, { at: 3.2, f: () => txt(CX, 820, '残りは、平均で埋める', { size: 48 }) }], t), 3, { enter: 'zoom' });
 // ===== 第4章 =====
 SC[45] = K((t) => R([...chapEls('第4章', 'マスクにも、ちがいがある'), { at: 3.0, f: () => face(700, 520, 130, M, { mask: 'b' }) + txt(CX, 540, 'vs', { size: 70, color: C.dim }) + face(1220, 520, 130, M, { cover: 'book' }) + txt(CX, 820, '隠れるなら、なんでも同じ？', { size: 50 }) }], t), 4, { enter: 'zoom' });
-SC[46] = K((t) => R([{ at: 0, slide: 0, f: () => worldMap(260, 160, .62) }, { at: .6, f: () => pin(260 + worldCentroid('United Kingdom')[0] * .62, 160 + worldCentroid('United Kingdom')[1] * .62, 'イギリス') },
+SC[46] = K((t) => R([{ at: 0, slide: 0, f: () => worldMap(100, 160, .7, hi('United Kingdom')) }, { at: .6, f: () => wPin(100, 160, .7, 'United Kingdom', 'イギリス') },
   { at: 1.6, f: () => card(1300, 320, 460, 260) + txt(1530, 430, '2021年2月', { size: 56, color: Y, serif: true }) + txt(1530, 510, 'コロナの最中', { size: 38 }) }, ref('Hies & Lewis (2022)')], t), 4, { enter: 'right', leave: 'left' });
 const P4b = [[{}, 'なし'], [{ cover: 'book' }, '黒い本'], [{ mask: 'c' }, '布マスク'], [{ mask: 'b' }, '医療用マスク']];
 SC[47] = K((t) => R([{ at: 0, f: () => txt(CX, 200, '<t>女性43人</t>が、男性40人の顔を採点', { size: 50 }).replace(/#3dc6c1/, F) },
@@ -175,7 +178,7 @@ SC[47] = K((t) => R([{ at: 0, f: () => txt(CX, 200, '<t>女性43人</t>が、男
 SC[48] = K((t) => { const ord = [3, 2, 1, 0]; return R([...ord.map((pi, r) => ({ at: .3 + (3 - r) * .5, f: () => { const [o, l] = P4b[pi]; const y = 230 + r * 170; return txt(420, y + 20, `${r + 1}位`, { size: 60, color: r === 0 ? Y : C.fg, serif: true }) + face(620, y, 62, M, o) + txt(740, y + 16, l, { size: 46, anchor: 'start', color: r === 0 ? Y : C.fg }); } })), ref('Hies & Lewis (2022)')], t); }, 4, { enter: 'fade', leave: 'left' });
 SC[49] = K((t) => R([{ at: 0, slide: 0, f: () => face(560, 470, 150, M, { mask: 'b' }) }, { at: 2.6, f: (lt) => arrow(780, 470, 780 + 300 * easeOut(lt / .6), 470, Y, 1, 8) },
   { at: 3.2, f: () => person(1380, 600, 110, '#f4f4f2') + `<rect x="1347" y="${600 - 112}" width="66" height="26" rx="8" fill="#8fc3ea"/>` + icon('heart', 1530, 380, 90, F, 6) + txt(1380, 840, '病院で働く人のイメージ？', { size: 40 }) }], t), 4, { enter: 'right', leave: 'left' });
-SC[50] = K((t) => R([{ at: 0, slide: 0, f: () => japanMap(560, 170, .62) }, { at: .6, f: () => pin(980, 520, '日本') }, { at: 1.4, f: () => txt(1500, 520, 'マスクの種類と付け方', { size: 50 }) }, ref('菊島・櫻井 (2024)')], t), 4, { enter: 'right', leave: 'left' });
+SC[50] = K((t) => R([{ at: 0, slide: 0, f: () => japanMap(160, 60, .9, { fill: F }) }, { at: .6, f: () => txt(1450, 420, '日本の実験', { size: 64, color: Y, serif: true }) }, { at: 1.4, f: () => txt(1450, 520, 'マスクの種類と付け方', { size: 50 }) }, ref('菊島・櫻井 (2024)')], t), 4, { enter: 'right', leave: 'left' });
 SC[51] = K((t) => R([...[['w', '不織布', 400], ['c', '布（平ら）', 230], ['g', '立体', 380]].map(([m, l, h], i) => ({ at: .3 + i * .4, f: () => face(500 + i * 460, 250, 80, F, { mask: m }) + bar(500 + i * 460, 860, 180, h * easeOut((t - 1.4 - i * .2) / 1), m === 'c' ? '#9a8aa0' : Y, l) })), IM, ref('菊島・櫻井 (2024)')], t), 4, { enter: 'right', leave: 'left' });
 SC[52] = K((t) => R([...[[0, '鼻を覆う', 400], [1, '鼻すじが見える', 290], [2, '鼻が全部出る', 180]].map(([n, l, h], i) => ({ at: .3 + i * .9, f: () => face(500 + i * 460, 250, 80, M, { mask: 'w', nose: n }) + bar(500 + i * 460, 860, 180, h * easeOut((t - .8 - i * .9) / .8), i ? '#9a8aa0' : Y, l) })), IM, ref('菊島・櫻井 (2024)')], t), 4, { enter: 'right', leave: 'left' });
 SC[53] = K((t) => R([{ at: 0, f: () => txt(560, 200, '日本の人', { size: 50 }) + txt(1360, 200, 'イギリス・アメリカの人', { size: 50 }) },
