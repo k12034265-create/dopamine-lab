@@ -60,7 +60,7 @@ function station() {
 const SC = [];
 // ---- 写真（Pexels）：先に読み込んでおく ----
 const IMG = (n) => `/episodes/05_chihou/img/${n}.jpg`;
-await Promise.all(['train_snow'].map(n => new Promise(r => { const i = new Image(); i.onload = () => (i.decode ? i.decode().then(r, r) : r()); i.onerror = r; i.src = IMG(n); })));
+await Promise.all(['train_snow', 'station_night'].map(n => new Promise(r => { const i = new Image(); i.onload = () => (i.decode ? i.decode().then(r, r) : r()); i.onerror = r; i.src = IMG(n); })));
 const photo = (n, t, dur, dark = .35, z0 = 1.0, z1 = 1.08, px = 0) => { const k = ease(t / dur), z = z0 + (z1 - z0) * k;
   return `<g transform="translate(${960 + px * k},540) scale(${z}) translate(-960,-540)"><image href="${IMG(n)}" x="-40" y="-40" width="2000" height="1160" preserveAspectRatio="xMidYMid slice"/></g><rect width="1920" height="1080" fill="rgba(8,10,18,${dark})"/>`; };
 const rnd = (seed) => { let x = seed * 9301 + 49297; return () => ((x = (x * 233280 + 49297) % 2147483647) / 2147483647); };
@@ -107,5 +107,48 @@ SC[3] = K((t) => { const cols = 6, dx = 62, dy = 84;
     { at: 6.4, f: (lt) => `<g transform="translate(1660,420) scale(${pop(lt / .4)})"><circle r="120" fill="${Y}"/>${txt(0, 28, '2.2倍', { size: 78, color: '#111', shadow: false, serif: true })}</g>` },
     ref('天野 (2021) ニッセイ基礎研究所'),
   ], t); }, 0, { enter: 'right', zoom: 0 });
+
+
+// 4 写真：夜の駅。男も出ていくのでは？
+SC[4] = K((t, dur) => photo('station_night', t, dur, .5, 1.0, 1.07, 30) + R([
+  { at: .2, slide: 0, f: (lt) => person(500 + Math.min(lt, 3) * 120, 760, 120, M) + person(330 + Math.min(lt, 3) * 120, 770, 110, '#3f6fb8') },
+  { at: 1.6, f: (lt) => `<g transform="translate(1280,420) scale(${pop(lt / .4)})">${txt(0, 30, '男だって同じでは？', { size: 76, color: '#fff', serif: true })}</g>` },
+], t), 0, { enter: 'fade', zoom: 0 });
+// 5 この動画で見る4つ
+const CARDS = [['①', '人の移動', '誰が東京へ？'], ['②', '地方に残る男女', '数のバランス'], ['③', '出ていく理由', '本人の声'], ['④', '家の形', '3世代同居']];
+SC[5] = K((t) => R([
+  { at: 0, f: () => head('国の統計と調査で確かめる', { y: 200 }) },
+  ...CARDS.map((c, i) => ({ at: .8 + i * .9, f: (lt) => { const x = 270 + i * 460; return `<g transform="translate(${x},560) scale(${pop(lt / .45)})">` + card(-200, -190, 400, 380) + txt(0, -90, c[0], { size: 60, color: Y, serif: true }) + txt(0, 20, c[1], { size: 50 }) + txt(0, 110, c[2], { size: 32, color: C.dim }) + '</g>'; } })),
+], t), 0, { enter: 'right', zoom: 0 });
+// 6 第1章
+SC[6] = K((t) => R([
+  { at: 0, slide: 0, f: () => txt(CX, 400, '第1章', { size: 40, color: C.o, serif: true, ls: 10 }) },
+  { at: .25, f: () => txt(CX, 530, '出ていくのは女性の方', { size: 92, serif: true, ls: 4 }) },
+  { at: .7, slide: 0, f: (lt) => `<rect x="${CX - 320 * ease(lt / .8)}" y="580" width="${640 * ease(lt / .8)}" height="3" fill="${C.o}"/>` },
+], t), 1, { enter: 'zoom', zoom: 0 });
+// 7 天秤：入ってくる人 − 出ていく人
+SC[7] = K((t) => { const tilt = t < 4.5 ? 0 : (t < 7 ? -9 * ease((t - 4.5) / .8) : -9 + 18 * ease((t - 7) / .8));
+  const pile = (x, n, c) => { let q = ''; for (let i = 0; i < n; i++) q += `<circle cx="${x - 60 + (i % 5) * 30}" cy="${-30 - Math.floor(i / 5) * 30}" r="12" fill="${c}"/>`; return q; };
+  const nIn = t < 7 ? 10 : 6, nOut = t < 7 ? 6 : 10;
+  return R([
+    { at: 0, f: () => head('「転入超過」＝ 入ってきた人 − 出ていった人', { y: 190 }) },
+    { at: .4, slide: 0, f: () => `<path d="M${CX},880 L${CX - 60},960 L${CX + 60},960Z" fill="#8a8478"/><rect x="${CX - 6}" y="420" width="12" height="460" fill="#8a8478"/>`
+        + `<g transform="translate(${CX},430) rotate(${tilt})"><rect x="-520" y="-6" width="1040" height="12" rx="6" fill="#cfc8b8"/>`
+        + `<g transform="translate(-460,0) rotate(${-tilt})"><line y1="0" y2="200" stroke="#cfc8b8" stroke-width="3"/><g transform="translate(0,210)"><rect x="-120" y="0" width="240" height="14" rx="7" fill="#cfc8b8"/>${pile(0, nIn, Y)}</g></g>`
+        + `<g transform="translate(460,0) rotate(${-tilt})"><line y1="0" y2="200" stroke="#cfc8b8" stroke-width="3"/><g transform="translate(0,210)"><rect x="-120" y="0" width="240" height="14" rx="7" fill="#cfc8b8"/>${pile(0, nOut, '#8a8478')}</g></g></g>` },
+    { at: 1.0, f: () => txt(CX - 460, 760, '入ってくる人', { size: 40, color: Y }) + txt(CX + 460, 760, '出ていく人', { size: 40, color: C.dim }) },
+    { at: 4.6, out: 6.8, f: () => txt(CX, 330, 'プラス ＝ 人を吸い込む', { size: 56, color: Y, serif: true }) },
+    { at: 7.4, f: () => txt(CX, 330, 'マイナス ＝ 人を送り出す', { size: 56, color: '#9aa6b8', serif: true }) },
+  ], t); }, 1, { enter: 'right', zoom: 0 });
+// 8 年表：東京が吸い込み始めた年
+SC[8] = K((t) => { const x0 = 260, x1 = 1660, yr = (y) => x0 + (y - 1990) / 30 * (x1 - x0), k = ease(clamp(t / 2.5));
+  return R([
+    { at: 0, f: () => head('東京が人を吸い込み始めた年', { y: 190 }) },
+    { at: 0, slide: 0, f: () => `<rect x="${x0}" y="598" width="${(x1 - x0) * k}" height="4" fill="#cfc8b8"/>` + [1990, 2000, 2010, 2020].map(y => k * 30 + 1990 >= y ? `<rect x="${yr(y) - 2}" y="585" width="4" height="30" fill="#cfc8b8"/>` + txt(yr(y), 660, y + '年', { size: 34, color: C.dim }) : '').join('') },
+    { at: 2.8, f: (lt) => `<g transform="translate(${yr(1995)},590) scale(${pop(lt / .4)})"><circle r="16" fill="${F}"/></g>` + txt(yr(1995), 500, '1995年', { size: 52, color: F, serif: true }) + txt(yr(1995), 440, '女性', { size: 40, color: F }) },
+    { at: 4.8, f: (lt) => `<g transform="translate(${yr(1996)},590) scale(${pop(lt / .4)})"><circle r="16" fill="${M}"/></g>` + txt(yr(1996) + 40, 780, '1996年', { size: 52, color: M, serif: true }) + txt(yr(1996) + 40, 720, '男性（翌年）', { size: 40, color: M }) },
+    { at: 6.6, f: () => txt(1300, 470, '女性の方が1年早い', { size: 56, color: Y, serif: true }) },
+    ref('天野 (2021) ニッセイ基礎研究所'),
+  ], t); }, 1, { enter: 'right', zoom: 0 });
 
 export const SCENES = SC;
