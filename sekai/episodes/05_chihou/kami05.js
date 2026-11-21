@@ -60,7 +60,7 @@ function station() {
 const SC = [];
 // ---- 写真（Pexels）：先に読み込んでおく ----
 const IMG = (n) => `/episodes/05_chihou/img/${n}.jpg`;
-await Promise.all(['train_snow', 'station_small'].map(n => new Promise(r => { const i = new Image(); i.onload = () => (i.decode ? i.decode().then(r, r) : r()); i.onerror = r; i.src = IMG(n); })));
+await Promise.all(['train_snow'].map(n => new Promise(r => { const i = new Image(); i.onload = () => (i.decode ? i.decode().then(r, r) : r()); i.onerror = r; i.src = IMG(n); })));
 const photo = (n, t, dur, dark = .35, z0 = 1.0, z1 = 1.08, px = 0) => { const k = ease(t / dur), z = z0 + (z1 - z0) * k;
   return `<g transform="translate(${960 + px * k},540) scale(${z}) translate(-960,-540)"><image href="${IMG(n)}" x="-40" y="-40" width="2000" height="1160" preserveAspectRatio="xMidYMid slice"/></g><rect width="1920" height="1080" fill="rgba(8,10,18,${dark})"/>`; };
 const rnd = (seed) => { let x = seed * 9301 + 49297; return () => ((x = (x * 233280 + 49297) % 2147483647) / 2147483647); };
@@ -69,7 +69,7 @@ const pin = (x, y, label, col = Y) => `<g transform="translate(${x},${y})"><path
 // 0 写真：雪の夜の地方駅に電車が入ってくる
 SC[0] = K((t, dur) => photo('train_snow', t, dur, .18, 1.02, 1.12, -40), 0, { enter: 'fade', zoom: 0 });
 // 1 写真（小さな駅）の上に、残った男たちのつぶやき
-SC[1] = K((t, dur) => photo('station_small', t, dur, .58, 1.0, 1.06) + R([
+SC[1] = K((t, dur) => R([
   { at: .2, slide: 0, f: () => person(560, 700, 110, M) + person(740, 710, 100, '#3f6fb8') + person(920, 700, 106, M) + txt(740, 900, '地元に残った男たち', { size: 34, color: '#d8d4cc' }) },
   { at: .6, f: () => bubble(1340, 360, 560, 120, '若い女の子がいない', { size: 52 }) },
   { at: 4.2, f: (lt) => `<g transform="translate(1340,640) scale(${pop(lt / .4)})">${txt(0, 30, 'ただの気のせい？', { size: 72, color: Y, serif: true })}</g>` },
