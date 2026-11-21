@@ -75,7 +75,7 @@ const plabel = (v, code, s0, o = {}) => { const q = vp(v, o.ox, o.oy)(pc(code));
 const SC = [];
 // ---- 写真（Pexels）：先に読み込んでおく ----
 const IMG = (n) => `/episodes/05_chihou/img/${n}.jpg`;
-await Promise.all(['train_snow', 'station_night', 'suitcase', 'shutter', 'konbini'].map(n => new Promise(r => { const i = new Image(); i.onload = () => (i.decode ? i.decode().then(r, r) : r()); i.onerror = r; i.src = IMG(n); })));
+await Promise.all(['train_snow', 'station_night', 'suitcase', 'shutter', 'konbini', 'skyline', 'shinjuku', 'scramble', 'tstreet', 'campus', 'office', 'country', 'village', 'tnight', 'rice', 'train_jp', 'train_in'].map(n => new Promise(r => { const i = new Image(); i.onload = () => (i.decode ? i.decode().then(r, r) : r()); i.onerror = r; i.src = IMG(n); })));
 const photo = (n, t, dur, dark = .35, z0 = 1.0, z1 = 1.08, px = 0) => { const k = ease(t / dur), z = z0 + (z1 - z0) * k;
   return `<g transform="translate(${960 + px * k},540) scale(${z}) translate(-960,-540)"><image href="${IMG(n)}" x="-40" y="-40" width="2000" height="1160" preserveAspectRatio="xMidYMid slice"/></g><rect width="1920" height="1080" fill="rgba(8,10,18,${dark})"/>`; };
 const rnd = (seed) => { let x = seed * 9301 + 49297; return () => ((x = (x * 233280 + 49297) % 2147483647) / 2147483647); };
@@ -200,8 +200,8 @@ SC[11] = K((t, dur) => photo('suitcase', t, dur, .35, 1.02, 1.1, -30) + R([
   { at: 6.4, f: (lt) => `<g transform="translate(1360,540) scale(${pop(lt / .4)})">${txt(0, 30, 'その多くが女性', { size: 64, color: F, serif: true })}</g>` },
 ], t), 1, { enter: 'fade', zoom: 0 });
 // 12 東京圏（1都3県）
-SC[12] = K((t) => { const P = [['埼玉', 760, 360], ['東京', 760, 560], ['千葉', 1160, 520], ['神奈川', 700, 760]];
-  return R([
+SC[12] = K((t, dur) => { const P = [['埼玉', 760, 360], ['東京', 760, 560], ['千葉', 1160, 520], ['神奈川', 700, 760]];
+  return photo('skyline', t, dur, 0.62) + R([
     { at: 0, f: () => head('東京圏（東京・埼玉・千葉・神奈川）で見ても', { y: 170 }) },
     ...P.map((p, i) => ({ at: .5 + i * .35, f: (lt) => `<g transform="translate(${p[1]},${p[2]}) scale(${pop(lt / .4)})"><rect x="-150" y="-80" width="300" height="160" rx="24" fill="rgba(255,214,102,.14)" stroke="${Y}" stroke-width="3"/>${txt(0, 16, p[0], { size: 52, color: Y })}</g>` })),
     { at: 3.2, slide: 0, f: (lt) => arrow(1700, 400, 1360, 520, F, easeOut(clamp(lt / .8)), 26) + arrow(1700, 700, 1360, 640, M, easeOut(clamp(lt / .8)), 12) },
@@ -234,7 +234,7 @@ SC[14] = K((t) => { const k2 = ease(clamp((t - 6) / 1.2)), v = lerpV(VW.east, VW
   ], t); }, 1, { enter: 'right', zoom: 0 });
 
 // 15 2024年 東京圏 +135,843人
-SC[15] = K((t) => R([
+SC[15] = K((t, dur) => photo('shinjuku', t, dur, 0.62) + R([
   { at: 0, f: () => head('2024年 東京圏への転入超過', { y: 220 }) },
   { at: .5, slide: 0, f: (lt) => `<g style="font-variant-numeric:tabular-nums">${txt(CX, 560, '＋' + Math.round(135843 * easeOut(clamp(lt / 3))).toLocaleString() + '人', { size: 150, color: Y, serif: true })}</g>` },
   { at: 5.0, f: () => txt(CX, 740, 'コロナ前の水準に、ほぼ戻った', { size: 50 }) },
@@ -270,7 +270,7 @@ SC[18] = K((t) => { const n = 30, gone = Math.min(10, Math.floor(clamp((t - 1.2)
 // ===== 第2章 =====
 SC[19] = K((t, dur) => photo('shutter', t, dur, .55, 1.0, 1.08) + R(chapPhoto('第2章', '残された男たち'), t), 2, { enter: 'zoom', zoom: 0 });
 // 20 日本全体では女性が344万人多い
-SC[20] = K((t) => R([
+SC[20] = K((t, dur) => photo('scramble', t, dur, 0.66) + R([
   { at: 0, f: () => head('日本の人口（2020年 国勢調査）', { y: 190 }) },
   { at: .5, slide: 0, f: (lt) => { const k = easeOut(clamp(lt / 1.2)); return `<rect x="360" y="420" width="${1150 * k}" height="130" rx="12" fill="${F}"/><rect x="360" y="620" width="${1118 * k}" height="130" rx="12" fill="${M}"/>` + txt(330, 505, '女性', { size: 48, color: F, anchor: 'end' }) + txt(330, 705, '男性', { size: 48, color: M, anchor: 'end' }); } },
   { at: 2.2, f: () => `<rect x="1478" y="400" width="32" height="170" fill="none" stroke="${Y}" stroke-width="4"/>` + txt(1560, 380, '＋344万人', { size: 64, color: Y, serif: true, anchor: 'start' }) },
@@ -361,14 +361,14 @@ const tag = (x, y, w, s0, col, lt, o = {}) => `<g transform="translate(${x},${y}
 const R7 = ref('内閣府 男女共同参画白書 令和7年版');
 SC[30] = K((t) => R(chapEls('第3章', 'なぜ、出ていくのか'), t), 3, { enter: 'zoom', zoom: 0 });
 // 31 アンケート用紙 1万人
-SC[31] = K((t) => R([
+SC[31] = K((t, dur) => photo('tstreet', t, dur, 0.62) + R([
   { at: .2, slide: 0, f: (lt) => { let q = ''; for (let i = 0; i < 5; i++) { const k = easeOut(clamp((lt - i * .15) / .6)); q += `<g transform="translate(${560 + i * 26},${300 + i * 20 - (1 - k) * 80}) rotate(${-6 + i * 3})" opacity="${k}"><rect width="420" height="560" rx="14" fill="#efeae0"/>${[0, 1, 2, 3, 4].map(j => `<rect x="50" y="${90 + j * 90}" width="30" height="30" rx="4" fill="none" stroke="#8a8478" stroke-width="4"/><rect x="100" y="${98 + j * 90}" width="${220 - j * 18}" height="14" rx="7" fill="#c9c2b4"/>`).join('')}</g>`; } return q; } },
   { at: 1.4, f: (lt) => `<g transform="translate(1380,430) scale(${pop(lt / .4)})">${txt(0, 0, '1万人', { size: 130, color: Y, serif: true })}</g>` + txt(1380, 520, '18〜39歳の男女', { size: 40 }) },
   { at: 4.2, f: () => txt(1380, 640, '地方出身 → 今は東京圏', { size: 44, color: F }) + txt(1380, 720, '「地元を離れた理由は？」', { size: 44 }) },
   R7,
 ], t), 3, { enter: 'right', zoom: 0 });
 // 32 1位 進学先
-SC[32] = K((t) => R([
+SC[32] = K((t, dur) => photo('campus', t, dur, 0.6) + R([
   { at: 0, f: () => head('地元を離れた理由', { y: 190 }) },
   { at: .5, f: (lt) => `<g transform="translate(${CX},520) scale(${pop(lt / .4)})"><circle cx="-520" r="80" fill="${Y}"/>${txt(-520, 26, '1位', { size: 56, color: '#111', shadow: false, serif: true })}</g>` + txt(CX + 60, 545, '希望する進学先が、地元に少ない', { size: 64 }) },
   { at: 2.6, f: () => txt(CX, 720, '男女とも同じ', { size: 48, color: C.dim }) },
@@ -404,7 +404,7 @@ SC[35] = K((t) => R([
   R7,
 ], t), 3, { enter: 'right', zoom: 0 });
 // 36 2位 仕事が少ない
-SC[36] = K((t) => R([
+SC[36] = K((t, dur) => photo('office', t, dur, 0.62) + R([
   { at: 0, f: () => head('地元を離れた理由', { y: 190 }) },
   { at: 0, slide: 0, f: () => `<g opacity=".45"><circle cx="440" cy="420" r="60" fill="${Y}"/>${txt(440, 440, '1位', { size: 40, color: '#111', shadow: false, serif: true })}${txt(540, 440, '進学先が少ない', { size: 50, anchor: 'start' })}</g>` },
   { at: .6, f: (lt) => `<g transform="translate(440,620) scale(${pop(lt / .4)})"><circle r="60" fill="#cfd4dc"/>${txt(0, 20, '2位', { size: 40, color: '#111', shadow: false, serif: true })}</g>` + txt(540, 640, 'やりたい仕事・就職先が少ない', { size: 56, anchor: 'start' }) },
@@ -429,7 +429,7 @@ SC[39] = K((t) => R([
   ...['親や周りの干渉から逃れたかった', '居場所がなかった', '出会いやチャンスが少なそう'].map((s0, i) => ({ at: 1 + i * 1.8, slide: 0, f: (lt) => tag(CX, 380 + i * 180, 1000, s0, '#fff', lt, { size: 52 }) })),
   R7,
 ], t), 3, { enter: 'right', zoom: 0 });
-SC[40] = K((t) => R([
+SC[40] = K((t, dur) => photo('country', t, dur, 0.55) + R([
   { at: 0, f: () => head('ほかにも', { y: 190 }) },
   ...['若い人が楽しめる場所が少ない', '生活に必要な施設・サービスが足りない'].map((s0, i) => ({ at: .6 + i * 2, slide: 0, f: (lt) => tag(CX, 450 + i * 200, 1100, s0, '#cfd4dc', lt, { size: 52 }) })),
   R7,
@@ -440,7 +440,7 @@ SC[41] = K((t) => R([
   R7,
 ], t), 3, { enter: 'right', zoom: 0 });
 // 42 地元の空気：吹き出し
-SC[42] = K((t) => R([
+SC[42] = K((t, dur) => photo('village', t, dur, 0.55) + R([
   { at: 0, f: () => head('出身地域に強く感じていた「空気」', { y: 190 }) },
   { at: 4.4, f: () => bubble(620, 470, 640, 130, '個人の気持ちより、世間体', { size: 46 }) },
   { at: 7.0, f: () => bubble(1300, 700, 760, 130, '家事・育児・介護は女性の仕事', { size: 46 }) },
@@ -499,7 +499,7 @@ SC[49] = K((t) => { const k = ease(clamp((t - 2) / 1.2)); return R([
 ], t); }, 4, { enter: 'right', zoom: 0 });
 // 50-51 女性の満足度
 const RS = ref('内閣府 令和6年 地方の暮らしに関する調査');
-SC[50] = K((t) => R([
+SC[50] = K((t, dur) => photo('tnight', t, dur, 0.6) + R([
   { at: 0, f: () => head('今住んでいる地域に満足している（女性）', { y: 190 }) },
   { at: 1.0, slide: 0, f: (lt) => meter(CX, 680, 75.5, '東京圏の女性', F, lt) },
   { at: 4.0, f: () => txt(CX, 860, '4人に3人', { size: 52, color: Y, serif: true }) }, RS,
@@ -519,7 +519,7 @@ SC[52] = K((t) => R([
   { at: 5.0, f: () => txt(CX, 900, '好きでも、居づらい', { size: 58, color: Y, serif: true }) }, R7,
 ], t), 4, { enter: 'right', zoom: 0 });
 // 53 選ばれない地方
-SC[53] = K((t) => R([
+SC[53] = K((t, dur) => photo('rice', t, dur, 0.5) + R([
   { at: .8, f: (lt) => `<g transform="translate(${CX},540) scale(${pop(lt / .5)})">${txt(0, 0, '若い女性に', { size: 60 })}${txt(0, 130, '選ばれない地方', { size: 120, color: Y, serif: true })}</g>` },
   ref('天野 (2021) ニッセイ基礎研究所'),
 ], t), 4, { enter: 'zoom', zoom: 0 });
@@ -555,13 +555,13 @@ SC[56] = K((t) => R([
   { at: 3.6, f: () => txt(CX, 300, 'どちらも、満足しているとは言えない', { size: 54, serif: true }) },
   { at: 6.4, f: () => txt(CX, 930, '男女どちらか一方の問題ではない', { size: 50, color: Y, serif: true }) },
 ], t), 5, { enter: 'right', zoom: 0 });
-SC[57] = K((t) => R([
+SC[57] = K((t, dur) => photo('train_jp', t, dur, 0.62) + R([
   { at: .3, f: () => txt(CX, 260, '女性は、いないのではない。出ていっている', { size: 54, serif: true }) },
   ...['進学先', '仕事', '地元の空気'].map((s0, i) => ({ at: 4.2 + i * .9, slide: 0, f: (lt) => tag(520 + i * 440, 600, 380, s0, i == 2 ? F : '#cfd4dc', lt, { size: 56, fill: i == 2 ? 'rgba(239,127,168,.12)' : undefined }) })),
 ], t), 5, { enter: 'right', zoom: 0 });
 // 58 3D：駅に電車が入ってくる
 SC[58] = { build: station };
-SC[59] = K((t) => R([
+SC[59] = K((t, dur) => photo('train_in', t, dur, 0.6) + R([
   { at: .3, f: (lt) => `<g transform="translate(${CX},460) scale(${pop(lt / .45)})"><rect x="-150" y="-110" width="300" height="200" rx="30" fill="${Y}"/><path d="M-40,88 L-70,150 L20,90Z" fill="${Y}"/>${[-60, 0, 60].map(x => `<circle cx="${x}" cy="-10" r="16" fill="#1b1a20"/>`).join('')}</g>` },
   { at: 1.0, f: () => txt(CX, 720, 'あなたの地元には、若い女性が残っている？', { size: 54, serif: true }) },
   { at: 2.6, f: () => txt(CX, 810, 'コメント欄で教えてください', { size: 42, color: C.dim }) },
