@@ -6,7 +6,7 @@ const label = (x, y, s, o = {}) => `<div class="${o.serif ? 'serif' : ''}" style
 
 // ---------------------------------------------------------------- 1. 1946年の映画館
 function theater() {
-  const S = makeScene({ bg: '#07080b', fog: ['#07080b', 22, 44], hemi: 0.45, exposure: 1.6, sky: '#6a7390', ground: '#1a1210', bloom: 0.8, bloomTh: 0.7 });
+  const S = makeScene({ bg: '#07080b', fog: ['#07080b', 22, 44], hemi: 0.45, exposure: 1.25, sky: '#6a7390', ground: '#1a1210', bloom: 0.3, bloomTh: 0.88 });
   const s = S.s, r = rng(3);
   box(s, 16, 0.2, 30, mat('#2a1b14'), 0, -0.1, -2);                      // floor
   box(s, 0.3, 9, 30, mat('#3a1f1c'), -8, 4.5, -2); box(s, 0.3, 9, 30, mat('#3a1f1c'), 8, 4.5, -2); // side walls
@@ -36,13 +36,13 @@ function theater() {
     g.globalAlpha = 0.06; g.strokeStyle = '#fff'; g.lineWidth = 1; for (let i = 0; i < 1; i++) { const x = rr() * w; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + rr() * 6 - 3, h); g.stroke(); }
     g.globalAlpha = 1; g.fillStyle = `rgba(0,0,0,${0.06 + 0.06 * rr()})`; g.fillRect(0, 0, w, h);
   });
-  const screen = new THREE.Mesh(new THREE.PlaneGeometry(9, 5.06), new THREE.MeshBasicMaterial({ map: scr, toneMapped: false }));
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(9, 5.06), new THREE.MeshBasicMaterial({ map: scr, color: '#b4ada0', toneMapped: false }));
   screen.position.set(0, 3.8, -13.3); s.add(screen);
-  const scrLight = new THREE.SpotLight('#e8e2d6', 90, 40, 0.75, 0.6, 1.2); scrLight.position.set(0, 3.8, -13); scrLight.target.position.set(0, 1, 8); s.add(scrLight, scrLight.target);
+  const scrLight = new THREE.SpotLight('#e8e2d6', 45, 40, 0.75, 0.6, 1.2); scrLight.position.set(0, 3.8, -13); scrLight.target.position.set(0, 1, 8); s.add(scrLight, scrLight.target);
   // projector beam from booth
   const booth = new THREE.Vector3(0, 6.6, 13.5);
-  const bm = beam(s, booth, new THREE.Vector3(0, 3.8, -13.2), 0.08, 2.4, '#fff3d8', 0.035);
-  box(s, 2, 1.2, 0.4, mat('#120c0a'), 0, 6.6, 13.9); ball(s, 0.1, glow('#fff3d0', 6), 0, 6.6, 13.7, 0);
+  const bm = beam(s, booth, new THREE.Vector3(0, 3.8, -13.2), 0.08, 2.4, '#fff3d8', 0.02);
+  box(s, 2, 1.2, 0.4, mat('#120c0a'), 0, 6.6, 13.9); ball(s, 0.1, glow('#fff3d0', 2), 0, 6.6, 13.7, 0);
   dust(s, 700, [-2, 2, 3, 7, -12, 13], '#fff1cf', 0.02, 0.45, 11);
   // sconces
   for (const side of [-1, 1]) for (let z = -9; z <= 9; z += 6) { box(s, 0.3, 0.45, 0.15, glow('#ffb35a', 2.2), side * 7.8, 4.2, z); lamp(s, '#ff9f45', 2.2, 5, side * 7.4, 4.2, z, false); }

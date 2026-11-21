@@ -103,12 +103,12 @@ function living(o = {}) {
   return { S, s, people };
 }
 function filmset(o = {}) {
-  const S = makeScene({ bg: '#0c0d10', hemi: 0.5, exposure: 1.4, bloom: 0.5, bloomTh: 0.85, fov: 32, fog: ['#0c0d10', 14, 30] });
+  const S = makeScene({ bg: '#0c0d10', hemi: 0.5, exposure: 1.15, bloom: 0.2, bloomTh: 0.9, fov: 32, fog: ['#0c0d10', 14, 30] });
   const s = S.s;
   box(s, 20, 0.2, 20, mat('#2a2a2c'), 0, -0.1, 0);
   box(s, 6, 3.6, 0.15, mat('#8a7a64'), 0, 1.8, -3); windowPane(s, 1.4, 2.0, -2.9, 1.4, 1.2, 'dusk', { frame: '#5a4a3a', seed: 2 });
-  for (const [x, z, ry] of [[-3.6, 1.0, -0.6], [3.8, 0.8, 0.6]]) { cyl(s, 0.03, 0.03, 2.4, mat('#222'), x, 1.2, z, 6); box(s, 0.5, 0.4, 0.5, mat('#1a1a1a'), x, 2.5, z, ry); box(s, 0.42, 0.32, 0.02, glow('#fff6e2', 1.2), x - Math.sin(ry) * 0.26, 2.5, z - Math.cos(ry) * 0.26, ry); }
-  const key = new THREE.SpotLight('#fff1d8', 14, 16, 0.5, 0.5, 1.2); key.position.set(-3.4, 2.6, 1.2); key.target.position.set(0, 1.3, -1.5); key.castShadow = true; s.add(key, key.target);
+  for (const [x, z, ry] of [[-3.6, 1.0, -0.6], [3.8, 0.8, 0.6]]) { cyl(s, 0.03, 0.03, 2.4, mat('#222'), x, 1.2, z, 6); box(s, 0.5, 0.4, 0.5, mat('#1a1a1a'), x, 2.5, z, ry); box(s, 0.42, 0.32, 0.02, glow('#fff6e2', 0.55), x - Math.sin(ry) * 0.26, 2.5, z - Math.cos(ry) * 0.26, ry); }
+  const key = new THREE.SpotLight('#fff1d8', 9, 16, 0.5, 0.5, 1.2); key.position.set(-3.4, 2.6, 1.2); key.target.position.set(0, 1.3, -1.5); key.castShadow = true; s.add(key, key.target);
   const fill = new THREE.SpotLight('#cfe0ff', 6, 16, 0.6, 0.6, 1.2); fill.position.set(3.6, 2.4, 1.0); fill.target.position.set(0, 1.3, -1.5); s.add(fill, fill.target);
   const cg = new THREE.Group(); cg.position.set(1.6, 0, 2.8); cg.rotation.y = 0.5; s.add(cg);
   for (let k = 0; k < 3; k++) { const l = cyl(cg, 0.02, 0.02, 1.3, mat('#333'), Math.cos(k * 2.1) * 0.25, 0.62, Math.sin(k * 2.1) * 0.25, 6); l.rotation.z = Math.cos(k * 2.1) * 0.35; l.rotation.x = -Math.sin(k * 2.1) * 0.35; }
@@ -171,9 +171,9 @@ SC.push({ build() {
 
 // 8 トロブリアンド諸島（夕暮れの島）
 SC.push({ build() {
-  const S = makeScene({ bg: '#2a2350', hemi: 0.75, sky: '#f0a46a', ground: '#1a2a3a', exposure: 1.35, bloom: 0.5, bloomTh: 0.85, fov: 36, fog: ['#4a3a5a', 20, 70] });
+  const S = makeScene({ bg: '#2a2350', hemi: 0.75, sky: '#f0a46a', ground: '#1a2a3a', exposure: 1.12, bloom: 0.22, bloomTh: 0.9, fov: 36, fog: ['#4a3a5a', 20, 70] });
   const s = S.s;
-  const skyTex = canvasTex(16, 256, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#1d1840'); gr.addColorStop(0.55, '#7a4a78'); gr.addColorStop(0.8, '#f0a46a'); gr.addColorStop(1, '#ffd9a0'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+  const skyTex = canvasTex(16, 256, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#1d1840'); gr.addColorStop(0.55, '#7a4a78'); gr.addColorStop(0.8, '#c9845a'); gr.addColorStop(1, '#d9a878'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
   s.add(new THREE.Mesh(new THREE.SphereGeometry(90, 24, 16), new THREE.MeshBasicMaterial({ map: skyTex, side: THREE.BackSide, fog: false })));
   const sea = new THREE.Mesh(new THREE.PlaneGeometry(300, 300, 60, 60), new THREE.MeshStandardMaterial({ color: '#2a4a6a', roughness: .3, metalness: .2, flatShading: true })); sea.rotation.x = -Math.PI / 2; s.add(sea);
   const isl = new THREE.Mesh(new THREE.SphereGeometry(6, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat('#c9b07a')); isl.scale.y = 0.18; isl.position.set(0, -0.1, -4); isl.receiveShadow = true; s.add(isl);
@@ -183,8 +183,8 @@ SC.push({ build() {
   const hut = new THREE.Group(); hut.position.set(1.5, 0.6, -6); s.add(hut); box(hut, 1.6, 1.0, 1.4, mat('#8a6a44'), 0, 0.5, 0); const rf = cyl(hut, 0.01, 1.3, 1.0, mat('#a68a50'), 0, 1.5, 0, 4); rf.rotation.y = Math.PI / 4;
   const a = human(s, { skin: '#8a5a3a', hair: '#1a1410', top: '#a0522d', bottom: '#5a3a20' }); a.position.set(-0.6, 0.6, -3.0); a.rotation.y = 0.5;
   const b = human(s, { skin: '#7a4e32', hair: '#1a1410', top: '#c98a40', bottom: '#5a3a20', hairStyle: 'long' }); b.position.set(0.3, 0.6, -3.1); b.rotation.y = -0.6;
-  sun(s, '#ffb070', 2.2, -20, 8, -30, 14);
-  const fire = ball(s, 0.1, glow('#ff8a3d', 1.6), 1.0, 0.72, -3.4, 0); lamp(s, '#ff8a3d', 2.5, 4, 1.0, 1.0, -3.4, false);
+  sun(s, '#ffb070', 1.1, -20, 8, -30, 14);
+  const fire = ball(s, 0.1, glow('#ff8a3d', 0.9), 1.0, 0.72, -3.4, 0); lamp(s, '#ff8a3d', 1.5, 4, 1.0, 1.0, -3.4, false);
   return { ...S, update(t, dur) { const v = sea.geometry.attributes.position; for (let i = 0; i < v.count; i++) { const x = v.getX(i), y = v.getY(i); v.setZ(i, Math.sin(x * 0.3 + t) * 0.08 + Math.cos(y * 0.25 + t * 0.8) * 0.08); } v.needsUpdate = true;
     fire.scale.setScalar(1 + 0.15 * Math.sin(t * 13));
     shots(S.cam, t, dur, [[0, [6, 2.4, 6], [3.5, 2.0, 3.6], [-0.2, 1.4, -3.5], [-0.1, 1.3, -3.2], 36], [7.4, [-2.6, 1.6, 0.4], [-2.1, 1.5, -0.4], [0, 1.4, -3.4], [0, 1.4, -3.3], 30]]);
@@ -228,17 +228,17 @@ SC.push({ build() {
 
 // 13 サピエンスとネアンデルタール（焚き火）
 SC.push({ build() {
-  const S = makeScene({ bg: '#0b0d14', hemi: 0.4, sky: '#3a4a7a', ground: '#1a120c', exposure: 1.55, bloom: 0.9, bloomTh: 0.65, fov: 34, fog: ['#0b0d14', 8, 24] });
+  const S = makeScene({ bg: '#0b0d14', hemi: 0.4, sky: '#3a4a7a', ground: '#1a120c', exposure: 1.25, bloom: 0.3, bloomTh: 0.88, fov: 34, fog: ['#0b0d14', 8, 24] });
   const s = S.s; box(s, 30, 0.2, 30, mat('#3a2e24'), 0, -0.1, 0);
   const r = rng(6); for (let i = 0; i < 26; i++) { const rk = ball(s, 0.3 + r() * 0.6, mat('#4a4038'), (r() - .5) * 20, 0.1, -4 - r() * 10, 0); rk.scale.y = 0.6; }
   const stars = dust(s, 400, [-40, 40, 8, 30, -40, -20], '#ffffff', 0.25, 0.8, 4); stars.material.fog = false;
   for (let i = 0; i < 6; i++) { const lg = cyl(s, 0.05, 0.05, 0.7, mat('#4a3020'), 0, 0.06, -1.5, 6); lg.rotation.z = Math.PI / 2; lg.rotation.y = i * Math.PI / 3; }
-  const fire = new THREE.Group(); fire.position.set(0, 0.15, -1.5); s.add(fire); for (let i = 0; i < 4; i++) { const f = new THREE.Mesh(new THREE.ConeGeometry(0.16 - i * 0.03, 0.5 - i * 0.08, 7), glow(['#ff6a2a', '#ff9a3a', '#ffcf5a', '#fff2a0'][i], 1.6)); f.position.y = 0.2; fire.add(f); }
-  const fl = lamp(s, '#ff8a3d', 7, 9, 0, 0.8, -1.5, true);
+  const fire = new THREE.Group(); fire.position.set(0, 0.15, -1.5); s.add(fire); for (let i = 0; i < 4; i++) { const f = new THREE.Mesh(new THREE.ConeGeometry(0.16 - i * 0.03, 0.5 - i * 0.08, 7), glow(['#ff6a2a', '#ff9a3a', '#ffcf5a', '#ffe08a'][i], 0.85)); f.position.y = 0.2; fire.add(f); }
+  const fl = lamp(s, '#ff8a3d', 4, 9, 0, 0.8, -1.5, true);
   const sap = human(s, { skin: '#c79a74', hair: '#2a1a10', top: '#7a5a3a', bottom: '#5a4028', hairStyle: 'long' }); sap.position.set(-0.9, 0, -1.4); sap.rotation.y = Math.PI / 2 + 0.3;
   const nea = human(s, { skin: '#d4a07a', hair: '#5a3a20', top: '#6a4a2a', bottom: '#4a3420', scale: 0.95 }); nea.position.set(0.9, 0, -1.6); nea.rotation.y = -Math.PI / 2 - 0.2; nea.userData.head.scale.set(1.12, 1.0, 1.12);
   const mic = dust(s, 120, [-0.7, 0.7, 1.3, 1.7, -1.7, -1.3], '#8fe0d8', 0.035, 0.9, 8);
-  return { ...S, update(t, dur) { fire.children.forEach((f, i) => f.scale.set(1 + .15 * Math.sin(t * 11 + i), 1 + .25 * Math.sin(t * 9 + i * 2), 1)); if (fl) fl.intensity = 7 * (0.9 + 0.1 * Math.sin(t * 13));
+  return { ...S, update(t, dur) { fire.children.forEach((f, i) => f.scale.set(1 + .15 * Math.sin(t * 11 + i), 1 + .25 * Math.sin(t * 9 + i * 2), 1)); if (fl) fl.intensity = 4 * (0.9 + 0.1 * Math.sin(t * 13));
     const a = mic.geometry.attributes.position.array; for (let i = 0; i < 120; i++) { a[i * 3] = Math.sin(t * 0.8 + i * 0.7) * 0.75; a[i * 3 + 1] = 1.5 + Math.sin(t * 1.3 + i) * 0.12; a[i * 3 + 2] = -1.5 + Math.cos(i * 1.7) * 0.15; } mic.geometry.attributes.position.needsUpdate = true;
     shots(S.cam, t, dur, [[0, [0.2, 1.4, 3.6], [0.1, 1.5, 2.4], [0, 1.2, -1.5], [0, 1.3, -1.5], 34], [6.0, [2.2, 1.5, 0.4], [1.8, 1.55, -0.2], [0, 1.4, -1.5], [0, 1.4, -1.5], 30]]);
     return label(110, 120, 'ホモ・サピエンス', { size: 36, color: '#ff8a3d', op: clamp((t - .5) / .5) }) + label(1440, 120, 'ネアンデルタール人', { size: 36, color: '#3dc6c1', op: clamp((t - 1) / .5) }) + label(110, 190, '口の中の細菌の一部を共有していた', { size: 30, op: clamp((t - 2) / .6), w: 500 }); } }; } });
