@@ -9,7 +9,7 @@ const K = (fn, chap, o = {}) => kami(fn, { chap, chaps: CH, ...o });
 const R = (els, t) => run(els.map(e => e.f ? e : { ...e, f: () => '' }), t);
 const ref = (s) => ({ at: .6, f: () => note(1880, 125, s, 'end') });
 const IMG = (n) => `/episodes/06_shokuba/img/${n}.jpg`;
-await Promise.all(['train_in'].map(n => new Promise(r => { const i = new Image(); i.onload = () => (i.decode ? i.decode().then(r, r) : r()); i.onerror = r; i.src = IMG(n); })));
+await Promise.all(['overtime'].map(n => new Promise(r => { const i = new Image(); i.onload = () => (i.decode ? i.decode().then(r, r) : r()); i.onerror = r; i.src = IMG(n); })));
 const photo = (n, t, dur, dark = .35, z0 = 1.0, z1 = 1.08, px = 0, py = 0) => { const k = ease(t / dur), z = z0 + (z1 - z0) * k;
   return `<g transform="translate(${960 + px * k},${540 + py * k}) scale(${z}) translate(-960,-540)"><image href="${IMG(n)}" x="-40" y="-40" width="2000" height="1160" preserveAspectRatio="xMidYMid slice"/></g><rect width="1920" height="1080" fill="rgba(8,10,18,${dark})"/>`; };
 const crown = (x, y, s = 1) => `<g transform="translate(${x},${y}) scale(${s})"><path d="M-34,14 L-40,-22 L-18,-4 L0,-30 L18,-4 L40,-22 L34,14Z" fill="${Y}" stroke="#7a5a10" stroke-width="3"/><rect x="-34" y="14" width="68" height="12" fill="${Y}" stroke="#7a5a10" stroke-width="3"/></g>`;
@@ -174,7 +174,7 @@ SC[15] = K((t) => { let g = `<rect x="0" y="0" width="1920" height="1080" fill="
   g += `<rect width="1920" height="1080" fill="rgba(60,40,10,.18)"/>`;
   return R([
     { at: 0, slide: 0, f: () => g },
-    { at: 1.2, f: () => card(560, 150, 800, 200, { fill: 'rgba(20,16,10,.85)' }) + txt(CX, 230, '1970年代', { size: 48, color: C.dim }) + txt(CX, 310, '職場の出会いが、お見合いを抜いて1位に', { size: 46, color: Y }) },
+    { at: 1.2, f: () => card(440, 150, 1040, 200, { fill: 'rgba(20,16,10,.85)' }) + txt(CX, 230, '1970年代', { size: 48, color: C.dim }) + txt(CX, 310, '職場の出会いが、お見合いを抜いて1位に', { size: 46, color: Y }) },
     ref(SR2),
   ], t); }, 2, { enter: 'fade', zoom: 0 });
 // 16 3組に1組
@@ -266,7 +266,7 @@ SC[27] = K((t) => R([
   ref(SR2),
 ], t), 3, { enter: 'right', zoom: 0 });
 // 28 写真：終電の車内（長時間労働は変わらない）
-SC[28] = K((t, dur) => photo('train_in', t, dur, .55, 1.0, 1.08) + R([
+SC[28] = K((t, dur) => photo('overtime', t, dur, .35, 1.0, 1.08, -60) + R([
   { at: 3.2, f: () => txt(CX, 300, '出会いの場は減ったのに', { size: 56, serif: true }) + txt(CX, 390, '探す時間もない', { size: 66, color: Y, serif: true }) },
   ref(SR2),
 ], t), 3, { enter: 'fade', zoom: 0 });
@@ -294,5 +294,208 @@ SC[31] = K((t) => R([
   { at: 1.4, f: () => txt(CX, 860, '研究者の、面白い計算', { size: 56, color: Y, serif: true }) },
   ref(SR2),
 ], t), 3, { enter: 'fade', zoom: 0 });
+
+
+// ===== 第3章 後半 =====
+const IMGN = (s0 = '※形はイメージ') => ({ at: .3, f: () => note(1880, 1000 - 60, s0, 'end') });
+const pieSeg = (cx, cy, r, a0, a1, col, ex = 0) => { const m = (a0 + a1) / 2, dx = Math.cos(m) * ex, dy = Math.sin(m) * ex, P = (a) => [cx + dx + Math.cos(a) * r, cy + dy + Math.sin(a) * r], p0 = P(a0), p1 = P(a1);
+  return `<path d="M${cx + dx},${cy + dy} L${p0[0].toFixed(1)},${p0[1].toFixed(1)} A${r},${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${p1[0].toFixed(1)},${p1[1].toFixed(1)}Z" fill="${col}"/>`; };
+// 32 女性が結婚する割合が下がっていく（1972→2002）
+SC[32] = K((t) => { const x0 = 360, x1 = 1560, k = clamp((t - .4) / 5), X = (u) => x0 + u * (x1 - x0), Yv = (u) => 360 + 380 * (u * u * .3 + u * .7);
+  let d = ''; for (let i = 0; i <= 40; i++) { const u = i / 40 * k; d += (i ? 'L' : 'M') + X(u).toFixed(1) + ',' + Yv(u).toFixed(1); }
+  return R([
+    { at: 0, f: () => head('日本の女性が結婚する割合', { y: 190 }) },
+    { at: 0, slide: 0, f: () => `<rect x="${x0}" y="820" width="${x1 - x0}" height="3" fill="#6b665e"/>` + txt(x0, 870, '1972年', { size: 36, color: C.dim }) + txt(x1, 870, '2002年', { size: 36, color: C.dim }) + `<path d="${d}" stroke="${F}" stroke-width="10" fill="none" stroke-linecap="round"/>` },
+    { at: 6.0, f: () => `<path d="M${x1 + 40},${Yv(0)} L${x1 + 40},${Yv(1)}" stroke="${Y}" stroke-width="6"/>` + txt(x1 + 70, (Yv(0) + Yv(1)) / 2 + 14, '下がった分', { size: 44, color: Y, anchor: 'start' }) },
+    { at: 8.0, f: () => txt(CX, 300, 'これを、出会い方ごとに分けると？', { size: 48, serif: true }) },
+    IMGN('※線の形はイメージ'), ref(SR2),
+  ], t); }, 3, { enter: 'fade', zoom: 0 });
+// 33-34 円グラフ：見合い 約5割／職場 約4割
+const PIE = (t, glowBoth) => { const a0 = -Math.PI / 2, k = easeOut(clamp(t / 1.4)), A = (f) => a0 + Math.PI * 2 * f * k;
+  return pieSeg(760, 560, 280, a0, A(.5), '#d9b57a', glowBoth ? 14 : 0) + pieSeg(760, 560, 280, A(.5), A(.88), Y, glowBoth ? 14 : 0) + pieSeg(760, 560, 280, A(.88), A(1), '#5d5a66'); };
+SC[33] = K((t) => R([
+  { at: 0, f: () => head('結婚が減った分の内訳（1972→2002）', { y: 190 }) },
+  { at: .3, slide: 0, f: (lt) => PIE(lt, false) },
+  { at: 1.8, f: () => txt(1180, 460, 'お見合いの減少', { size: 46, color: '#d9b57a', anchor: 'start' }) + txt(1180, 540, '約5割', { size: 80, color: '#d9b57a', anchor: 'start', serif: true }) },
+  { at: 4.2, f: () => txt(1180, 680, '職場結婚の減少', { size: 46, color: Y, anchor: 'start' }) + txt(1180, 760, '4割近く', { size: 80, color: Y, anchor: 'start', serif: true }) },
+  ref(SR2),
+], t), 3, { enter: 'right', zoom: 0 });
+SC[34] = K((t) => R([
+  { at: 0, f: () => head('結婚が減った分の内訳（1972→2002）', { y: 190 }) },
+  { at: 0, slide: 0, f: () => PIE(9, true) + `<circle cx="760" cy="560" r="${300 + 10 * Math.sin(t * 4)}" fill="none" stroke="${Y}" stroke-width="4" opacity=".6"/>` },
+  { at: .3, f: () => txt(1180, 520, '見合い ＋ 職場', { size: 56, color: Y, anchor: 'start' }) + txt(1180, 620, 'ほとんど説明できる', { size: 52, anchor: 'start', serif: true }) },
+  ref(SR2),
+], t), 3, { enter: 'fade', zoom: 0 });
+// 35 学校・友人・街なか/趣味 はほぼ横ばい（イメージ）
+SC[35] = K((t) => { const x0 = 360, x1 = 1500, k = clamp((t - .4) / 4.5); const ln = (y0, col) => `<path d="M${x0},${y0} ${[...Array(20)].map((_, i) => `L${(x0 + (x1 - x0) * (i + 1) / 20 * k).toFixed(1)},${(y0 + Math.sin(i * 1.7) * 6).toFixed(1)}`).join(' ')}" stroke="${col}" stroke-width="8" fill="none" stroke-linecap="round"/>`;
+  return R([
+    { at: 0, f: () => head('ほかの出会い方は？（40年間）', { y: 190 }) },
+    { at: 0, slide: 0, f: () => ln(420, '#9fd0a0') + ln(580, '#cfd4dc') + ln(740, '#c9a0e0') + `<rect x="${x0}" y="840" width="${x1 - x0}" height="3" fill="#6b665e"/>` },
+    { at: 1.6, f: () => txt(x1 + 30, 432, '学校', { size: 40, color: '#9fd0a0', anchor: 'start' }) + txt(x1 + 30, 592, '友人の紹介', { size: 40, color: '#cfd4dc', anchor: 'start' }) + txt(x1 + 30, 752, '街なか・趣味', { size: 40, color: '#c9a0e0', anchor: 'start' }) },
+    { at: 6.4, f: () => txt(CX, 920, 'ほとんど変わっていなかった', { size: 52, color: Y, serif: true }) },
+    IMGN('※線の形はイメージ'), ref(SR2),
+  ], t); }, 3, { enter: 'right', zoom: 0 });
+// 36 『恋愛』は残り、『仕組み』が消える
+SC[36] = K((t) => { const k = ease(clamp((t - 2.4) / 1.6)); return R([
+  { at: .2, f: (lt) => tag2(620, 520, '恋愛', F, pop(lt / .4)) },
+  { at: .8, slide: 0, f: () => `<g opacity="${1 - k}" transform="translate(0,${-60 * k})">${tag2(1300, 520, '出会いの仕組み', '#cfd4dc', 1)}</g>` },
+  { at: 4.4, f: () => txt(CX, 820, '減ったのは、出会いを用意してくれる仕組み', { size: 50, color: Y, serif: true }) },
+], t); }, 3, { enter: 'right', zoom: 0 });
+const tag2 = (x, y, s0, col, sc) => `<g transform="translate(${x},${y}) scale(${sc})"><rect x="-260" y="-80" width="520" height="160" rx="26" fill="rgba(255,255,255,.06)" stroke="${col}" stroke-width="4"/>${txt(0, 22, s0, { size: 64, color: col, serif: true })}</g>`;
+// 37 仲人2人：家と会社
+SC[37] = K((t) => R([
+  { at: .2, f: (lt) => house(560, 520, 1.4 * pop(lt / .4)) + person(560, 700, 110, '#d9b57a') + txt(560, 880, '親・近所', { size: 40, color: '#d9b57a' }) },
+  { at: 3.4, f: (lt) => bldg(1360, 600, 1.6 * pop(lt / .4)) + person(1360, 700, 110, '#8aa0c0') + txt(1360, 880, '会社・上司', { size: 40, color: '#8aa0c0' }) },
+  { at: 6.0, f: () => txt(CX, 230, '本人の代わりに、相手を見つけてくれる人がいた', { size: 48, color: Y, serif: true }) },
+  ref(SR2),
+], t), 3, { enter: 'right', zoom: 0 });
+// 38 会社がまた仲人に？ → ×
+SC[38] = K((t) => R([
+  { at: .2, f: () => bldg(CX, 720, 2.4) + txt(CX, 260, '会社が、また仲人に？', { size: 60, serif: true }) },
+  { at: 4.0, f: (lt) => { const k = easeOut(clamp(lt / .5)); return `<path d="M${CX - 200},${360} L${CX - 200 + 400 * k},${360 + 400 * k} M${CX + 200},${360} L${CX + 200 - 400 * k},${360 + 400 * k}" stroke="#e0453a" stroke-width="26" stroke-linecap="round"/>`; } },
+  { at: 5.0, f: () => txt(CX, 880, '研究者「それは難しい」', { size: 48, color: Y }) },
+  ref(SR2),
+], t), 3, { enter: 'right', zoom: 0 });
+// 39 昔には戻れない
+SC[39] = K((t) => R([
+  { at: .3, f: (lt) => `<g transform="translate(560,420) scale(${pop(lt / .4)})">${person(0, 120, 150, '#8aa0c0')}${bubble(60, -160, 380, 100, '結婚はまだか？', { size: 34 })}</g>` + txt(560, 760, 'ハラスメントと言われかねない', { size: 36, color: '#ff8a7a' }) },
+  { at: 4.0, f: (lt) => `<g transform="translate(1360,460) scale(${pop(lt / .4)}) rotate(-5)"><rect x="-150" y="-60" width="300" height="120" rx="10" fill="#7a3a3a"/>${txt(0, 20, '寿退社', { size: 56, color: '#ddd', serif: true, shadow: false })}</g><path d="M1220,420 L1500,500" stroke="#e0453a" stroke-width="10"/>` + txt(1360, 760, '当たり前だった時代にも', { size: 36, color: '#ff8a7a' }) },
+  { at: 6.2, f: () => txt(CX, 860, '昔には、戻れない', { size: 72, color: Y, serif: true }) },
+  ref(SR2),
+], t), 3, { enter: 'right', zoom: 0 });
+// 40 仕事と家庭の天秤（両立）
+SC[40] = K((t) => { const tilt = 6 * Math.sin(t * 1.4) * Math.exp(-t * .4); return R([
+  { at: .2, slide: 0, f: () => `<path d="M${CX},860 L${CX - 60},940 L${CX + 60},940Z" fill="#8a8478"/><rect x="${CX - 6}" y="420" width="12" height="440" fill="#8a8478"/><g transform="translate(${CX},430) rotate(${tilt})"><rect x="-460" y="-6" width="920" height="12" rx="6" fill="#cfc8b8"/><g transform="translate(-400,0) rotate(${-tilt})">${bldg(0, 260, .9)}${txt(0, 320, '仕事', { size: 44 })}</g><g transform="translate(400,0) rotate(${-tilt})">${house(0, 200, .9)}${txt(0, 320, '家庭', { size: 44 })}</g></g>` },
+  { at: 2.0, f: () => txt(CX, 240, '研究者のすすめ：両立できるように支える', { size: 48, color: Y, serif: true }) },
+  ref(SR2),
+], t); }, 3, { enter: 'right', zoom: 0 });
+
+// ===== 第4章 =====
+SC[41] = K((t) => R(chapEls('第4章', 'アプリは、新しい仲人か'), t), 4, { enter: 'zoom', zoom: 0 });
+// 42-44 ランキング（2018〜21年に結婚）
+const RANK = [['友人・きょうだい', 25.9, '#cfd4dc'], ['職場や仕事で', 21.4, '#c9a24a'], ['学校で', 14.1, '#9fd0a0'], ['ネットで', 13.6, CY2], ['お見合いで', 9.0, '#d9b57a']];
+const rankRow = (i, prog, hi) => { const r = RANK[i], y = 330 + i * 120, w = r[1] * 34 * easeOut(clamp(prog));
+  return `<g opacity="${hi === undefined || hi.includes(i) ? 1 : .35}">${txt(300, y + 56, (i + 1) + '位', { size: 46, color: i == 0 ? Y : '#fff', serif: true })}${txt(810, y + 56, r[0], { size: 40, anchor: 'end' })}<rect x="840" y="${y + 10}" width="${w}" height="72" rx="10" fill="${r[2]}"/>${prog >= .9 ? txt(860 + w, y + 62, r[1] + '%', { size: 46, anchor: 'start', serif: true, color: r[2] }) : ''}</g>`; };
+SC[42] = K((t) => R([
+  { at: 0, f: () => head('出会い方ランキング（2018〜2021年に結婚）', { y: 190 }) },
+  { at: .6, slide: 0, f: () => [0, 1, 2, 3, 4].map(i => `<rect x="260" y="${340 + i * 120}" width="1400" height="92" rx="12" fill="none" stroke="#3a3842" stroke-width="3" stroke-dasharray="10 8"/>`).join('') },
+  ref(SURVEY),
+], t), 4, { enter: 'right', zoom: 0 });
+SC[43] = K((t) => R([
+  { at: 0, f: () => head('出会い方ランキング（2018〜2021年に結婚）', { y: 190 }) },
+  { at: 0, slide: 0, f: () => [0, 1, 2].map(i => rankRow(i, (t - .6 - i * 2.8) / 1)).join('') },
+  ref(SURVEY),
+], t), 4, { enter: 'fade', zoom: 0 });
+SC[44] = K((t) => R([
+  { at: 0, f: () => head('出会い方ランキング（2018〜2021年に結婚）', { y: 190 }) },
+  { at: 0, slide: 0, f: () => [0, 1, 2].map(i => rankRow(i, 2, [3, 4])).join('') + rankRow(3, (t - .3) / 1) + rankRow(4, (t - 2.4) / 1) },
+  { at: 4.0, f: () => `<path d="M1500,800 C1640,760 1640,700 1500,690" stroke="${Y}" stroke-width="6" fill="none"/>` + txt(1560, 905, 'ネットがお見合いを上回った', { size: 40, color: Y }) },
+  ref(SURVEY),
+], t), 4, { enter: 'fade', zoom: 0 });
+// 45 交際4.3年、夫30.7歳／妻29.1歳
+SC[45] = K((t) => R([
+  { at: .3, f: (lt) => `<g transform="translate(560,540) scale(${pop(lt / .4)})"><rect x="-200" y="-200" width="400" height="400" rx="20" fill="#efeae0"/><rect x="-200" y="-200" width="400" height="90" rx="20" fill="#c43a3a"/>${txt(0, -138, '付き合った期間', { size: 34, color: '#fff', shadow: false })}${txt(0, 60, '4.3年', { size: 120, color: '#111', shadow: false, serif: true })}</g>` },
+  { at: 4.0, f: () => person(1200, 600, 180, M) + txt(1200, 840, '夫 30.7歳', { size: 46, color: M, serif: true }) },
+  { at: 6.0, f: () => person(1560, 600, 180, F, 'f') + txt(1560, 840, '妻 29.1歳', { size: 46, color: F, serif: true }) },
+  { at: 10.0, f: () => txt(CX, 880, '出会ってから結婚まで、思ったより長い', { size: 50, color: Y, serif: true }) },
+  ref(SURVEY),
+], t), 4, { enter: 'right', zoom: 0 });
+// 46 2019〜21年に絞るとネット15.2%
+SC[46] = K((t) => R([
+  { at: 0, f: () => head('2019〜2021年に結婚した夫婦に絞ると', { y: 190 }) },
+  { at: .5, slide: 0, f: (lt) => { const w = 15.2 * 50 * easeOut(clamp(lt / 1.2)); return txt(560, 560, 'ネットで', { size: 48, anchor: 'end', color: CY2 }) + `<rect x="600" y="500" width="${w}" height="110" rx="14" fill="${CY2}"/>` + (lt > 1.1 ? txt(620 + w, 580, '15.2%', { size: 90, anchor: 'start', color: CY2, serif: true }) : ''); } },
+  { at: 3.6, f: () => txt(CX, 800, '15%を超えた', { size: 60, color: Y, serif: true }) },
+  ref('出生動向基本調査 報告書 (2023)'),
+], t), 4, { enter: 'right', zoom: 0 });
+// 47 3D：在宅勤務の部屋（ノートPCとスマホの光）／55 夜のワンルーム（スマホの光の後ろ姿）
+function room(mode) { return () => {
+  const S = makeScene({ bg: '#0c0e14', hemi: mode === 'wfh' ? .55 : .5, exposure: 1.15, sky: '#8090b0', ground: '#201812', bloom: .2, bloomTh: .85, fov: 34 });
+  const s = S.s; box(s, 8, .05, 8, mat('#3a2e24'), 0, 0, 0); box(s, 8, 3, .1, mat('#2a2c34'), 0, 1.5, -2.5); box(s, .1, 3, 8, mat('#262830'), -3, 1.5, 1);
+  box(s, 1.4, .9, .05, glow('#2a3a5a', .5), -1.2, 1.7, -2.44);   // 夜の窓
+  box(s, 1.4, .06, .7, mat('#5a4a3a'), .6, .74, -1.4); for (const x of [0, 1.2]) for (const z of [-1.7, -1.1]) box(s, .05, .72, .05, mat('#3a3028'), x, .36, z);
+  if (mode === 'wfh') { box(s, .5, .02, .34, mat('#333'), .6, .78, -1.35); const sc = box(s, .5, .32, .02, glow('#bcd4ff', .9), .6, .94, -1.52); sc.rotation.x = -.2; lamp(s, '#bcd4ff', .9, 3, .6, 1.0, -1.2, false); }
+  const ph = box(s, .08, .005, .15, glow('#d8e8ff', 1.2), mode === 'wfh' ? 1.1 : .55, mode === 'wfh' ? .78 : 1.12, mode === 'wfh' ? -1.25 : -.85); lamp(s, '#c8dcff', mode === 'wfh' ? .4 : .9, 2.5, ph.position.x, ph.position.y + .2, ph.position.z + .1, false);
+  const p = person3(s, { seated: true, back: true, top: mode === 'wfh' ? '#5a6a7a' : '#3a3a48', bottom: '#2a2a30', hairStyle: 'short' }); p.position.set(.6, .02, -.75); p.rotation.y = Math.PI;
+  if (mode !== 'wfh') { ph.rotation.x = 1.1; }
+  box(s, .5, .45, .5, mat('#4a3a30'), .6, .22, -.65);
+  lamp(s, '#ffd9a0', mode === 'wfh' ? .35 : .3, 5, -1.5, 2.6, 1, false);
+  return { render() { S.render(); }, update(t, dur) { const k = ease(t / dur); S.cam.position.set(lerp(-.3, .2, k), lerp(1.7, 1.6, k), lerp(1.9, 1.5, k)); S.cam.lookAt(.6, 1.0, -1.2); return ''; } }; }; }
+SC[47] = { build: room('wfh') };
+// 48 スマホ＝新しい仲人
+SC[48] = K((t) => R([
+  { at: .2, f: (lt) => phone(760, 560, 2.4 * pop(lt / .4)) },
+  { at: 1.0, slide: 0, f: () => [0, 1, 2, 3, 4, 5].map(i => { const a = i / 6 * Math.PI * 2 + t * .4; return person(760 + Math.cos(a) * 360, 600 + Math.sin(a) * 220, 70, i % 2 ? M : F, i % 2 ? 'm' : 'f'); }).join('') },
+  { at: 2.0, f: () => txt(1240, 420, '条件を入れれば、候補を探してくれる', { size: 40, anchor: 'start' }) },
+  { at: 5.0, f: () => txt(1240, 560, '新しい仲人？', { size: 80, color: Y, serif: true, anchor: 'start' }) },
+], t), 4, { enter: 'right', zoom: 0 });
+// 49-51 ネットはどっちに数える？
+const stack = (x, parts, k) => { let y = 820, out = ''; for (const [v, col, lab] of parts) { const h = v * 6 * k; y -= h; out += `<rect x="${x - 110}" y="${y}" width="220" height="${h}" fill="${col}"/>` + (k > .9 && lab ? txt(x + 140, y + h / 2 + 12, lab, { size: 34, color: col, anchor: 'start' }) : ''); } return out; };
+SC[49] = K((t) => R([
+  { at: 0, f: () => head('国の報告書の分け方', { y: 190 }) },
+  { at: .4, slide: 0, f: (lt) => stack(760, [[66, F, '恋愛結婚'], [15, CY2, 'ネット'], [10, '#d9b57a', 'お見合い']], easeOut(clamp(lt / 1.2))) },
+  { at: 4.0, f: () => `<path d="M1180,380 L1180,520" stroke="${F}" stroke-width="8"/><path d="M1160,500 L1180,540 L1200,500Z" fill="${F}"/>` + txt(1220, 470, '恋愛結婚が下がって見える', { size: 40, color: F, anchor: 'start' }) },
+  IMGN('※高さはイメージ'), ref('出生動向基本調査 報告書 (2023)'),
+], t), 4, { enter: 'right', zoom: 0 });
+SC[50] = K((t) => R([
+  { at: .2, f: () => phone(640, 560, 1.8) },
+  { at: 1.2, slide: 0, f: () => [0, 1, 2].map(i => `<g opacity="${clamp((t - 1.2 - i * .6) / .4)}">${person(900 + i * 130, 620, 100, M)}${person(960 + i * 130, 620, 100, F, 'f')}</g>`).join('') + txt(1030, 760, '何度もデート', { size: 36, color: C.dim }) },
+  { at: 3.4, f: (lt) => `<g transform="translate(1580,460) scale(${pop(lt / .4)})"><path d="M0,30 C-60,-10 -40,-70 0,-40 C40,-70 60,-10 0,30Z" fill="${F}" transform="scale(2)"/>${txt(0, 20, '？', { size: 80, color: '#fff' })}</g>` + txt(1580, 640, '恋愛結婚じゃないの？', { size: 40, color: F }) },
+], t), 4, { enter: 'right', zoom: 0 });
+SC[51] = K((t) => R([
+  { at: 0, f: () => head('同じ数字でも、分け方で見え方が変わる', { y: 190 }) },
+  { at: .3, slide: 0, f: () => stack(560, [[66, F, ''], [15, CY2, ''], [10, '#d9b57a', '']], 1) + txt(560, 880, 'ネット＝別の箱', { size: 36, color: C.dim }) },
+  { at: 2.0, slide: 0, f: (lt) => stack(1300, [[66, F, ''], [15, F, ''], [10, '#d9b57a', '']], easeOut(clamp(lt / 1))) + txt(1300, 880, 'ネット＝恋愛に入れる', { size: 36, color: F }) },
+  { at: 4.6, f: () => txt(CX, 300, '数字を見るときは、分け方にも注意', { size: 46, color: Y, serif: true }) },
+  IMGN('※高さはイメージ'),
+], t), 4, { enter: 'fade', zoom: 0 });
+// 52 未婚の男女（18〜34歳）
+SC[52] = K((t) => { let g = ''; for (let i = 0; i < 20; i++) { const a = clamp((t - .4 - i * .08) / .3); g += `<g opacity="${a}">${person(300 + (i % 10) * 145, 520 + Math.floor(i / 10) * 220, 110, i % 2 ? F : M, i % 2 ? 'f' : 'm')}</g>`; }
+  return R([{ at: 0, slide: 0, f: () => g }, { at: 1.2, f: () => txt(CX, 230, '18〜34歳の、結婚していない人たち', { size: 52, serif: true }) }, ref(SURVEY)], t); }, 4, { enter: 'right', zoom: 0 });
+// 53-54 いずれ結婚するつもり 81.4/84.3 → 恋人がいる 21.1/27.8
+const vbar = (x, v, col, lab, k) => { const h = v * 5.2 * easeOut(clamp(k)); return `<rect x="${x - 90}" y="${820 - h}" width="180" height="${h}" rx="10" fill="${col}"/>` + (k > .9 ? txt(x, 800 - h, v + '%', { size: 56, color: col, serif: true }) : '') + txt(x, 880, lab, { size: 40, color: col }); };
+SC[53] = K((t) => R([
+  { at: 0, f: () => head('「いずれ結婚するつもり」', { y: 190 }) },
+  { at: .5, slide: 0, f: (lt) => vbar(760, 81.4, M, '男性', lt / 1.2) },
+  { at: 1.6, slide: 0, f: (lt) => vbar(1160, 84.3, F, '女性', lt / 1.2) },
+  { at: 6.0, f: () => txt(CX, 260, '今でも8割を超える', { size: 52, color: Y, serif: true }) },
+  ref(SURVEY),
+], t), 4, { enter: 'right', zoom: 0 });
+SC[54] = K((t) => R([
+  { at: 0, f: () => head('「今、恋人と付き合っている」', { y: 190 }) },
+  { at: 0, slide: 0, f: () => `<g opacity=".25">${vbar(560, 81.4, M, '', 2)}${vbar(960, 84.3, F, '', 2)}</g>` },
+  { at: .8, slide: 0, f: (lt) => vbar(760, 21.1, M, '男性', lt / 1.2) },
+  { at: 2.6, slide: 0, f: (lt) => vbar(1160, 27.8, F, '女性', lt / 1.2) },
+  { at: .3, f: () => txt(1640, 520, '薄い棒：', { size: 32, color: C.dim }) + txt(1640, 570, '結婚するつもり', { size: 32, color: C.dim }) },
+  ref(SURVEY),
+], t), 4, { enter: 'fade', zoom: 0 });
+SC[55] = { build: room('night') };
+
+// ===== エピローグ =====
+SC[56] = K((t) => R([
+  { at: .2, f: (lt) => bldg(CX, 720, 2.2 * pop(lt / .4)) },
+  { at: 1.4, f: () => txt(CX, 260, '職場結婚が減ったのは、気のせいではない', { size: 52, color: Y, serif: true }) },
+], t), 5, { enter: 'fade', zoom: 0 });
+SC[57] = K((t) => { const sp = Math.max(0, 1 - t / 4); return R([
+  { at: 0, slide: 0, f: () => gear(560, 560, 150, 40 * (t - t * t / 8 * (t < 4 ? 1 : 0)) * 1, '#9aa6b8', '出会い') + gear(960, 470, 120, -50 * Math.min(t, 4) * .5 + 18, '#d9b57a', '世話') + gear(1340, 580, 150, 40 * Math.min(t, 4) * .5 + 9, F, '寿退社') },
+  { at: 4.4, f: () => txt(CX, 860, 'なくなったのは、恋愛ではなく、仕組みの方', { size: 50, color: Y, serif: true }) },
+], t); }, 5, { enter: 'right', zoom: 0 });
+SC[58] = K((t) => R([
+  { at: .2, f: (lt) => house(460, 560, 1.3 * pop(lt / .4)) + txt(460, 700, '家が仲人', { size: 44, color: '#d9b57a' }) },
+  { at: 1.6, f: () => arrow(620, 540, 780, 540, '#cfc8b8', 1, 8) },
+  { at: 2.2, f: (lt) => bldg(CX, 640, 1.2 * pop(lt / .4)) + txt(CX, 700, '会社が仲人', { size: 44, color: '#9aa6b8' }) },
+  { at: 3.6, f: () => arrow(1120, 540, 1280, 540, '#cfc8b8', 1, 8) },
+  { at: 4.2, f: (lt) => phone(1460, 520, 1.1 * pop(lt / .4)) + txt(1460, 700, 'スマホが仲人？', { size: 44, color: CY2 }) },
+], t), 5, { enter: 'right', zoom: 0 });
+SC[59] = K((t) => R([
+  { at: .3, f: (lt) => `<g transform="translate(${CX},460) scale(${pop(lt / .45)})"><rect x="-150" y="-110" width="300" height="200" rx="30" fill="${Y}"/><path d="M-40,88 L-70,150 L20,90Z" fill="${Y}"/>${[-60, 0, 60].map(x => `<circle cx="${x}" cy="-10" r="16" fill="#1b1a20"/>`).join('')}</g>` },
+  { at: 1.0, f: () => txt(CX, 720, 'あなたの周りの夫婦は、どこで出会った？', { size: 54, serif: true }) },
+  { at: 2.6, f: () => txt(CX, 810, 'コメント欄で教えてください', { size: 42, color: C.dim }) },
+], t), 5, { enter: 'right', zoom: 0 });
+SC[60] = K((t) => R([
+  { at: .3, f: () => txt(CX, 380, '今日のネタバレは、ここまで', { size: 64, serif: true }) },
+  { at: 2.0, f: (lt) => `<g transform="translate(${CX - 230},600) scale(${pop(lt / .4)})"><rect x="-200" y="-56" width="400" height="112" rx="56" fill="#e0453a"/>${txt(0, 16, 'チャンネル登録', { size: 44, color: '#fff' })}</g>` },
+  { at: 2.6, f: (lt) => `<g transform="translate(${CX + 230},600) scale(${pop(lt / .4)})"><rect x="-200" y="-56" width="400" height="112" rx="56" fill="rgba(255,255,255,.1)" stroke="#fff" stroke-width="3"/>${txt(0, 16, '高評価', { size: 44, color: '#fff' })}</g>` },
+  { at: 4.8, f: () => txt(CX, 820, 'また次のネタバレで', { size: 44, color: Y }) },
+], t), 5, { enter: 'right', zoom: 0 });
 
 export const SCENES = SC;
