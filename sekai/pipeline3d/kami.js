@@ -156,7 +156,7 @@ export function sheet(t, dur, inner, o = {}) {
   if (lv === 'left') tx += le * -260; else if (lv === 'right') tx += le * 260; else if (lv === 'zoom') sc *= 1 + .08 * le;
   op = Math.min(easeOut(t / .35), 1 - ease((t - (dur - .35)) / .35));
   const grid = `<pattern id="gr" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M60,0 L0,0 0,60" fill="none" stroke="rgba(255,255,255,.035)" stroke-width="2"/></pattern>`;
-  const chapBar = o.chap == null ? '' : `<g opacity=".85">${CHAPS.map((c, i) => `<g transform="translate(${70 + i * 150},62)"><rect x="0" y="0" width="130" height="6" rx="3" fill="${i < o.chap ? 'rgba(255,138,61,.55)' : i === o.chap ? C.o : 'rgba(255,255,255,.15)'}"/>${i === o.chap ? txt(0, 44, c, { size: 22, anchor: 'start', color: C.o, weight: 700 }) : ''}</g>`).join('')}</g>`;
+  const chapBar = o.chap == null ? '' : `<g opacity=".85">${(o.chaps || CHAPS).map((c, i) => `<g transform="translate(${70 + i * (o.chaps ? 128 : 150)},62)"><rect x="0" y="0" width="${o.chaps ? 112 : 130}" height="6" rx="3" fill="${i < o.chap ? 'rgba(255,138,61,.55)' : i === o.chap ? C.o : 'rgba(255,255,255,.15)'}"/>${i === o.chap ? txt(0, 44, c, { size: 22, anchor: 'start', color: C.o, weight: 700 }) : ''}</g>`).join('')}</g>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="position:absolute;left:0;top:0">
   <defs><radialGradient id="bgg" cx="50%" cy="42%" r="78%"><stop offset="0%" stop-color="${o.bg1 || C.bg1}"/><stop offset="100%" stop-color="${o.bg2 || C.bg2}"/></radialGradient>${grid}
   <filter id="ts" x="-10%" y="-20%" width="120%" height="150%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity=".55"/></filter>
