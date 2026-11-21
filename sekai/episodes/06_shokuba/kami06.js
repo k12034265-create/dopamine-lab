@@ -65,8 +65,8 @@ SC[4] = K((t) => { const off = Math.round(7 * ease(clamp((t - 1.0) / 2.0))), c =
     { at: 0, f: () => head(t < .9 ? '2015〜2018年に結婚した夫婦' : '2018〜2021年に結婚した夫婦', { y: 190 }) },
     { at: 0, slide: 0, f: () => grid({ lit: 28, off }) + legend() },
     { at: 0, slide: 0, f: () => txt(1440, 420, '職場や仕事で出会った', { size: 40 }) + `<g style="font-variant-numeric:tabular-nums">${txt(1440, 560, v, { size: 130, color: off >= 7 ? '#c9a24a' : Y, serif: true })}</g>` },
-    { at: 3.0, f: () => card(1200, 800, 520, 110, { fill: 'rgba(20,24,36,.92)' }) + txt(1480, 872, '友人・きょうだい 25.9%', { size: 38 }) },
-    { at: 0, slide: 0, f: () => crown(1440 - 190 * c, 680 + 172 * c - 120 * arc, 1.4 - .5 * c) },
+    { at: 3.0, f: () => card(1200, 800, 520, 110, { fill: 'rgba(20,24,36,.92)' }) + txt(1510, 872, '友人・きょうだい 25.9%', { size: 38 }) },
+    { at: 0, slide: 0, f: () => crown(1440 - 200 * c, 680 + 172 * c - 120 * arc, 1.4 - .6 * c) },
 
     ref(SURVEY),
   ], t); }, 0, { enter: 'fade', zoom: 0 });
