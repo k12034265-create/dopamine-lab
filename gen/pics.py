@@ -1,7 +1,7 @@
 """Original procedural pictures for reveal-type videos. pic(name, w, h) -> float32 (h,w,3) RGB in 0..1"""
 import numpy as np, colorsys
 
-TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま', 'tulips': 'チューリップ畑'}
+TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま', 'tulips': 'チューリップ畑', 'wave': '大波と富士'}
 
 
 def _hsv(h, s, v):
@@ -155,4 +155,39 @@ def pic(name, w, h, seed=0):
                 tip = (np.abs(u - (cx + px)) < 0.022 * np.clip((v - (cy - 0.11)) / 0.035, 0, 1)) & (v > cy - 0.11) & (v <= cy - 0.075)
                 img[tip] = cols[k]
             img[head & (u > cx + 0.035)] = np.array(cols[k]) * 0.78
+    elif name == 'wave':
+        # 大波と富士（北斎の大波風の自作構図）
+        ar = h / w
+        X = u; Y = v * ar
+        top = np.array([0.80, 0.62, 0.38]); bot = np.array([0.90, 0.76, 0.52])
+        img[:] = top + (bot - top) * np.clip(v / 0.75, 0, 1)[..., None]
+        sl = 0.80 * ar
+        # far Fuji (right, small)
+        fx = 0.84
+        fuji = (Y < sl) & (Y > sl - 0.15) & (np.abs(X - fx) < (Y - (sl - 0.15)) * 1.5 + 0.01)
+        img[fuji] = (0.25, 0.32, 0.52)
+        img[fuji & (Y < sl - 0.10)] = (0.97, 0.97, 0.95)
+        # sea with small waves
+        img[Y > sl + 0.012 * np.sin(X * 25)] = (0.12, 0.22, 0.45)
+        for cx in (0.70, 0.90):
+            d = np.hypot(X - cx, Y - (sl + 0.07)); r = 0.08
+            img[(d < r) & (Y < sl + 0.07)] = (0.18, 0.32, 0.6)
+            img[(np.abs(d - r) < 0.012) & (Y < sl + 0.05)] = (0.97, 0.97, 0.93)
+        # big wave: outer disc minus curl
+        c1x, c1y, r1 = 0.36, 0.60 * ar, 0.42
+        c2x, c2y, r2 = 0.50, 0.58 * ar, 0.21
+        d1 = np.hypot(X - c1x, Y - c1y); d2 = np.hypot(X - c2x, Y - c2y)
+        curl = (d2 < r2) & (Y < c2y + r2 * 0.4)
+        body = ((d1 < r1) | ((Y > c1y) & (X < c1x + r1))) & ~curl
+        img[body] = (0.10, 0.20, 0.48)
+        img[body & (np.sin(d1 * 80) > 0.25)] = (0.22, 0.40, 0.70)
+        # foam crest with claws on the outer rim
+        ang = np.arctan2(Y - c1y, X - c1x)
+        claw = 0.03 * (np.sin(ang * 36) > 0)
+        rim = body & (d1 > r1 - 0.04 - claw) & (ang > -2.5) & (ang < 0.15)
+        img[rim] = (0.97, 0.97, 0.93)
+        # spray drops inside the curl
+        for k in range(12):
+            px = c2x - 0.05 + 0.18 * rng.random(); py = c2y - r2 + 0.15 * rng.random()
+            img[np.hypot(X - px, Y - py) < 0.011] = (0.97, 0.97, 0.93)
     return np.clip(img, 0, 1)
