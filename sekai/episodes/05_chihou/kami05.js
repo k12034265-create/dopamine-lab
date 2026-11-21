@@ -60,7 +60,7 @@ function station() {
 const SC = [];
 // ---- 写真（Pexels）：先に読み込んでおく ----
 const IMG = (n) => `/episodes/05_chihou/img/${n}.jpg`;
-await Promise.all(['train_snow', 'station_night'].map(n => new Promise(r => { const i = new Image(); i.onload = () => (i.decode ? i.decode().then(r, r) : r()); i.onerror = r; i.src = IMG(n); })));
+await Promise.all(['train_snow', 'station_night', 'suitcase', 'shutter', 'konbini'].map(n => new Promise(r => { const i = new Image(); i.onload = () => (i.decode ? i.decode().then(r, r) : r()); i.onerror = r; i.src = IMG(n); })));
 const photo = (n, t, dur, dark = .35, z0 = 1.0, z1 = 1.08, px = 0) => { const k = ease(t / dur), z = z0 + (z1 - z0) * k;
   return `<g transform="translate(${960 + px * k},540) scale(${z}) translate(-960,-540)"><image href="${IMG(n)}" x="-40" y="-40" width="2000" height="1160" preserveAspectRatio="xMidYMid slice"/></g><rect width="1920" height="1080" fill="rgba(8,10,18,${dark})"/>`; };
 const rnd = (seed) => { let x = seed * 9301 + 49297; return () => ((x = (x * 233280 + 49297) % 2147483647) / 2147483647); };
@@ -150,5 +150,181 @@ SC[8] = K((t) => { const x0 = 260, x1 = 1660, yr = (y) => x0 + (y - 1990) / 30 *
     { at: 6.6, f: () => txt(1300, 470, '女性の方が1年早い', { size: 56, color: Y, serif: true }) },
     ref('天野 (2021) ニッセイ基礎研究所'),
   ], t); }, 1, { enter: 'right', zoom: 0 });
+
+
+// ===== 第1章 つづき =====
+const IMGNOTE = { at: .3, f: () => note(1880, 1000 - 60, '※形はイメージ', 'end') };
+const chapPhoto = (num, title) => [
+  { at: .3, slide: 0, f: () => txt(CX, 440, num, { size: 40, color: C.o, serif: true, ls: 10 }) },
+  { at: .55, f: () => txt(CX, 570, title, { size: 96, serif: true, ls: 4 }) }];
+// 9 男女の線が並ぶ→2009年から女性が離れる（イメージ）
+SC[9] = K((t) => { const x0 = 260, x1 = 1660, yb = 820, k = ease(clamp((t - .3) / 5.5)), X = (y) => x0 + (y - 1995) / 25 * (x1 - x0);
+  const line = (fem) => { let d = ''; for (let i = 0; i <= 50; i++) { const y = 1995 + 25 * i / 50 * k, g = Math.max(0, y - 2009);
+      const v = 120 + (y - 1995) * 6 + (fem ? g * g * 2.2 : g * .5); d += (i ? 'L' : 'M') + X(y).toFixed(1) + ',' + (yb - v).toFixed(1); } return d; };
+  return R([
+    { at: 0, f: () => head('東京への転入超過：男女の動き', { y: 190 }) },
+    { at: 0, slide: 0, f: () => `<rect x="${x0}" y="${yb}" width="${x1 - x0}" height="3" fill="#6b665e"/>` + [1995, 2000, 2005, 2010, 2015, 2020].map(y => txt(X(y), yb + 50, y, { size: 30, color: C.dim })).join('')
+        + `<path d="${line(0)}" stroke="${M}" stroke-width="8" fill="none" stroke-linecap="round"/><path d="${line(1)}" stroke="${F}" stroke-width="8" fill="none" stroke-linecap="round"/>` },
+    { at: 3.0, f: () => `<rect x="${X(2009) - 2}" y="300" width="4" height="${yb - 300}" fill="${Y}" opacity=".7"/>` + txt(X(2009), 290, '2009年ごろ', { size: 40, color: Y }) },
+    { at: 5.6, f: () => txt(X(2020) + 20, 360, '女性', { size: 44, color: F, anchor: 'start' }) + txt(X(2020) + 20, 640, '男性', { size: 44, color: M, anchor: 'start' }) },
+    IMGNOTE, ref('天野 (2021)／内閣府 地域の経済2024'),
+  ], t); }, 1, { enter: 'right', zoom: 0 });
+// 10 倍率 1.0 → 1.4 → 2.2
+SC[10] = K((t) => { const B = [['〜2008年ごろ', 1.0, 0], ['2015年ごろ', 1.4, 1.6], ['2020年', 2.2, 4.6]], base = 840, u = 220;
+  return R([
+    { at: 0, f: () => head('女性は男性の何倍？（東京への転入超過）', { y: 190 }) },
+    ...B.map((b, i) => ({ at: b[2], slide: 0, f: (lt) => { const h = b[1] * u * easeOut(clamp(lt / .9)), x = 520 + i * 440;
+      return `<rect x="${x - 90}" y="${base - h}" width="180" height="${h}" rx="10" fill="${i == 2 ? F : '#c98aa3'}" opacity="${i == 2 ? 1 : .75}"/>` + txt(x, base - h - 30, b[1].toFixed(1) + '倍', { size: i == 2 ? 72 : 52, color: i == 2 ? Y : '#fff', serif: true }) + txt(x, base + 55, b[0], { size: 34, color: C.dim }); } })),
+    { at: 0, slide: 0, f: () => `<rect x="300" y="${base}" width="1320" height="3" fill="#6b665e"/>` },
+    ref('天野 (2021) ニッセイ基礎研究所'),
+  ], t); }, 1, { enter: 'right', zoom: 0 });
+// 11 写真：スーツケースを引いて歩く後ろ姿
+SC[11] = K((t, dur) => photo('suitcase', t, dur, .35, 1.02, 1.1, -30) + R([
+  { at: 3.2, f: () => txt(1360, 300, '強い意志で', { size: 72, serif: true }) + txt(1360, 400, '動いた人たち', { size: 72, serif: true }) },
+  { at: 6.4, f: (lt) => `<g transform="translate(1360,540) scale(${pop(lt / .4)})">${txt(0, 30, 'その多くが女性', { size: 64, color: F, serif: true })}</g>` },
+], t), 1, { enter: 'fade', zoom: 0 });
+// 12 東京圏（1都3県）
+SC[12] = K((t) => { const P = [['埼玉', 760, 360], ['東京', 760, 560], ['千葉', 1160, 520], ['神奈川', 700, 760]];
+  return R([
+    { at: 0, f: () => head('東京圏（東京・埼玉・千葉・神奈川）で見ても', { y: 170 }) },
+    ...P.map((p, i) => ({ at: .5 + i * .35, f: (lt) => `<g transform="translate(${p[1]},${p[2]}) scale(${pop(lt / .4)})"><rect x="-150" y="-80" width="300" height="160" rx="24" fill="rgba(255,214,102,.14)" stroke="${Y}" stroke-width="3"/>${txt(0, 16, p[0], { size: 52, color: Y })}</g>` })),
+    { at: 3.2, slide: 0, f: (lt) => arrow(1700, 400, 1360, 520, F, easeOut(clamp(lt / .8)), 26) + arrow(1700, 700, 1360, 640, M, easeOut(clamp(lt / .8)), 12) },
+    { at: 3.8, f: () => txt(1720, 380, '女性', { size: 44, color: F, anchor: 'start' }) + txt(1720, 740, '男性', { size: 44, color: M, anchor: 'start' }) },
+    { at: 5.0, f: () => txt(1500, 900, '人口の割合で見ても、女性の方が大きい', { size: 40, color: '#fff' }) },
+    ref('内閣府 地域の経済2024'),
+  ], t); }, 1, { enter: 'right', zoom: 0 });
+// 13 年齢別：20代前半が突出（イメージ）
+SC[13] = K((t) => { const A = ['15-19', '20-24', '25-29', '30-34', '35-39', '40代', '50代'], H = [.45, 1, .55, .2, .1, .06, .04], base = 820;
+  return R([
+    { at: 0, f: () => head('一番多く動いているのは？', { y: 190 }) },
+    { at: .3, slide: 0, f: () => A.map((a, i) => { const h = H[i] * 480 * easeOut(clamp((t - .3 - i * .12) / .8)), x = 380 + i * 200, hi = i == 1;
+      return `<rect x="${x - 70}" y="${base - h}" width="140" height="${h}" rx="8" fill="${hi ? Y : '#8a8478'}"/>` + txt(x, base + 50, a + (i < 5 ? '歳' : ''), { size: 30, color: hi ? Y : C.dim }); }).join('') + `<rect x="280" y="${base}" width="1360" height="3" fill="#6b665e"/>` },
+    { at: 3.4, f: (lt) => `<g transform="translate(980,330) scale(${pop(lt / .4)})">${txt(0, 0, '20代前半', { size: 72, color: Y, serif: true })}${txt(0, 60, '大学を出て、最初の仕事を選ぶ年ごろ', { size: 34 })}</g>` },
+    IMGNOTE, ref('内閣府 地域の経済2024／総務省 住民基本台帳'),
+  ], t); }, 1, { enter: 'right', zoom: 0 });
+// 14 地図：東北・北関東・甲信越・東海 → 東京圏（20代前半は女性が多い）
+const REG = [['東北', ['aomori', 'akita', 'morioka', 'yamagata', 'sendai', 'fukushima']], ['北関東', ['utsunomiya', 'maebashi', 'mito']], ['甲信越', ['niigata', 'nagano', 'kofu']], ['東海', ['shizuoka', 'nagoya']]];
+SC[14] = K((t) => { const j = maps().japan, sx = 230, sy = 60, sc = .92, P = (k) => [sx + j.pts[k][0] * sc, sy + j.pts[k][1] * sc], T = P('tokyo');
+  return R([
+    { at: 0, slide: 0, f: () => japanMap(sx, sy, sc, { fill: '#cfc8b8' }) + `<circle cx="${T[0]}" cy="${T[1]}" r="20" fill="${Y}" filter="url(#glow)"/>` },
+    ...REG.map((r, i) => ({ at: .6 + i * 1.1, slide: 0, f: (lt) => r[1].map(k => { const a = P(k); return `<circle cx="${a[0]}" cy="${a[1]}" r="${16 + 6 * Math.sin(lt * 3)}" fill="${F}" opacity=".85" filter="url(#glow)"/>` + arrow(a[0], a[1], a[0] + (T[0] - a[0]) * .85, a[1] + (T[1] - a[1]) * .85, F, easeOut(clamp(lt / 1)), 5); }).join('') })),
+    ...REG.map((r, i) => ({ at: .6 + i * 1.1, f: () => txt(1500, 330 + i * 90, r[0], { size: 48, color: F }) })),
+    { at: 5.2, f: () => card(1250, 720, 560, 200) + txt(1530, 800, '20代前半は', { size: 40 }) + txt(1530, 870, '女性 ＞ 男性', { size: 56, color: F, serif: true }) },
+    { at: 6.5, f: () => ['utsunomiya', 'maebashi', 'mito'].map((k, i) => { const a = P(k); return pin(a[0], a[1] - 10, '', Y) + txt(a[0] + 40, a[1] - 40 - i * 4, ['栃木', '群馬', '茨城'][i], { size: 30, color: Y, anchor: 'start' }); }).join('') },
+    ref('内閣府 地域の経済2024'),
+  ], t); }, 1, { enter: 'right', zoom: 0 });
+// 15 2024年 東京圏 +135,843人
+SC[15] = K((t) => R([
+  { at: 0, f: () => head('2024年 東京圏への転入超過', { y: 220 }) },
+  { at: .5, slide: 0, f: (lt) => `<g style="font-variant-numeric:tabular-nums">${txt(CX, 560, '＋' + Math.round(135843 * easeOut(clamp(lt / 3))).toLocaleString() + '人', { size: 150, color: Y, serif: true })}</g>` },
+  { at: 5.0, f: () => txt(CX, 740, 'コロナ前の水準に、ほぼ戻った', { size: 50 }) },
+  ref('総務省 住民基本台帳人口移動報告 2024'),
+], t), 1, { enter: 'right', zoom: 0 });
+// 16 「目標」の旗。矢印は止まらない
+SC[16] = K((t) => { let ar = ''; for (let i = 0; i < 9; i++) { const u = ((t * .5 + i / 9) % 1), x = 200 + u * 1500, y = 420 + (i % 3) * 120; ar += `<g opacity="${Math.sin(Math.PI * u).toFixed(2)}"><path d="M${x - 60},${y} L${x + 40},${y}" stroke="${i % 3 ? F : M}" stroke-width="10" stroke-linecap="round"/><path d="M${x + 40},${y - 20} L${x + 70},${y} L${x + 40},${y + 20}Z" fill="${i % 3 ? F : M}"/></g>`; }
+  return R([
+    { at: 0, f: () => head('国の目標：東京への一極集中を止める', { y: 190 }) },
+    { at: .3, slide: 0, f: () => ar },
+    { at: .8, f: (lt) => `<g transform="translate(980,860) scale(${pop(lt / .4)})"><rect x="-4" y="-560" width="8" height="560" fill="#cfc8b8"/><path d="M4,-560 L220,-505 L4,-450Z" fill="${C.o}"/>${txt(100, -490, '目標', { size: 36, color: '#111', shadow: false })}</g>` },
+    { at: 4.5, f: () => txt(CX, 960 - 60, 'それでも、流れは止まっていない', { size: 52, color: Y, serif: true }) },
+  ], t); }, 1, { enter: 'right', zoom: 0 });
+// 17 福井：20代女性が1年で4.05%減
+SC[17] = K((t) => { const j = maps().japan, sx = 230, sy = 60, sc = .92, a = [sx + j.pts.fukui[0] * sc, sy + j.pts.fukui[1] * sc];
+  return R([
+    { at: 0, slide: 0, f: () => japanMap(sx, sy, sc, { fill: '#cfc8b8' }) },
+    { at: 3.0, slide: 0, f: (lt) => `<circle cx="${a[0]}" cy="${a[1]}" r="${30 + 10 * Math.sin(lt * 4)}" fill="#e0453a" opacity=".6" filter="url(#glow)"/>` + pin(a[0], a[1], '', '#e0453a') + txt(a[0] - 40, a[1] + 10, '福井', { size: 40, color: '#ff7a6a', anchor: 'end' }) },
+    { at: .6, f: () => txt(1500, 300, '20代女性が', { size: 48 }) + txt(1500, 370, '1年でどれだけ減った？', { size: 48 }) },
+    { at: 4.0, f: (lt) => `<g transform="translate(1500,560) scale(${pop(lt / .4)})">${txt(0, 0, '−4.05%', { size: 130, color: '#ff7a6a', serif: true })}</g>` + txt(1500, 660, '全国で一番の減り方', { size: 40, color: C.dim }) },
+    ref('舞田敏彦 (Newsweek日本版)'),
+  ], t); }, 1, { enter: 'right', zoom: 0 });
+// 18 10年続けば3分の1がいなくなる
+SC[18] = K((t) => { const n = 30, gone = Math.min(10, Math.floor(clamp((t - 1.2) / 5) * 10.99)); let s0 = '';
+  for (let i = 0; i < n; i++) { const x = 330 + (i % 15) * 90, y = 520 + Math.floor(i / 15) * 170, out = i >= n - gone; s0 += `<g opacity="${out ? .12 : 1}">${person(x, y, 70, F, 'f')}</g>`; }
+  return R([
+    { at: 0, f: () => head('1年で4%が10年続くと…', { y: 190 }) },
+    { at: .2, slide: 0, f: () => s0 + `<g style="font-variant-numeric:tabular-nums">${txt(CX, 330, (gone) + '年後', { size: 60, color: Y, serif: true })}</g>` },
+    { at: 6.4, f: (lt) => `<g transform="translate(${CX},880) scale(${pop(lt / .4)})">${txt(0, 0, '20代女性の3分の1がいなくなる計算', { size: 56, color: '#ff7a6a', serif: true })}</g>` },
+  ], t); }, 1, { enter: 'right', zoom: 0 });
+
+// ===== 第2章 =====
+SC[19] = K((t, dur) => photo('shutter', t, dur, .55, 1.0, 1.08) + R(chapPhoto('第2章', '残された男たち'), t), 2, { enter: 'zoom', zoom: 0 });
+// 20 日本全体では女性が344万人多い
+SC[20] = K((t) => R([
+  { at: 0, f: () => head('日本の人口（2020年 国勢調査）', { y: 190 }) },
+  { at: .5, slide: 0, f: (lt) => { const k = easeOut(clamp(lt / 1.2)); return `<rect x="360" y="420" width="${1150 * k}" height="130" rx="12" fill="${F}"/><rect x="360" y="620" width="${1118 * k}" height="130" rx="12" fill="${M}"/>` + txt(330, 505, '女性', { size: 48, color: F, anchor: 'end' }) + txt(330, 705, '男性', { size: 48, color: M, anchor: 'end' }); } },
+  { at: 2.2, f: () => `<rect x="1478" y="400" width="32" height="170" fill="none" stroke="${Y}" stroke-width="4"/>` + txt(1560, 380, '＋344万人', { size: 64, color: Y, serif: true, anchor: 'start' }) },
+  { at: 4.0, f: () => txt(CX, 880, '実は、女性の方が多い', { size: 54 }) },
+  ref('総務省 令和2年国勢調査'),
+], t), 2, { enter: 'right', zoom: 0 });
+// 21 年齢ピラミッド：上の方だけ女性が多い（イメージ）
+SC[21] = K((t) => { const N = 9, base = 860, hh = 62; let s0 = '';
+  for (let i = 0; i < N; i++) { const y = base - (i + 1) * hh, top = i >= 6, wm = (300 - i * 22) * (top ? .75 - (i - 6) * .15 : 1), wf = (300 - i * 22) * (top ? 1 : .96), k = easeOut(clamp((t - .3 - i * .08) / .7));
+    s0 += `<rect x="${CX - 6 - wm * k}" y="${y}" width="${wm * k}" height="${hh - 8}" rx="6" fill="${M}"/><rect x="${CX + 6}" y="${y}" width="${wf * k}" height="${hh - 8}" rx="6" fill="${F}" ${top && t > 3 ? `stroke="${Y}" stroke-width="4"` : ''}/>`; }
+  return R([
+    { at: 0, f: () => head('女性が多いのは、長生きだから', { y: 190 }) },
+    { at: 0, slide: 0, f: () => s0 + txt(CX - 380, 900, '男性', { size: 40, color: M }) + txt(CX + 380, 900, '女性', { size: 40, color: F }) },
+    { at: 3.2, f: () => txt(CX + 520, 330, '高齢の世代', { size: 40, color: Y, anchor: 'start' }) },
+    { at: 5.0, f: () => txt(CX + 520, 780, '若い世代は？', { size: 44, color: '#fff', anchor: 'start' }) },
+    IMGNOTE,
+  ], t); }, 2, { enter: 'right', zoom: 0 });
+// 22 未婚の若い女性が男性の4分の3に届かない県
+SC[22] = K((t) => R([
+  { at: 0, f: () => head('結婚していない若い世代（一部の県）', { y: 190 }) },
+  { at: .6, slide: 0, f: () => [0, 1, 2, 3].map(i => person(560 + i * 140, 560, 110, M)).join('') + txt(770, 790, '男性 4人', { size: 44, color: M }) },
+  { at: 2.6, slide: 0, f: () => [0, 1, 2].map(i => `<g ${i == 2 ? 'clip-path="url(#cut3)"' : ''}>${person(1180 + i * 140, 560, 110, F, 'f')}</g>`).join('') + `<clipPath id="cut3"><rect x="1400" y="380" width="${80 * .9}" height="300"/></clipPath>` + txt(1320, 790, '女性 3人に届かない', { size: 44, color: F }) },
+  ref('山田昌弘（中央大学）'),
+], t), 2, { enter: 'right', zoom: 0 });
+// 23 あぶれた男性がグレーに
+SC[23] = K((t) => { const g = t > 2.2; return R([
+  { at: 0, f: () => head('男性4人に、女性は3人いない', { y: 190 }) },
+  { at: 0, slide: 0, f: () => [0, 1, 2].map(i => person(560 + i * 140, 560, 110, M) + `<rect x="${576 + i * 140}" y="${470}" width="0" height="0"/>`).join('') + `<g opacity="${g ? .35 : 1}">${person(980, 560, 110, g ? '#777' : M)}</g>` + [0, 1, 2].map(i => `<g ${i == 2 ? 'clip-path="url(#cut3b)"' : ''}>${person(1180 + i * 140, 560, 110, F, 'f')}</g>`).join('') + `<clipPath id="cut3b"><rect x="1400" y="380" width="72" height="300"/></clipPath>` },
+  { at: 2.4, f: () => txt(980, 760, '相手が見つからない', { size: 40, color: '#aaa' }) },
+  { at: 4.2, f: () => txt(CX, 900, '努力ではなく、数の問題', { size: 54, color: Y, serif: true }) },
+], t); }, 2, { enter: 'right', zoom: 0 });
+// 24 地図アプリ風：周りに女性がいない
+SC[24] = K((t) => { const r = 120 + ((t * 160) % 420); let dots = ''; const rr = rnd(5);
+  for (let i = 0; i < 26; i++) { const a = rr() * 6.28, d = 140 + rr() * 380; dots += `<circle cx="${CX + Math.cos(a) * d}" cy="${560 + Math.sin(a) * d * .8}" r="12" fill="${i < 2 ? F : '#5b6f99'}" opacity="${i < 2 ? .9 : .6}"/>`; }
+  return R([
+    { at: 0, slide: 0, f: () => `<rect x="360" y="230" width="1200" height="660" rx="30" fill="#232a33"/>` + `<path d="M360,420 L1560,520 M700,230 L820,890 M360,760 L1560,640 M1240,230 L1140,890" stroke="#39434f" stroke-width="22"/>` + dots
+        + `<circle cx="${CX}" cy="560" r="${r}" fill="none" stroke="${M}" stroke-width="3" opacity="${(1 - (r - 120) / 420).toFixed(2)}"/><circle cx="${CX}" cy="560" r="16" fill="${M}" stroke="#fff" stroke-width="4"/>` },
+    { at: 2.0, f: () => card(1600, 300, 290, 200) + txt(1745, 370, '近くの同世代', { size: 28, color: C.dim }) + txt(1745, 440, '女性 少ない', { size: 40, color: F }) },
+    { at: 5.0, f: () => txt(CX, 980 - 50, 'そもそも、近くにいない', { size: 52, color: Y, serif: true }) },
+  ], t); }, 2, { enter: 'right', zoom: 0 });
+// 25 ゆりかごが減る
+const cradle = (x, y, c, a) => `<g transform="translate(${x},${y})" opacity="${a}"><path d="M-50,0 A50,40 0 0 0 50,0 Z" fill="${c}"/><path d="M-50,0 A50,50 0 0 1 10,-48" stroke="${c}" stroke-width="8" fill="none"/><rect x="-36" y="38" width="8" height="22" fill="${c}"/><rect x="28" y="38" width="8" height="22" fill="${c}"/></g>`;
+SC[25] = K((t) => { const gone = Math.floor(clamp((t - 2) / 3) * 6.99); return R([
+  { at: 0, f: () => head('恋愛だけの話ではない', { y: 190 }) },
+  { at: .3, slide: 0, f: () => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => person(260 + i * 150, 470, 90, F, 'f')).map((p, i) => `<g opacity="${i >= 10 - gone ? .12 : 1}">${p}</g>`).join('') + txt(CX, 600, '子どもを産む年代の女性', { size: 36, color: F }) },
+  { at: 1.2, slide: 0, f: () => [0, 1, 2, 3, 4, 5, 6, 7].map(i => cradle(400 + i * 160, 790, '#e8d9b0', i >= 8 - Math.floor(gone * .9) ? .12 : 1)).join('') + txt(CX, 920, 'その地域で生まれる子ども', { size: 36, color: '#e8d9b0' }) },
+], t); }, 2, { enter: 'right', zoom: 0 });
+// 26 地図の地方部分が暗くなる
+SC[26] = K((t) => { const j = maps().japan, sx = 230, sy = 60, sc = .92, T = [sx + j.pts.tokyo[0] * sc, sy + j.pts.tokyo[1] * sc], d = ease(clamp((t - .5) / 3.5));
+  const lights = SRC.map(k => { const a = [sx + j.pts[k][0] * sc, sy + j.pts[k][1] * sc]; return `<circle cx="${a[0]}" cy="${a[1]}" r="10" fill="${Y}" opacity="${(.9 * (1 - d)).toFixed(2)}" filter="url(#glow)"/>`; }).join('');
+  return R([
+    { at: 0, slide: 0, f: () => japanMap(sx, sy, sc, { fill: '#cfc8b8' }) + `<rect width="1920" height="1080" fill="rgba(10,10,16,${(.55 * d).toFixed(2)})"/>` + lights + `<circle cx="${T[0]}" cy="${T[1]}" r="${20 + 20 * d}" fill="${Y}" filter="url(#glow)"/>` },
+    { at: 3.0, f: () => txt(1520, 520, '次の世代ごと', { size: 60, serif: true }) + txt(1520, 610, '地方から人がいなくなる', { size: 48 }) },
+  ], t); }, 2, { enter: 'right', zoom: 0 });
+// 27 写真：雪の夜のコンビニ
+SC[27] = K((t, dur) => photo('konbini', t, dur, .3, 1.0, 1.08, 40) + R([
+  { at: 2.0, f: () => txt(560, 300, '地元に残った男たちは', { size: 60, serif: true }) + txt(560, 390, '満足しているのか？', { size: 60, serif: true, color: Y }) },
+], t), 2, { enter: 'fade', zoom: 0 });
+// 28-29 満足度メーター
+const meter = (x, y, pct, label, col, lt) => { const k = easeOut(clamp(lt / 1.4)), a = Math.PI * (1 - pct / 100 * k), r = 200;
+  return `<path d="M${x - r},${y} A${r},${r} 0 0 1 ${x + r},${y}" stroke="#3a3842" stroke-width="44" fill="none"/>`
+    + `<path d="M${x - r},${y} A${r},${r} 0 0 1 ${(x + r * Math.cos(a)).toFixed(1)},${(y - r * Math.sin(a)).toFixed(1)}" stroke="${col}" stroke-width="44" fill="none"/>`
+    + `<g style="font-variant-numeric:tabular-nums">${txt(x, y - 20, (pct * k).toFixed(1) + '%', { size: 80, color: '#fff', serif: true })}</g>` + txt(x, y + 70, label, { size: 40, color: col }); };
+SC[28] = K((t) => R([
+  { at: 0, f: () => head('今住んでいる地域に満足している（男性）', { y: 190 }) },
+  { at: 1.0, slide: 0, f: (lt) => meter(CX, 680, 43.2, '東北の男性', M, lt) },
+  { at: 4.5, f: () => txt(CX, 860, '男性で一番低い', { size: 48, color: Y, serif: true }) },
+  ref('内閣府 令和6年 地方の暮らしに関する調査'),
+], t), 2, { enter: 'right', zoom: 0 });
+SC[29] = K((t) => R([
+  { at: 0, f: () => head('今住んでいる地域に満足している（男性）', { y: 190 }) },
+  { at: 0, slide: 0, f: (lt) => meter(600, 680, 60.2, '全国の男性', '#9aa6b8', lt + 2) },
+  { at: 0, slide: 0, f: (lt) => meter(1320, 680, 43.2, '東北の男性', M, lt + 2) },
+  { at: 2.5, f: () => txt(CX, 880, '残った男性も、満足しているわけではない', { size: 48, color: Y, serif: true }) },
+  ref('内閣府 令和6年 地方の暮らしに関する調査'),
+], t), 2, { enter: 'fade', zoom: 0 });
 
 export const SCENES = SC;
