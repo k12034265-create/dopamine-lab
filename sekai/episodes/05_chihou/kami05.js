@@ -57,6 +57,21 @@ function station() {
     return ''; } };
 }
 
+
+// ===== 県境つき地図（japan2）：見たい地域まで寄せて描く =====
+// view = [中心x, 中心y, 倍率]（地図座標 1200x900）。画面の (ox,oy) にその中心が来る
+const J2 = () => maps().japan2;
+const lerpV = (a, b, k) => a.map((v, i) => v + (b[i] - v) * k);
+const VW = { all: [600, 450, .92], east: [690, 400, 1.9], kanto: [640, 445, 5.2], kita: [648, 418, 6.2], chubu: [560, 470, 3.2], tohoku: [700, 300, 2.4] };
+const vp = (v, ox = 760, oy = 540) => (p) => [ox + (p[0] - v[0]) * v[2], oy + (p[1] - v[1]) * v[2]];
+// fills: {県コード: 色} / dim: 塗らない県の色
+const jmap2 = (v, o = {}) => { const j = J2(), ox = o.ox ?? 760, oy = o.oy ?? 540, z = v[2];
+  let g = `<g transform="translate(${ox - v[0] * z},${oy - v[1] * z}) scale(${z})">`;
+  for (const [c, pf] of Object.entries(j.prefs)) { const f = (o.fills && o.fills[c]) || o.base || '#cfc8b8'; g += `<path d="${pf.d}" fill="${f}"/>`; }
+  g += `<path d="${j.border}" fill="none" stroke="${o.stroke || '#1b1a20'}" stroke-width="${(1.6 / z).toFixed(3)}" opacity=".7"/></g>`; return g; };
+const pc = (code) => J2().prefs[code].c;
+const plabel = (v, code, s0, o = {}) => { const q = vp(v, o.ox, o.oy)(pc(code)); return txt(q[0] + (o.dx || 0), q[1] + (o.dy || 0) + 12, s0, { size: o.size || 34, color: o.color || '#1b1a20', shadow: false }); };
+
 const SC = [];
 // ---- 写真（Pexels）：先に読み込んでおく ----
 const IMG = (n) => `/episodes/05_chihou/img/${n}.jpg`;
@@ -77,22 +92,23 @@ SC[1] = K((t, dur) => R([
 // 2 人の流れ：各地から東京へ光の粒（女性:男性 ＝ 2.2:1、粒1つ ≒ 280人）
 const SRC = ['sapporo', 'asahikawa', 'hakodate', 'aomori', 'akita', 'morioka', 'yamagata', 'sendai', 'fukushima', 'niigata', 'toyama', 'kanazawa', 'fukui', 'nagano', 'kofu', 'shizuoka', 'nagoya', 'kyoto', 'osaka', 'okayama', 'hiroshima', 'tottori', 'matsue', 'tokushima', 'kochi', 'matsuyama', 'fukuoka', 'nagasaki', 'kumamoto', 'miyazaki', 'kagoshima', 'utsunomiya', 'maebashi', 'mito'];
 const PARTS = (() => { const r = rnd(11), out = []; for (let i = 0; i < 110; i++) { const f = i < 76; out.push({ f, s: SRC[Math.floor(r() * SRC.length)], st: 1.6 + r() * 5.2, dur: 1.2 + r() * .6, bend: (r() - .5) * 160 }); } return out.sort((a, b) => a.st - b.st); })();
-SC[2] = K((t, dur) => { const j = maps().japan, sx = 230, sy = 60, sc = .92, P = (k) => [sx + j.pts[k][0] * sc, sy + j.pts[k][1] * sc], T = P('tokyo');
+SC[2] = K((t, dur) => { const j = J2(), v = lerpV(VW.all, [650, 420, 2.0], ease(clamp((t - 4) / 4.5))), V = vp(v), T0 = j.pts.tokyo, T = V(T0);
   let dots = '', nf = 0, nm = 0;
   for (const p of PARTS) { const u = (t - p.st) / p.dur; if (u < 0) continue; if (u >= 1) { p.f ? nf++ : nm++; continue; }
-    const a = P(p.s), e = easeOut(u), mx = (a[0] + T[0]) / 2 + p.bend, my = (a[1] + T[1]) / 2 - 80;
-    const x = (1 - e) * (1 - e) * a[0] + 2 * (1 - e) * e * mx + e * e * T[0], y = (1 - e) * (1 - e) * a[1] + 2 * (1 - e) * e * my + e * e * T[1];
-    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="11" fill="${p.f ? F : M}" opacity="${(.4 + .6 * Math.sin(Math.PI * Math.min(1, u * 1.2))).toFixed(2)}" filter="url(#glow)"/>`; }
-  const done = t > PARTS[PARTS.length - 1].st + 2, nF = PARTS.filter(p => p.f).length, cF = Math.round(21493 * nf / nF), cM = Math.round(9632 * nm / (PARTS.length - nF)), gl = 18 + (nf + nm) * .35;
+    const a = j.pts[p.s], e = easeOut(u), mx = (a[0] + T0[0]) / 2 + p.bend * .5, my = (a[1] + T0[1]) / 2 - 40;
+    const q = V([(1 - e) * (1 - e) * a[0] + 2 * (1 - e) * e * mx + e * e * T0[0], (1 - e) * (1 - e) * a[1] + 2 * (1 - e) * e * my + e * e * T0[1]]);
+    dots += `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="10" fill="${p.f ? F : M}" opacity="${(.4 + .6 * Math.sin(Math.PI * Math.min(1, u * 1.2))).toFixed(2)}" filter="url(#glow)"/>`; }
+  const nF = PARTS.filter(p => p.f).length, cF = Math.round(21493 * nf / nF), cM = Math.round(9632 * nm / (PARTS.length - nF)), gl = 18 + (nf + nm) * .3;
   return R([
-    { at: 0, slide: 0, f: () => japanMap(sx, sy, sc, { fill: '#cfc8b8' }) + `<circle cx="${T[0]}" cy="${T[1]}" r="${gl}" fill="${Y}" opacity=".55" filter="url(#glow)"/><circle cx="${T[0]}" cy="${T[1]}" r="12" fill="${Y}"/>` + txt(T[0] + 34, T[1] + 12, '東京', { size: 40, color: Y, anchor: 'start' }) + dots },
-    { at: .2, f: () => txt(1560, 250, '2020年', { size: 90, color: Y, serif: true }) + txt(1560, 320, 'コロナで人の移動が止まった年', { size: 32 }) },
-    { at: 1.4, slide: 0, f: () => `<g style="font-variant-numeric:tabular-nums">` + card(1300, 400, 520, 360) + txt(1560, 470, '東京への転入超過', { size: 34, color: C.dim })
-        + txt(1360, 580, '女性', { size: 44, color: F, anchor: 'start' }) + txt(1780, 580, cF.toLocaleString() + '人', { size: 54, color: F, anchor: 'end' })
-        + txt(1360, 690, '男性', { size: 44, color: M, anchor: 'start' }) + txt(1780, 690, cM.toLocaleString() + '人', { size: 54, color: M, anchor: 'end' }) + '</g>' },
-    { at: 1.6, f: () => note(1560, 800, '光の粒1つ ≒ 280人', 'middle') },
+    { at: 0, slide: 0, f: () => jmap2(v, { fills: { 11: '#e6dcc0', 12: '#e6dcc0', 13: '#f3d68a', 14: '#e6dcc0' } }) + `<circle cx="${T[0]}" cy="${T[1]}" r="${gl}" fill="${Y}" opacity=".5" filter="url(#glow)"/><circle cx="${T[0]}" cy="${T[1]}" r="12" fill="${Y}"/>` + txt(T[0] + 30, T[1] + 64, '東京', { size: 40, color: Y, anchor: 'start' }) + dots },
+    { at: .2, f: () => txt(1580, 250, '2020年', { size: 90, color: Y, serif: true }) + txt(1580, 320, 'コロナで人の移動が止まった年', { size: 32 }) },
+    { at: 1.4, slide: 0, f: () => `<g style="font-variant-numeric:tabular-nums">` + card(1330, 400, 500, 360, { fill: 'rgba(20,18,26,.85)' }) + txt(1580, 470, '東京への転入超過', { size: 34, color: C.dim })
+        + txt(1380, 580, '女性', { size: 44, color: F, anchor: 'start' }) + txt(1790, 580, cF.toLocaleString() + '人', { size: 54, color: F, anchor: 'end' })
+        + txt(1380, 690, '男性', { size: 44, color: M, anchor: 'start' }) + txt(1790, 690, cM.toLocaleString() + '人', { size: 54, color: M, anchor: 'end' }) + '</g>' },
+    { at: 1.6, f: () => note(1580, 800, '光の粒1つ ≒ 280人', 'middle') },
     ref('天野 (2021) ニッセイ基礎研究所'),
   ], t); }, 0, { enter: 'right', leave: 'left', zoom: 0 });
+
 // 3 1人の形＝1,000人で並べる。女性21.5、男性9.6
 const icon1 = (x, y, c, a) => `<g transform="translate(${x},${y})" opacity="${a}"><circle cy="-30" r="13" fill="${c}"/><rect x="-14" y="-15" width="28" height="34" rx="9" fill="${c}"/></g>`;
 SC[3] = K((t) => { const cols = 6, dx = 62, dy = 84;
@@ -204,15 +220,19 @@ SC[13] = K((t) => { const A = ['15-19', '20-24', '25-29', '30-34', '35-39', '40�
   ], t); }, 1, { enter: 'right', zoom: 0 });
 // 14 地図：東北・北関東・甲信越・東海 → 東京圏（20代前半は女性が多い）
 const REG = [['東北', ['aomori', 'akita', 'morioka', 'yamagata', 'sendai', 'fukushima']], ['北関東', ['utsunomiya', 'maebashi', 'mito']], ['甲信越', ['niigata', 'nagano', 'kofu']], ['東海', ['shizuoka', 'nagoya']]];
-SC[14] = K((t) => { const j = maps().japan, sx = 230, sy = 60, sc = .92, P = (k) => [sx + j.pts[k][0] * sc, sy + j.pts[k][1] * sc], T = P('tokyo');
+const REG2 = [['東北', ['02', '03', '04', '05', '06', '07']], ['北関東', ['08', '09', '10']], ['甲信越', ['15', '19', '20']], ['東海', ['21', '22', '23', '24']]];
+SC[14] = K((t) => { const k2 = ease(clamp((t - 6) / 1.2)), v = lerpV(VW.east, VW.kita, k2), V = vp(v), T = V(pc('13')), fills = { 13: Y };
+  REG2.forEach((r, i) => { if (t > .6 + i * 1.1) r[1].forEach(c => fills[c] = k2 > 0 && i != 1 ? '#d9b8c4' : F); });
+  const avg = (cs) => { const q = cs.map(pc); return [q.reduce((a, b) => a + b[0], 0) / q.length, q.reduce((a, b) => a + b[1], 0) / q.length]; };
   return R([
-    { at: 0, slide: 0, f: () => japanMap(sx, sy, sc, { fill: '#cfc8b8' }) + `<circle cx="${T[0]}" cy="${T[1]}" r="20" fill="${Y}" filter="url(#glow)"/>` },
-    ...REG.map((r, i) => ({ at: .6 + i * 1.1, slide: 0, f: (lt) => r[1].map(k => { const a = P(k); return `<circle cx="${a[0]}" cy="${a[1]}" r="${16 + 6 * Math.sin(lt * 3)}" fill="${F}" opacity=".85" filter="url(#glow)"/>` + arrow(a[0], a[1], a[0] + (T[0] - a[0]) * .85, a[1] + (T[1] - a[1]) * .85, F, easeOut(clamp(lt / 1)), 5); }).join('') })),
-    ...REG.map((r, i) => ({ at: .6 + i * 1.1, f: () => txt(1500, 330 + i * 90, r[0], { size: 48, color: F }) })),
-    { at: 5.2, f: () => card(1250, 720, 560, 200) + txt(1530, 800, '20代前半は', { size: 40 }) + txt(1530, 870, '女性 ＞ 男性', { size: 56, color: F, serif: true }) },
-    { at: 6.5, f: () => ['utsunomiya', 'maebashi', 'mito'].map((k, i) => { const a = P(k); return pin(a[0], a[1] - 10, '', Y) + txt(a[0] + 40, a[1] - 40 - i * 4, ['栃木', '群馬', '茨城'][i], { size: 30, color: Y, anchor: 'start' }); }).join('') },
+    { at: 0, slide: 0, f: () => jmap2(v, { fills }) },
+    { at: 0, slide: 0, f: () => k2 > .5 ? '' : REG2.map((r, i) => { if (t < .6 + i * 1.1) return ''; const lt = t - .6 - i * 1.1, a = V(avg(r[1]));
+        return arrow(a[0], a[1], a[0] + (T[0] - a[0]) * .8, a[1] + (T[1] - a[1]) * .8, '#fff', easeOut(clamp(lt / .8)), 9) + txt(a[0] + [0, 90, -90, -60][i], a[1] + [-30, 12, -20, 50][i], r[0], { size: 38, color: '#fff', anchor: ['middle', 'start', 'end', 'end'][i] }); }).join('') },
+    { at: 6.3, f: () => [['09', '栃木'], ['10', '群馬'], ['08', '茨城'], ['13', '東京']].map(([c, n]) => plabel(v, c, n, { size: 40, color: '#1b1a20' })).join('') },
+    { at: 3.8, slide: 0, f: () => card(1350, 380, 480, 220, { fill: 'rgba(20,18,26,.85)' }) + txt(1590, 460, '東京圏へ向かう20代前半', { size: 32 }) + txt(1590, 540, '女性 ＞ 男性', { size: 56, color: F, serif: true }) },
     ref('内閣府 地域の経済2024'),
   ], t); }, 1, { enter: 'right', zoom: 0 });
+
 // 15 2024年 東京圏 +135,843人
 SC[15] = K((t) => R([
   { at: 0, f: () => head('2024年 東京圏への転入超過', { y: 220 }) },
@@ -229,14 +249,15 @@ SC[16] = K((t) => { let ar = ''; for (let i = 0; i < 9; i++) { const u = ((t * .
     { at: 4.5, f: () => txt(CX, 960 - 60, 'それでも、流れは止まっていない', { size: 52, color: Y, serif: true }) },
   ], t); }, 1, { enter: 'right', zoom: 0 });
 // 17 福井：20代女性が1年で4.05%減
-SC[17] = K((t) => { const j = maps().japan, sx = 230, sy = 60, sc = .92, a = [sx + j.pts.fukui[0] * sc, sy + j.pts.fukui[1] * sc];
+SC[17] = K((t) => { const c = pc('18'), v = lerpV(VW.all, [c[0] + 30, c[1] + 10, 3.6], ease(clamp((t - .4) / 2.4))), on = t > 2.8;
   return R([
-    { at: 0, slide: 0, f: () => japanMap(sx, sy, sc, { fill: '#cfc8b8' }) },
-    { at: 3.0, slide: 0, f: (lt) => `<circle cx="${a[0]}" cy="${a[1]}" r="${30 + 10 * Math.sin(lt * 4)}" fill="#e0453a" opacity=".6" filter="url(#glow)"/>` + pin(a[0], a[1], '', '#e0453a') + txt(a[0] - 40, a[1] + 10, '福井', { size: 40, color: '#ff7a6a', anchor: 'end' }) },
-    { at: .6, f: () => txt(1500, 300, '20代女性が', { size: 48 }) + txt(1500, 370, '1年でどれだけ減った？', { size: 48 }) },
-    { at: 4.0, f: (lt) => `<g transform="translate(1500,560) scale(${pop(lt / .4)})">${txt(0, 0, '−4.05%', { size: 130, color: '#ff7a6a', serif: true })}</g>` + txt(1500, 660, '全国で一番の減り方', { size: 40, color: C.dim }) },
+    { at: 0, slide: 0, f: () => jmap2(v, { fills: on ? { 18: `rgba(224,69,58,${(.75 + .25 * Math.sin(t * 4)).toFixed(2)})` } : {} }) },
+    { at: 3.0, f: () => plabel(v, '18', '福井', { size: 52, color: '#fff' }) + [['17', '石川'], ['21', '岐阜']].map(([cc, n]) => plabel(v, cc, n, { size: 34, color: '#5a554c' })).join('') },
+    { at: .6, f: () => card(1350, 220, 500, 520, { fill: 'rgba(20,18,26,.88)' }) + txt(1600, 300, '20代女性が', { size: 44 }) + txt(1600, 360, '1年でどれだけ減った？', { size: 40 }) },
+    { at: 4.0, f: (lt) => `<g transform="translate(1600,560) scale(${pop(lt / .4)})">${txt(0, 0, '−4.05%', { size: 120, color: '#ff7a6a', serif: true })}</g>` + txt(1600, 660, '全国で一番の減り方', { size: 36, color: C.dim }) },
     ref('舞田敏彦 (Newsweek日本版)'),
   ], t); }, 1, { enter: 'right', zoom: 0 });
+
 // 18 10年続けば3分の1がいなくなる
 SC[18] = K((t) => { const n = 30, gone = Math.min(10, Math.floor(clamp((t - 1.2) / 5) * 10.99)); let s0 = '';
   for (let i = 0; i < n; i++) { const x = 330 + (i % 15) * 90, y = 520 + Math.floor(i / 15) * 170, out = i >= n - gone; s0 += `<g opacity="${out ? .12 : 1}">${person(x, y, 70, F, 'f')}</g>`; }
@@ -298,12 +319,15 @@ SC[25] = K((t) => { const gone = Math.floor(clamp((t - 2) / 3) * 6.99); return R
   { at: 1.2, slide: 0, f: () => [0, 1, 2, 3, 4, 5, 6, 7].map(i => cradle(400 + i * 160, 790, '#e8d9b0', i >= 8 - Math.floor(gone * .9) ? .12 : 1)).join('') + txt(CX, 920, 'その地域で生まれる子ども', { size: 36, color: '#e8d9b0' }) },
 ], t); }, 2, { enter: 'right', zoom: 0 });
 // 26 地図の地方部分が暗くなる
-SC[26] = K((t) => { const j = maps().japan, sx = 230, sy = 60, sc = .92, T = [sx + j.pts.tokyo[0] * sc, sy + j.pts.tokyo[1] * sc], d = ease(clamp((t - .5) / 3.5));
-  const lights = SRC.map(k => { const a = [sx + j.pts[k][0] * sc, sy + j.pts[k][1] * sc]; return `<circle cx="${a[0]}" cy="${a[1]}" r="10" fill="${Y}" opacity="${(.9 * (1 - d)).toFixed(2)}" filter="url(#glow)"/>`; }).join('');
+SC[26] = K((t) => { const j = J2(), T = pc('13'), v = lerpV(VW.all, [600, 440, 1.05], ease(t / 6)), fills = {};
+  for (const [c, pf] of Object.entries(j.prefs)) { if (['11', '12', '13', '14'].includes(c)) { fills[c] = Y; continue; }
+    const dist = Math.hypot(pf.c[0] - T[0], pf.c[1] - T[1]), k = clamp((t - .4 - dist / 260) / 1.2); fills[c] = k <= 0 ? '#cfc8b8' : `rgb(${Math.round(207 - 160 * k)},${Math.round(200 - 155 * k)},${Math.round(184 - 130 * k)})`; }
+  const q = vp(v)(T);
   return R([
-    { at: 0, slide: 0, f: () => japanMap(sx, sy, sc, { fill: '#cfc8b8' }) + `<rect width="1920" height="1080" fill="rgba(10,10,16,${(.55 * d).toFixed(2)})"/>` + lights + `<circle cx="${T[0]}" cy="${T[1]}" r="${20 + 20 * d}" fill="${Y}" filter="url(#glow)"/>` },
-    { at: 3.0, f: () => txt(1520, 520, '次の世代ごと', { size: 60, serif: true }) + txt(1520, 610, '地方から人がいなくなる', { size: 48 }) },
+    { at: 0, slide: 0, f: () => jmap2(v, { fills, stroke: '#111' }) + `<circle cx="${q[0]}" cy="${q[1]}" r="${30 + 20 * ease(clamp(t / 4))}" fill="${Y}" opacity=".35" filter="url(#glow)"/>` },
+    { at: 3.0, f: () => txt(1560, 520, '次の世代ごと', { size: 60, serif: true }) + txt(1560, 610, '地方から人がいなくなる', { size: 48 }) },
   ], t); }, 2, { enter: 'right', zoom: 0 });
+
 // 27 写真：雪の夜のコンビニ
 SC[27] = K((t, dur) => photo('konbini', t, dur, .3, 1.0, 1.08, 40) + R([
   { at: 2.0, f: () => txt(560, 300, '地元に残った男たちは', { size: 60, serif: true }) + txt(560, 390, '満足しているのか？', { size: 60, serif: true, color: Y }) },
@@ -360,15 +384,18 @@ SC[33] = K((t) => { const g = (x, a, b, col, lab, ratio, t0) => { const k = ease
   ], t); }, 3, { enter: 'right', zoom: 0 });
 // 34 地方の地図：大学のアイコンが少ない
 const uni = (x, y, c, s0 = 1) => `<g transform="translate(${x},${y}) scale(${s0})"><path d="M-22,-8 L0,-22 L22,-8Z" fill="${c}"/><rect x="-18" y="-8" width="36" height="22" fill="${c}"/></g>`;
-SC[34] = K((t) => { const j = maps().japan, sx = 230, sy = 60, sc = .92, P = (k) => [sx + j.pts[k][0] * sc, sy + j.pts[k][1] * sc], T = P('tokyo');
-  const rr = rnd(3); let big = ''; for (let i = 0; i < 14; i++) big += uni(T[0] - 40 + rr() * 80, T[1] - 30 + rr() * 60, Y, .8);
+SC[34] = K((t) => { const vL = [640, 450, 4.6], vR = [700, 300, 2.3];
+  const icons = (V, c0, n, cols, gap) => { const c = V(pc(c0)); let q = ''; for (let i = 0; i < n; i++) { const a = clamp((t - 1.4 - i * .1) / .3); if (a <= 0) continue; q += `<g opacity="${a}">${uni(c[0] + ((i % cols) - (cols - 1) / 2) * gap, c[1] + (Math.floor(i / cols) - (Math.ceil(n / cols) - 1) / 2) * gap * .8, Y, 1.1)}</g>`; } return q; };
+  const VL = vp(vL, 520, 560), VR = vp(vR, 1400, 560);
   return R([
-    { at: 0, slide: 0, f: () => japanMap(sx, sy, sc, { fill: '#cfc8b8' }) },
-    { at: .6, slide: 0, f: () => ['aomori', 'akita', 'kochi', 'tottori', 'miyazaki', 'yamagata'].map(k => uni(P(k)[0], P(k)[1], '#8a8478', .8)).join('') },
-    { at: 1.6, f: () => big + txt(T[0] + 60, T[1] + 70, '東京圏', { size: 36, color: Y, anchor: 'start' }) },
-    { at: 3.0, f: () => txt(1500, 480, '大学に行く人が増えれば', { size: 46 }) + txt(1500, 560, '出ていくのは自然な流れ', { size: 46, color: Y }) },
-    { at: .3, f: () => note(1880, 1000 - 60, '※位置はイメージ', 'end') },
+    { at: 0, slide: 0, f: () => `<clipPath id="pl"><rect x="120" y="230" width="800" height="680" rx="24"/></clipPath><clipPath id="pr"><rect x="1000" y="230" width="800" height="680" rx="24"/></clipPath>`
+        + `<g clip-path="url(#pl)"><rect x="120" y="230" width="800" height="680" fill="#24222c"/>${jmap2(vL, { ox: 520, oy: 560, fills: { 11: '#e6dcc0', 12: '#e6dcc0', 13: '#e6dcc0', 14: '#e6dcc0' }, base: '#8a8478' })}${icons(VL, '13', 12, 4, 62)}</g>`
+        + `<g clip-path="url(#pr)"><rect x="1000" y="230" width="800" height="680" fill="#24222c"/>${jmap2(vR, { ox: 1400, oy: 560, fills: { '02': '#e6dcc0', '03': '#e6dcc0', '04': '#e6dcc0', '05': '#e6dcc0', '06': '#e6dcc0', '07': '#e6dcc0' }, base: '#8a8478' })}${['02', '03', '05', '06'].map(c => { const a = clamp((t - 2.2) / .3), q = VR(pc(c)); return a > 0 ? `<g opacity="${a}">${uni(q[0], q[1], Y, 1.1)}</g>` : ''; }).join('')}</g>` },
+    { at: .2, f: () => txt(520, 200, '東京圏', { size: 48, color: Y }) + txt(1400, 200, '東北', { size: 48, color: '#cfd4dc' }) },
+    { at: 3.2, f: () => txt(CX, 980, '大学に行く人が増えれば、出ていくのは自然な流れ', { size: 42, color: Y }) },
+    { at: .3, f: () => note(1880, 140, '※アイコンの数はイメージ', 'end') },
   ], t); }, 3, { enter: 'right', zoom: 0 });
+
 // 35 進学先が理由：男性29.7% 女性42.1%
 SC[35] = K((t) => R([
   { at: 0, f: () => head('「進学先が少ない」を選んだ割合', { y: 190 }) },
@@ -516,12 +543,12 @@ function fields() {
 SC[54] = { build: fields };
 
 // ===== エピローグ =====
-SC[55] = K((t) => { const j = maps().japan, sx = 230, sy = 60, sc = .92, T = [sx + j.pts.tokyo[0] * sc, sy + j.pts.tokyo[1] * sc];
-  return R([
-    { at: 0, slide: 0, f: () => japanMap(sx, sy, sc, { fill: '#cfc8b8' }) + `<circle cx="${T[0]}" cy="${T[1]}" r="26" fill="${Y}" filter="url(#glow)"/>` },
-    { at: 1.2, f: () => txt(1500, 480, '地方に若い女性がいないのは', { size: 46 }) },
-    { at: 2.6, f: (lt) => `<g transform="translate(1500,600) scale(${pop(lt / .4)})">${txt(0, 0, '気のせいではない', { size: 76, color: Y, serif: true })}</g>` },
-  ], t); }, 5, { enter: 'fade', zoom: 0 });
+SC[55] = K((t) => { const v = lerpV(VW.all, VW.tohoku, ease(t / 6)); return R([
+  { at: 0, slide: 0, f: () => jmap2(v, { fills: { '02': '#e6c2cf', '03': '#e6c2cf', '04': '#e6c2cf', '05': '#e6c2cf', '06': '#e6c2cf', '07': '#e6c2cf' } }) },
+  { at: 1.2, f: () => card(1300, 380, 560, 300, { fill: 'rgba(20,18,26,.85)' }) + txt(1580, 470, '地方に若い女性がいないのは', { size: 40 }) },
+  { at: 2.6, f: (lt) => `<g transform="translate(1580,590) scale(${pop(lt / .4)})">${txt(0, 0, '気のせいではない', { size: 70, color: Y, serif: true })}</g>` },
+], t); }, 5, { enter: 'fade', zoom: 0 });
+
 SC[56] = K((t) => R([
   { at: .3, slide: 0, f: () => person(560, 620, 160, F, 'f') + txt(560, 860, '出ていった女性', { size: 40, color: F }) },
   { at: 2.0, slide: 0, f: () => person(1360, 620, 160, M) + txt(1360, 860, '残った男性', { size: 40, color: M }) },
