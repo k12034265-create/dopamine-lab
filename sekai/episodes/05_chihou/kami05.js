@@ -58,31 +58,54 @@ function station() {
 }
 
 const SC = [];
-SC[0] = { build: station };
-SC[1] = K((t) => R([
-  { at: 0, slide: 0, f: () => person(560, 640, 120, M) + person(760, 650, 110, '#3f6fb8') + person(960, 640, 116, M) + txt(760, 860, '地元に残った男たち', { size: 36, color: C.dim }) },
-  { at: .4, f: () => bubble(1360, 330, 560, 120, '若い女の子がいない', { size: 52 }) },
-  { at: 4.2, f: (lt) => `<g transform="translate(1360,620) scale(${pop(lt / .4)})">${txt(0, 30, 'ただの気のせい？', { size: 72, color: Y, serif: true })}</g>` },
-], t), 0, { enter: 'zoom', leave: 'left' });
-SC[2] = K((t) => { const j = maps().japan, sx = 260, sy = 70, sc = .9, P = (k) => [sx + j.pts[k][0] * sc, sy + j.pts[k][1] * sc];
-  const T = P('tokyo'), src = [P('sapporo'), P('osaka'), P('kyoto'), [sx + 330 * sc, sy + 720 * sc], [sx + 760 * sc, sy + 440 * sc]];
+// ---- 写真（Pexels）：先に読み込んでおく ----
+const IMG = (n) => `/episodes/05_chihou/img/${n}.jpg`;
+await Promise.all(['train_snow', 'station_small'].map(n => new Promise(r => { const i = new Image(); i.onload = () => (i.decode ? i.decode().then(r, r) : r()); i.onerror = r; i.src = IMG(n); })));
+const photo = (n, t, dur, dark = .35, z0 = 1.0, z1 = 1.08, px = 0) => { const k = ease(t / dur), z = z0 + (z1 - z0) * k;
+  return `<g transform="translate(${960 + px * k},540) scale(${z}) translate(-960,-540)"><image href="${IMG(n)}" x="-40" y="-40" width="2000" height="1160" preserveAspectRatio="xMidYMid slice"/></g><rect width="1920" height="1080" fill="rgba(8,10,18,${dark})"/>`; };
+const rnd = (seed) => { let x = seed * 9301 + 49297; return () => ((x = (x * 233280 + 49297) % 2147483647) / 2147483647); };
+const pin = (x, y, label, col = Y) => `<g transform="translate(${x},${y})"><path d="M0,0 C-22,-30 -22,-54 0,-54 C22,-54 22,-30 0,0Z" fill="${col}"/><circle cy="-37" r="8" fill="#1b1a20"/></g>` + (label ? txt(x, y + 40, label, { size: 32 }) : '');
+
+// 0 写真：雪の夜の地方駅に電車が入ってくる
+SC[0] = K((t, dur) => photo('train_snow', t, dur, .18, 1.02, 1.12, -40), 0, { enter: 'fade', zoom: 0 });
+// 1 写真（小さな駅）の上に、残った男たちのつぶやき
+SC[1] = K((t, dur) => photo('station_small', t, dur, .58, 1.0, 1.06) + R([
+  { at: .2, slide: 0, f: () => person(560, 700, 110, M) + person(740, 710, 100, '#3f6fb8') + person(920, 700, 106, M) + txt(740, 900, '地元に残った男たち', { size: 34, color: '#d8d4cc' }) },
+  { at: .6, f: () => bubble(1340, 360, 560, 120, '若い女の子がいない', { size: 52 }) },
+  { at: 4.2, f: (lt) => `<g transform="translate(1340,640) scale(${pop(lt / .4)})">${txt(0, 30, 'ただの気のせい？', { size: 72, color: Y, serif: true })}</g>` },
+], t), 0, { enter: 'fade', leave: 'left', zoom: 0 });
+// 2 人の流れ：各地から東京へ光の粒（女性:男性 ＝ 2.2:1、粒1つ ≒ 280人）
+const SRC = ['sapporo', 'asahikawa', 'hakodate', 'aomori', 'akita', 'morioka', 'yamagata', 'sendai', 'fukushima', 'niigata', 'toyama', 'kanazawa', 'fukui', 'nagano', 'kofu', 'shizuoka', 'nagoya', 'kyoto', 'osaka', 'okayama', 'hiroshima', 'tottori', 'matsue', 'tokushima', 'kochi', 'matsuyama', 'fukuoka', 'nagasaki', 'kumamoto', 'miyazaki', 'kagoshima', 'utsunomiya', 'maebashi', 'mito'];
+const PARTS = (() => { const r = rnd(11), out = []; for (let i = 0; i < 110; i++) { const f = i < 76; out.push({ f, s: SRC[Math.floor(r() * SRC.length)], st: 1.6 + r() * 5.2, dur: 1.2 + r() * .6, bend: (r() - .5) * 160 }); } return out.sort((a, b) => a.st - b.st); })();
+SC[2] = K((t, dur) => { const j = maps().japan, sx = 230, sy = 60, sc = .92, P = (k) => [sx + j.pts[k][0] * sc, sy + j.pts[k][1] * sc], T = P('tokyo');
+  let dots = '', nf = 0, nm = 0;
+  for (const p of PARTS) { const u = (t - p.st) / p.dur; if (u < 0) continue; if (u >= 1) { p.f ? nf++ : nm++; continue; }
+    const a = P(p.s), e = easeOut(u), mx = (a[0] + T[0]) / 2 + p.bend, my = (a[1] + T[1]) / 2 - 80;
+    const x = (1 - e) * (1 - e) * a[0] + 2 * (1 - e) * e * mx + e * e * T[0], y = (1 - e) * (1 - e) * a[1] + 2 * (1 - e) * e * my + e * e * T[1];
+    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="11" fill="${p.f ? F : M}" opacity="${(.4 + .6 * Math.sin(Math.PI * Math.min(1, u * 1.2))).toFixed(2)}" filter="url(#glow)"/>`; }
+  const done = t > PARTS[PARTS.length - 1].st + 2, nF = PARTS.filter(p => p.f).length, cF = Math.round(21493 * nf / nF), cM = Math.round(9632 * nm / (PARTS.length - nF)), gl = 18 + (nf + nm) * .35;
   return R([
-    { at: 0, slide: 0, f: () => japanMap(sx, sy, sc) + `<circle cx="${T[0]}" cy="${T[1]}" r="16" fill="${Y}"/>` + txt(T[0] + 30, T[1] + 10, '東京', { size: 40, color: Y, anchor: 'start' }) },
-    { at: .3, f: () => txt(1500, 360, '2020年', { size: 96, color: Y, serif: true }) },
-    { at: 1.2, f: () => txt(1500, 450, 'コロナで人の移動が止まった年', { size: 36 }) },
-    { at: 4.0, f: (lt) => src.map((p, i) => arrow(p[0], p[1], T[0] - 14, T[1] + 6, i % 2 ? M : F, easeOut((lt - i * .15) / .8), 6)).join('') },
-    { at: 6.5, f: () => txt(1500, 620, '男女別に数えると…', { size: 50, color: C.fg }) },
+    { at: 0, slide: 0, f: () => japanMap(sx, sy, sc, { fill: '#cfc8b8' }) + `<circle cx="${T[0]}" cy="${T[1]}" r="${gl}" fill="${Y}" opacity=".55" filter="url(#glow)"/><circle cx="${T[0]}" cy="${T[1]}" r="12" fill="${Y}"/>` + txt(T[0] + 34, T[1] + 12, '東京', { size: 40, color: Y, anchor: 'start' }) + dots },
+    { at: .2, f: () => txt(1560, 250, '2020年', { size: 90, color: Y, serif: true }) + txt(1560, 320, 'コロナで人の移動が止まった年', { size: 32 }) },
+    { at: 1.4, slide: 0, f: () => `<g style="font-variant-numeric:tabular-nums">` + card(1300, 400, 520, 360) + txt(1560, 470, '東京への転入超過', { size: 34, color: C.dim })
+        + txt(1360, 580, '女性', { size: 44, color: F, anchor: 'start' }) + txt(1780, 580, cF.toLocaleString() + '人', { size: 54, color: F, anchor: 'end' })
+        + txt(1360, 690, '男性', { size: 44, color: M, anchor: 'start' }) + txt(1780, 690, cM.toLocaleString() + '人', { size: 54, color: M, anchor: 'end' }) + '</g>' },
+    { at: 1.6, f: () => note(1560, 800, '光の粒1つ ≒ 280人', 'middle') },
     ref('天野 (2021) ニッセイ基礎研究所'),
-  ], t); }, 0, { enter: 'right', leave: 'left' });
-SC[3] = K((t) => R([
-  { at: 0, f: () => head('東京への転入超過（2020年）', { y: 180 }) },
-  { at: .3, slide: 0, f: (lt) => { const base = 820, k = easeOut(lt / 1.4), hF = 520 * k, hM = 520 * 9632 / 21493 * k;
-      return `<rect x="560" y="${base - hF}" width="260" height="${hF}" rx="10" fill="${F}"/><rect x="1100" y="${base - hM}" width="260" height="${hM}" rx="10" fill="${M}"/>`
-        + txt(690, base + 50, '女性', { size: 40, color: F }) + txt(1230, base + 50, '男性', { size: 40, color: M }); } },
-  { at: .5, f: (lt) => counter(690, 820 - 520 * easeOut(lt / 1.4) - 24, 21493, lt, { size: 56, suf: '人', dur: 1.4, color: F }) },
-  { at: .7, f: (lt) => counter(1230, 820 - 520 * 9632 / 21493 * easeOut(lt / 1.4) - 24, 9632, lt, { size: 56, suf: '人', dur: 1.4, color: M }) },
-  { at: 6.4, f: (lt) => `<g transform="translate(1620,380) scale(${pop(lt / .4)})"><circle r="120" fill="${Y}"/>${txt(0, 30, '2.2倍', { size: 78, color: '#111', shadow: false, serif: true })}</g>` },
-  ref('天野 (2021) ニッセイ基礎研究所'),
-], t), 0, { enter: 'right' });
+  ], t); }, 0, { enter: 'right', leave: 'left', zoom: 0 });
+// 3 1人の形＝1,000人で並べる。女性21.5、男性9.6
+const icon1 = (x, y, c, a) => `<g transform="translate(${x},${y})" opacity="${a}"><circle cy="-30" r="13" fill="${c}"/><rect x="-14" y="-15" width="28" height="34" rx="9" fill="${c}"/></g>`;
+SC[3] = K((t) => { const cols = 6, dx = 62, dy = 84;
+  const grid = (x0, n, c, t0) => { let s0 = ''; const full = Math.floor(n), frac = n - full; for (let i = 0; i < Math.ceil(n); i++) { const a = clamp((t - t0 - i * .09) / .3); if (a <= 0) continue; const cx = x0 + (i % cols) * dx, cy = 820 - Math.floor(i / cols) * dy - (1 - easeOut(a)) * 60;
+      s0 += i < full ? icon1(cx, cy, c, a) : `<g>${icon1(cx, cy, c, a * .9)}<rect x="${cx - 16 + 32 * frac}" y="${cy - 46}" width="${32 * (1 - frac) + 2}" height="70" fill="#1a1820"/></g>`; } return s0; };
+  return R([
+    { at: 0, f: () => head('東京への転入超過（2020年）', { y: 170 }) },
+    { at: .2, f: () => txt(1880, 230, '1人の形 ＝ 1,000人', { size: 30, color: C.dim, anchor: 'end' }) },
+    { at: 0, slide: 0, f: () => grid(330, 21.5, F, .4) + grid(1080, 9.6, M, 3.6) },
+    { at: 2.4, f: () => txt(485, 900, '女性　21,493人', { size: 44, color: F }) },
+    { at: 5.4, f: () => txt(1235, 900, '男性　9,632人', { size: 44, color: M }) },
+    { at: 6.4, f: (lt) => `<g transform="translate(1660,420) scale(${pop(lt / .4)})"><circle r="120" fill="${Y}"/>${txt(0, 28, '2.2倍', { size: 78, color: '#111', shadow: false, serif: true })}</g>` },
+    ref('天野 (2021) ニッセイ基礎研究所'),
+  ], t); }, 0, { enter: 'right', zoom: 0 });
 
 export const SCENES = SC;
