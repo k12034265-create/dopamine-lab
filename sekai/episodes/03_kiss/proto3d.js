@@ -194,7 +194,7 @@ function washitsu() {
 
 // ---------------------------------------------------------------- 4. 夜の住宅街とタイトル
 function street() {
-  const S = makeScene({ bg: '#0b1020', fog: ['#0b1020', 16, 46], hemi: 0.45, exposure: 1.3, sky: '#5a6aa0', ground: '#14121a', bloom: 0.9, bloomTh: 0.7, fov: 36 });
+  const S = makeScene({ bg: '#0b1020', fog: ['#0b1020', 16, 46], hemi: 0.45, exposure: 1.15, sky: '#5a6aa0', ground: '#14121a', bloom: 0.35, bloomTh: 0.88, fov: 36 });
   const s = S.s, r = rng(17);
   // sky gradient dome
   const skyTex = canvasTex(16, 256, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#060a18'); gr.addColorStop(0.65, '#1a2448'); gr.addColorStop(1, '#3a3a5a'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
@@ -210,7 +210,7 @@ function street() {
     box(s, w, h, d, c, x, h / 2, z);
     const roof = new THREE.Mesh(new THREE.CylinderGeometry(0.01, w * 0.78, 1.2, 4), mat('#2a2c33')); roof.position.set(x, h + 0.6, z); roof.rotation.y = Math.PI / 4; roof.scale.z = d / w; roof.castShadow = true; s.add(roof);
     for (let fl = 0; fl < 2; fl++) for (let k = 0; k < 2; k++) {
-      const on = r() < 0.45; const wm = on ? glow('#ffc477', 1.2 + r()) : mat('#11141c');
+      const on = r() < 0.45; const wm = on ? glow('#ffc477', 0.6 + r() * 0.5) : mat('#11141c');
       const wz = z - d / 4 + k * d / 2;
       const win = box(s, 0.06, 0.8, 0.9, wm, x - side * (w / 2 + 0.03), 1.1 + fl * 1.9, wz); wins.push(win);
     }
@@ -227,12 +227,12 @@ function street() {
     head(w / 2 - 32 - gap / 2); head(w / 2 + 32 + gap / 2);
     g.strokeStyle = 'rgba(120,60,20,.35)'; g.lineWidth = 3; for (let i = 0; i < 9; i++) { g.beginPath(); g.moveTo(i * 30 + 8, 0); g.lineTo(i * 30 + 14, h); g.stroke(); }
   });
-  const sp = plane(s, 1.1, 1.0, new THREE.MeshBasicMaterial({ map: curtainTex, toneMapped: false }), spX, 3.0, spZ); sp.rotation.y = Math.PI / 2;
+  const sp = plane(s, 1.1, 1.0, new THREE.MeshBasicMaterial({ map: curtainTex, color: '#c8b8a8', toneMapped: false }), spX, 3.0, spZ); sp.rotation.y = Math.PI / 2;
   // utility poles + wires + street lamp
   for (let i = 0; i < 6; i++) { const z = -i * 9 + 2; cyl(s, 0.12, 0.14, 8, mat('#3a3a3a'), 4.6, 4, z, 6); box(s, 1.6, 0.1, 0.1, mat('#3a3a3a'), 4.6, 7.4, z); }
   for (let w = 0; w < 3; w++) { const g = new THREE.BufferGeometry().setFromPoints(Array.from({ length: 30 }, (_, i) => new THREE.Vector3(4.0 + w * 0.6, 7.35 - Math.sin(i / 29 * Math.PI * 5) * 0.0 - 0.3 * Math.abs(Math.sin(i / 29 * Math.PI * 5)), 2 - i * 1.55))); s.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color: '#15161a' }))); }
-  cyl(s, 0.06, 0.08, 4.5, mat('#4a4a4a'), -3.9, 2.25, -6, 6); box(s, 0.6, 0.12, 0.3, glow('#fff2d4', 3), -3.6, 4.5, -6);
-  const sl = new THREE.SpotLight('#ffe6b8', 40, 14, 0.8, 0.5, 1.4); sl.position.set(-3.6, 4.4, -6); sl.target.position.set(-2.8, 0, -6); sl.castShadow = true; s.add(sl, sl.target);
+  cyl(s, 0.06, 0.08, 4.5, mat('#4a4a4a'), -3.9, 2.25, -6, 6); box(s, 0.6, 0.12, 0.3, glow('#fff2d4', 1.2), -3.6, 4.5, -6);
+  const sl = new THREE.SpotLight('#ffe6b8', 22, 14, 0.8, 0.5, 1.4); sl.position.set(-3.6, 4.4, -6); sl.target.position.set(-2.8, 0, -6); sl.castShadow = true; s.add(sl, sl.target);
   beam(s, new THREE.Vector3(-3.6, 4.4, -6), new THREE.Vector3(-2.8, 0, -6), 0.15, 2.0, '#ffe6b8', 0.05);
   const moonL = sun(s, '#8ea4ff', 0.55, -10, 18, -30, 30);
   return {
