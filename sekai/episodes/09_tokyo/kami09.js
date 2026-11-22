@@ -213,7 +213,7 @@ SC[15] = K((t) => { const u = easeOut(clamp((t - 2.8) / 1.4)), T = vp(V13, 640, 
 
 // 16 出ていくお金：財布から3つの箱へコインが流れる
 const BOX3 = [['食費', 6.5], ['家賃', 7.4], ['光熱費', 8.3]];
-SC[16] = K((t) => { let cs = ''; for (let i = 0; i < 9; i++) { const tt = 2.0 + i * .5; if (t < tt) continue; const k = clamp((t - tt) / .9), b = i % 3, x = lerp(960, 560 + b * 400, k), y = 380 + (700 - 380) * k - Math.sin(k * Math.PI) * 120; if (k < 1) cs += coin(x, y, .9); }
+SC[16] = K((t) => { let cs = ''; for (let i = 0; i < 9; i++) { const tt = 6.0 + i * .4; if (t < tt) continue; const k = clamp((t - tt) / .9), b = i % 3, x = lerp(960, 560 + b * 400, k), y = 380 + (700 - 380) * k - Math.sin(k * Math.PI) * 120; if (k < 1) cs += coin(x, y, .9); }
   return R([
     { at: 0, f: () => head('出ていくお金', { y: 200 }) + `<g transform="translate(960,380)"><rect x="-90" y="-56" width="180" height="112" rx="16" fill="#8a6234"/><rect x="10" y="-20" width="70" height="40" rx="8" fill="#6a4a24"/></g>` },
     ...BOX3.map(([n, at], i) => ({ at, slide: 0, f: (lt) => `<g transform="translate(${560 + i * 400},740) scale(${pop(lt / .4)})">` + card(-150, -70, 300, 160) + txt(0, 30, n, { size: 48 }) + '</g>' })),
@@ -531,11 +531,52 @@ SC[48] = { build() { const S = makeScene({ bg: '#0e1834', hemi: .45, exposure: 1
     camMove(S.cam, [-1, 2.0, 24], [-1, 2.6, 21], [-1, 9.0, -3], [-1, 9.4, -3], ease(t / dur));
     const a = clamp((t - .3) / .5), b = clamp((t - 2.0) / .5); return ovSvg(`<g opacity="${a}">${otxt(960, 260, '今日のネタバレは、ここまで', 64)}</g><g opacity="${b}">${otxt(960, 360, 'チャンネル登録・高評価をお願いします', 42, Y, false)}</g>`); } }; } };
 
+// ===== 3D 追加 =====
+const gateRow = (s, n = 6, x0 = -3.75) => { for (let i = 0; i < n; i++) { const x = x0 + i * 1.5; box(s, .32, 1.0, 1.6, mat('#d8dce0', { m: .3, r: .4 }), x, .5, 0); box(s, .2, .04, .5, glow('#ffcf6a', 1.0), x, 1.02, .3); box(s, .2, .2, .02, glow(i % 2 ? '#5ad0ff' : '#ff6a8a', .9), x, .85, .81); } };
+const house3 = (p, s0 = 1) => { const g = new THREE.Group(); box(g, .5, .4, .5, mat('#c9a35a'), 0, .2, 0); const r = new THREE.Mesh(new THREE.ConeGeometry(.42, .3, 4), mat('#8a5a3c')); r.position.y = .55; r.rotation.y = Math.PI / 4; g.add(r); g.scale.setScalar(s0); p.add(g); return g; };
+const clock3 = (p) => { const g = new THREE.Group(); const c = cyl(g, .28, .28, .08, mat('#f1ece2'), 0, 0, 0, 24); c.rotation.x = Math.PI / 2; const h1 = box(g, .03, .2, .02, mat('#222'), 0, .08, .05); const h2 = box(g, .15, .03, .02, mat('#222'), .06, 0, .05); p.add(g); return g; };
+// 1 改札：給料の高い東京に入る → 家賃と通勤時間が料金箱に落ちていく
+SC[1] = { build() { const S = makeScene({ bg: '#c8d4e4', hemi: 1.0, exposure: 1.2, sky: '#eef2f8', ground: '#8a8680', bloom: .15, bloomTh: .9, fov: 34 }); const s = S.s; sun(s, '#fff4e0', 1.6, -6, 10, 8, 16);
+  box(s, 18, .05, 14, mat('#c8bca8', { r: .5 }), 0, 0, 0); box(s, 18, 4.5, .2, mat('#f0ebe2'), 0, 2.25, -4); box(s, 18, .1, 14, mat('#d8d4cc'), 0, 4.5, 0);
+  for (let i = 0; i < 5; i++) box(s, 2.2, .04, .3, glow('#ffffff', .8), -4 + i * 2, 4.44, -1);
+  box(s, 7, .9, .1, mat('#2a3a5a'), 0, 3.3, -3.85);
+  gateRow(s);
+  const tb = new THREE.Group(); box(tb, 1.4, 1.1, 1.1, mat('#6a5428', { r: .6 }), 0, .55, 0); box(tb, .9, .04, .2, mat('#1b1a20'), 0, 1.11, 0); tb.position.set(3.2, 0, 2.2); s.add(tb);
+  const man = human(s, { top: M, bottom: '#2a2f3a', face: false }); man.rotation.y = Math.PI;
+  const drops = []; [5.4, 6.3, 7.2, 8.1, 9.0, 9.9].forEach((t0, i) => { const o = i % 2 ? clock3(s) : house3(s, .8); o.visible = false; drops.push([o, t0]); });
+  return { render() { S.render(); }, update(t, dur) { const z = 3.5 - Math.min(t, 3.6) * 1.2; man.position.set(-.75, 0, z); if (t < 3.6) man.userData.walk(t, 1); else man.userData.legs.forEach(l => l.rotation.x = 0);
+    drops.forEach(([o, t0]) => { const k = clamp((t - t0) / .8); o.visible = t > t0 && k < 1; o.position.set(3.2 + (1 - k) * .4, 3.2 - 2.1 * k * k, 2.2); o.rotation.y = t * 2; });
+    camMove(S.cam, [1.2, 2.3, 8.5], [1.6, 2.1, 7.6], [.6, 1.1, 0], [1.2, 1.1, 0], ease(t / dur));
+    const a = clamp((t - 3.5) / .4), b = clamp((t - 5.2) / .4);
+    return ovSvg(`<g opacity="${a}">${otxt(560, 220, '給料 ↑', 64, Y)}</g><g opacity="${b}">${otxt(1360, 220, '入場料：家賃・通勤の時間', 54, '#ffd0a0')}${otxt(1360, 300, '毎月', 44, '#fff')}</g>`); } }; } };
+
+// 11 10軒の町：1軒だけがタワーに伸びる → 平均の線 → その高さの家は1軒もない
+SC[11] = { build() { const S = makeScene({ bg: '#a8c4e0', hemi: 1.0, exposure: 1.15, sky: '#e6eef8', ground: '#7a8a5a', bloom: .1, bloomTh: .95, fov: 34 }); const s = S.s; sun(s, '#fff2dc', 1.8, -8, 14, 10, 18);
+  box(s, 30, .02, 12, mat('#8a9a6a'), 0, -.01, 0); box(s, 30, .03, 1.6, mat('#6a6a70'), 0, 0, 1.8);
+  const xs = [...Array(10)].map((_, i) => -6.3 + i * 1.4);
+  xs.slice(0, 9).forEach((x) => { const h = house3(s, 1.6); h.position.set(x, 0, 0); });
+  const tw = new THREE.Group(); const body = box(tw, .9, 1, .9, mat('#e8c060', { r: .4 }), 0, .5, 0); tw.position.set(xs[9], 0, 0); s.add(tw);
+  const winM = glow('#fff7d8', .3); const wins = []; for (let k = 0; k < 14; k++) { const w = box(tw, .92, .06, .92, mat('#b89040'), 0, .4 + k * .5, 0); wins.push(w); }
+  const line = box(s, 15, .05, .05, glow('#ff4a3a', 1.4), 0, 0, .7); line.visible = false; const scan = box(s, .08, .5, .08, glow('#ff4a3a', 2), 0, 0, .7); scan.visible = false;
+  return { render() { S.render(); }, update(t, dur) { const k = easeOut(clamp((t - 2.5) / 2.5)), H = .9 + 6.2 * k; body.scale.y = H; body.position.y = H / 2; wins.forEach((w, i) => { w.visible = .4 + i * .5 < H - .2; });
+    const a = clamp((t - 7.0) / 1.2), ly = .9 + 1.6 * ease(a); line.visible = t > 7.0; line.position.y = ly;
+    const sc = clamp((t - 10.8) / 3.2); scan.visible = t > 10.8 && sc < 1; scan.position.set(-7 + 14 * sc, ly, .7);
+    camMove(S.cam, [-.6, 3.4, 16.5], [.4, 3.6, 15.5], [0, 2.9, 0], [.3, 3.1, 0], ease(t / dur));
+    const o1 = clamp((t - .6) / .4), o2 = clamp((t - 3.0) / .4), o3 = clamp((t - 7.4) / .4), o4 = clamp((t - 12.2) / .4);
+    return ovSvg(`<g opacity="${o1}">${otxt(820, 720, '9軒は年収400万円', 44, '#fff', false)}</g><g opacity="${o2}">${otxt(1380, 200, '1軒だけ1億円 →', 50, Y)}</g><g opacity="${o3}">${otxt(380, 520, '平均 1360万円', 50, '#ff8a7a')}</g><g opacity="${o4}">${otxt(960, 140, 'この平均の家は、1軒もない', 58, '#fff')}</g>`); } }; } };
+
 // 写真を場面の頭に重ねる
-const PH = [[5, 'A2', 0, 2.4, '計算したのは、国土交通省'], [27, 'B2', 0, 4.2, '電車の中で過ごす時間'], [32, 'C2', 0, 3.5, '埼玉（さいたま新都心）'], [34, 'D1', 0, 4.3, '栃木・宇都宮'], [35, 'E1', 0, 4.1, '茨城（筑波山から）']];
+const PH = [[8, 'F1', 0, 3.4, '2人以上で暮らす、会社勤めの世帯'], [16, 'G3', 0, 5.9, '次は、出ていくお金'], [19, 'H2', 0, 2.4, '東京の家賃'], [5, 'A2', 0, 2.4, '計算したのは、国土交通省'], [27, 'B2', 0, 4.2, '電車の中で過ごす時間'], [32, 'C2', 0, 3.5, '埼玉（さいたま新都心）'], [34, 'D1', 0, 4.3, '栃木・宇都宮'], [35, 'E1', 0, 4.1, '茨城（筑波山から）']];
 for (const [i, n, T0, T1, cap] of PH) { const old = SC[i];
   SC[i] = { kind: 'kami', build() { const b = old.build(); return { render() {}, update(t, dur) { const base = b.update(t, dur);
     const a = Math.min(T0 > 0 ? clamp((t - T0) / .45) : 1, 1 - clamp((t - T1) / .5)); if (a <= 0) return base; const c = clamp((t - T0 - .4) / .5);
     return base + `<div style="position:absolute;left:0;top:0;width:1920px;height:1080px;opacity:${a.toFixed(3)}">` + ovSvg(photoSvg(n, (t - T0) / (T1 - T0 + .5)) + `<rect width="1920" height="320" fill="url(#topg)"/>` + `<g opacity="${c.toFixed(3)}">${otxt(960, 205, cap, 58, Y)}</g>`) + '</div>'; } }; } }; }
+
+// 実写動画を入れる場面：画面を緑（#00ff00）で塗り、あとでffmpegで動画と差し替える（字幕はそのまま残る）
+SC[38] = K((t) => '', 4, { enter: 'fade', zoom: 0 });
+const GV = [[38, 0, 99], [41, 0, 4.7]];
+for (const [i, T0, T1] of GV) { const old = SC[i];
+  SC[i] = { kind: 'kami', build() { const b = old.build(); return { render() {}, update(t, dur) { const base = b.update(t, dur);
+    return (t >= T0 && t < T1) ? base + '<div style="position:absolute;left:0;top:0;width:1920px;height:944px;background:#00ff00"></div>' : base; } }; } }; }
 
 export const SCENES = SC;
