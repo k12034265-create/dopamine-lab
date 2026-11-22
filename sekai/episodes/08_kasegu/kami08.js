@@ -1,5 +1,6 @@
 // 08 稼ぐ妻 — 図解中心。字幕は灰色の帯。名前を付けた言葉：「結婚の割り勘」
-import { THREE, makeScene, mat, glow, box, cyl, lamp, sun, canvasTex, person as person3, lerp } from '/pipeline3d/lib3d.js';
+import { THREE, makeScene, mat, glow, box, cyl, ball, plane, lamp, sun, canvasTex, person as person3, lerp, rng, camMove } from '/pipeline3d/lib3d.js';
+import { room, windowPane, desk, chair as chair3, human } from '/pipeline3d/sets3d.js';
 import { maps, C, clamp, ease, easeOut, pop, txt, note, head, person, card, arrow, bubble, loadMaps, run, kami } from '/pipeline3d/kami.js';
 await loadMaps();
 try { document.body.classList.add('band'); } catch (e) {}
@@ -7,7 +8,7 @@ const M = '#4f8fea', F = '#ef7fa8', Y = C.gold, CX = 960;
 const CH = ['プロローグ', '第1章', '第2章', '第3章', '第4章', 'エピローグ'];
 const K = (fn, chap, o = {}) => kami(fn, { chap, chaps: CH, ...o });
 const R = (els, t) => { const rf = els.filter(e => e.ref), ot = els.filter(e => !e.ref); const o = ot.length && ot[0].bg ? [ot[0], ...rf, ...ot.slice(1)] : [...rf, ...ot]; return run(o.map(e => e.f ? e : { ...e, f: () => '' }), t); };
-const ref = (s) => ({ at: .6, ref: true, f: () => note(1880, 125, s, 'end') });
+const ref = (s) => ({ at: .6, ref: true, f: () => note(1880, 58, s, 'end') });
 const SR1 = '国立社会保障・人口問題研究所 出生動向基本調査（2026年9月公表）';
 const SC = [];
 const typed = (x, y, s, t, t0, cps, o) => { const n = Math.max(0, Math.min(s.length, Math.floor((t - t0) * cps))); return txt(x, y, s.slice(0, n), o); };
@@ -285,7 +286,7 @@ SC[22] = K((t) => { const k = easeOut(clamp((t - 1.0) / 9));
     { at: 0, slide: 0, f: () => CH3.ln(HY, H_SEN, COL_SEN, k, { labels: k > .99 ? [0, 11] : [0], below: false, r: 6 }) + CH3.ln(HY, H_TOM, Y, k, { labels: k > .99 ? [0, 11] : [0], below: true, r: 6 }) },
     { at: .5, f: () => leg(1600, 330, Y, '共働き') + leg(1600, 390, COL_SEN, '専業主婦') },
     { at: 11.5, f: () => `<rect x="${CH3.fx(1992) - 10}" y="300" width="${CH3.fx(1998) - CH3.fx(1992) + 20}" height="560" fill="#fff" opacity=".06"/>` + txt((CH3.fx(1992) + CH3.fx(1998)) / 2, 340, '1990年代に逆転', { size: 34, color: '#e8dcc0' }) },
-    { at: .6, ref: true, f: () => note(1880, 125, '労働政策研究・研修機構（総務省 労働力調査）', 'end') },
+    { at: .6, ref: true, f: () => note(1880, 58, '労働政策研究・研修機構（総務省 労働力調査）', 'end') },
   ], t); }, 2, { enter: 'fade', zoom: 0 });
 
 // 23 椅子2つ：財布が片方→両方
@@ -317,7 +318,7 @@ SC[25] = K((t) => { const X0 = 360, X1 = 1560, Y0 = 840, Y1 = 320, fx = (y) => X
     { at: 4.0, slide: 0, f: () => `<path d="M${fx(1997)},${fy(467)} L${X1},${fy(467)}" stroke="#e8dcc0" stroke-width="3" stroke-dasharray="12 10" opacity=".6"/>` + txt(X1 + 10, fy(467) + 10, '1997年の山', { size: 28, color: '#e8dcc0', anchor: 'start' }) },
     { at: 13.5, f: (lt) => `<g transform="translate(${fx(2011)},${fy(475)}) scale(${pop(lt / .4)})">${txt(0, 0, '27年かかって、やっと', { size: 50, color: Y, serif: true })}</g>` },
     { at: 15.5, f: () => note(X1, 260, '※途中の年は代表的な年だけを結んでいます', 'end') },
-    { at: .6, ref: true, f: () => note(1880, 125, '国税庁 民間給与実態統計調査', 'end') },
+    { at: .6, ref: true, f: () => note(1880, 58, '国税庁 民間給与実態統計調査', 'end') },
   ], t); }, 3, { enter: 'fade', zoom: 0 });
 
 // 26 階段を上る親の世代／平らな道を歩く子の世代
@@ -488,5 +489,80 @@ SC[45] = K((t) => R([
   { at: .2, f: () => txt(CX, 460, '今日のネタバレは、ここまで', { size: 60, serif: true }) },
   { at: 2.0, f: () => txt(CX, 600, 'チャンネル登録・高評価をお願いします', { size: 40, color: Y }) },
 ], t), 5, { enter: 'fade', zoom: 0 });
+
+// ===== 写真（ぱくたそ）を場面の頭・途中に重ねる =====
+const IMG = (n) => `/episodes/08_kasegu/img/${n}.jpg`;
+const OVD = `<defs><filter id="ts2" x="-10%" y="-20%" width="120%" height="150%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity=".7"/></filter><linearGradient id="topg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".65"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient></defs>`;
+const ovSvg = (inner) => `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" style="position:absolute;left:0;top:0">${OVD}${inner}</svg>`;
+const otxt = (x, y, s0, size, color = '#fff', serif = true) => `<text x="${x}" y="${y}" text-anchor="middle" font-size="${size}" fill="${color}" filter="url(#ts2)" font-weight="700" style="font-family:${serif ? "'Noto Serif CJK JP',serif" : "'Noto Sans CJK JP',sans-serif"}">${s0}</text>`;
+const photoSvg = (n, k, dark = .3) => { const z = 1 + .07 * ease(k);
+  return `<g transform="translate(960,540) scale(${z.toFixed(4)}) translate(-960,-540)"><image href="${IMG(n)}" x="-40" y="-40" width="2000" height="1160" preserveAspectRatio="xMidYMid slice"/></g><rect width="1920" height="1080" fill="rgba(8,10,18,${dark})"/>`; };
+const PH = [[6, 'A1', 0, 8.9, '2025年6月、全国に配られた質問用紙'], [22, 'B1', 0, 3.3, '家庭の形は、とっくに変わっていた'], [26, 'C3', 4.0, 8.0, '1人の給料で、家族を養えた時代'], [35, 'D2', 0, 3.4, '結婚の良さ：「子どもや家族をもてる」']];
+for (const [i, n, T0, T1, cap] of PH) { const old = SC[i];
+  SC[i] = { kind: 'kami', build() { const b = old.build(); return { render() {}, update(t, dur) { const base = b.update(t, dur);
+    const a = Math.min(T0 > 0 ? clamp((t - T0) / .45) : 1, 1 - clamp((t - T1) / .5)); if (a <= 0) return base;
+    const c = clamp((t - T0 - .4) / .5);
+    return base + `<div style="position:absolute;left:0;top:0;width:1920px;height:1080px;opacity:${a.toFixed(3)}">` + ovSvg(photoSvg(n, (t - T0) / (T1 - T0 + .5)) + `<rect width="1920" height="320" fill="url(#topg)"/>` + `<g opacity="${c.toFixed(3)}">${otxt(960, 205, cap, 58, Y)}</g>`) + '</div>'; } }; } }; }
+
+// ===== 3D（場所・空気・人の動き） =====
+const pendant = (s, x, z, y = 2.05) => { cyl(s, .01, .01, 3.2 - y, mat('#222'), x, y + (3.2 - y) / 2, z, 6); const sh = cyl(s, .08, .26, .2, mat('#2a2622', { side: THREE.DoubleSide }), x, y, z, 16); ball(s, .07, glow('#ffd9a0', 3), x, y - .08, z, 1); return lamp(s, '#ffcf90', 2.6, 7, x, y - .2, z, true); };
+const wallet3 = (p, x, y, z, ry = 0) => { const g = new THREE.Group(); box(g, .32, .06, .2, mat('#7a4c26', { r: .5 }), 0, 0, 0); box(g, .325, .012, .03, mat('#c9a24a', { m: .6, r: .3 }), 0, .02, .03); g.position.set(x, y, z); g.rotation.y = ry; p.add(g); return g; };
+const billTex = () => canvasTex(256, 360, (g, W, H) => { g.fillStyle = '#f3efe6'; g.fillRect(0, 0, W, H); g.fillStyle = '#9a9488'; for (let i = 0; i < 6; i++) g.fillRect(30, 70 + i * 40, i % 2 ? 150 : 196, 8); g.fillStyle = '#c43a3a'; g.fillRect(30, 320, 120, 10); g.fillStyle = '#555'; g.fillRect(60, 26, 136, 14); });
+const diningRoom = (s, o = {}) => { room(s, { w: 9, d: 8, h: 3.2, floor: '#4a3628', wall: '#3b3632', wall2: '#35302c', right: true });
+  windowPane(s, 2.2, 1.75, -3.89, 1.6, 1.2, 'night', { seed: 9 }); box(s, 1.2, .9, .4, mat('#3a2a20'), -2.6, .45, -3.6); plantLite(s, -3.4, -3.3);
+  const tb = desk(s, 0, 0, 0, { w: 1.6, d: .9, wood: '#7a5638', leg: '#4a3324' }); return tb; };
+const plantLite = (s, x, z) => { cyl(s, .16, .12, .3, mat('#8a5a3c'), x, .15, z, 8); for (let i = 0; i < 6; i++) { const l = ball(s, .16, mat('#3f6a3a'), x + Math.sin(i * 2.1) * .12, .45 + i * .07, z + Math.cos(i * 2.1) * .12, 0); l.scale.set(1, .6, 1); } };
+
+// 23 夫婦の椅子：財布が夫の椅子に → 妻の椅子にも
+SC[23] = { build() { const S = makeScene({ bg: '#0b0a0e', hemi: .6, exposure: 1.55, sky: '#8a90a8', ground: '#2a1e16', bloom: .3, bloomTh: .8, fov: 32 }); const s = S.s;
+  diningRoom(s); pendant(s, 0, 0); lamp(s, '#9fb0d8', .5, 9, 2.2, 1.8, -3.2, false);
+  chair3(s, -1.05, 0, Math.PI / 2, '#3d5a85'); chair3(s, 1.05, 0, -Math.PI / 2, '#8a4a62');
+  wallet3(s, -1.05, .52, .02, .3); const w2 = wallet3(s, 1.05, 2.0, .02, -.4); lamp(s, '#ffe2c0', 1.2, 10, 0, 2.6, 3, false);
+  return { render() { S.render(); }, update(t, dur) { const d = clamp((t - 3.3) / .45), b = d >= 1 ? Math.abs(Math.sin((t - 3.75) * 14)) * .04 * Math.max(0, 1 - (t - 3.75) * 3) : 0;
+    w2.position.y = 2.0 - (2.0 - .52) * d * d + b; w2.visible = t > 3.25; camMove(S.cam, [0, 3.3, 4.3], [0, 2.8, 3.4], [0, .45, 0], [0, .5, 0], ease(t / dur)); return ''; } }; } };
+
+// 24 第3章：夜の住宅街を帰る男
+SC[24] = { build() { const S = makeScene({ bg: '#0d1428', hemi: .7, exposure: 1.6, sky: '#7080b0', ground: '#1a1a20', bloom: .35, bloomTh: .8, fov: 36, fog: ['#0d1428', 10, 34] }); const s = S.s; sun(s, '#9fb0e0', .6, 4, 10, 6, 14);
+  box(s, 8, .02, 60, mat('#26272c'), 0, -.01, -20); box(s, 1.6, .06, 60, mat('#3a3a40'), -3.0, .03, -20); box(s, 1.6, .06, 60, mat('#3a3a40'), 3.0, .03, -20);
+  const r = rng(5); for (let i = 0; i < 9; i++) for (const sx of [-1, 1]) { const z = 2 - i * 5, w = 3 + r() * 1.5, h = 2.6 + r() * 2.2, x = sx * (5.6 + r() * .6); box(s, w, h, 3.6, mat(['#3a3530', '#30343c', '#3c3a36', '#2e2a28'][(r() * 4) | 0]), x, h / 2, z);
+    const roof = box(s, w + .3, .2, 3.9, mat('#1e1c1c'), x, h + .1, z); for (let k = 0; k < 2; k++) if (r() < .7) box(s, .6, .5, .02, glow(r() < .5 ? '#ffcf8a' : '#ffe2b0', 1.4), x - sx * (w / 2 + .01) * 0 + (k - .5) * 1.2, h * .62, z + 1.81); }
+  for (let i = 0; i < 6; i++) { const z = -1 - i * 8, x = (i % 2 ? 1 : -1) * 3.6; cyl(s, .05, .06, 3.4, mat('#2a2a30'), x, 1.7, z, 8); box(s, .5, .05, .1, mat('#2a2a30'), x - Math.sign(x) * .25, 3.4, z); ball(s, .1, glow('#fff1d0', 3), x - Math.sign(x) * .45, 3.3, z, 1); lamp(s, '#ffe6b8', 4, 9, x - Math.sign(x) * .45, 3.2, z, i < 2); }
+  const man = human(s, { top: '#3a4458', bottom: '#262a33', face: false }); lamp(s, '#ffe6c0', 1.6, 6, 0, 2.5, 0, false); man.rotation.y = Math.PI; box(man, .08, .3, .4, mat('#1a1a1a'), .3, .55, 0);
+  return { render() { S.render(); }, update(t, dur) { const z = .5 - t * 1.05; man.position.set(-.6, 0, z); man.userData.walk(t, .9);
+    camMove(S.cam, [.4, 1.75, z + 4.6], [.4, 1.7, z + 4.3], [-.4, 1.2, z - 3], [-.4, 1.2, z - 3], 0);
+    const a = clamp((t - .4) / .5); return ovSvg(`<g opacity="${a}"><rect width="1920" height="360" fill="url(#topg)"/>${otxt(960, 160, '第3章', 34, '#ff8a3d', false)}${otxt(960, 250, 'なぜ男は、養う側を降りたのか', 66, Y)}</g>`); } }; } };
+
+// 28 1人で抱える箱 → 女性が来て2人で持つ
+SC[28] = { build() { const S = makeScene({ bg: '#0e0d12', hemi: .75, exposure: 1.5, sky: '#9aa4c0', ground: '#2a2018', bloom: .2, bloomTh: .85, fov: 30 }); const s = S.s; lamp(s, '#fff0dc', 1.4, 12, 0, 2.2, 4, false);
+  room(s, { w: 10, d: 8, h: 3.4, floor: '#4d3a2c', wall: '#3a3734', left: false }); windowPane(s, -2.2, 1.8, -3.89, 1.8, 1.3, 'dusk', { seed: 3 });
+  lamp(s, '#ffd6a0', 2.4, 9, .3, 2.6, 1.2, true); lamp(s, '#a8b8e0', .6, 10, -2.2, 1.8, -3.0, false);
+  const man = human(s, { top: '#4f8fea', bottom: '#2a2f3a' }); man.rotation.y = Math.PI / 2; man.position.set(-.82, 0, 0);
+  const wo = human(s, { top: '#ef7fa8', bottom: '#3a2e36', hairStyle: 'long' }); wo.rotation.y = -Math.PI / 2;
+  const bx = new THREE.Group(); box(bx, .62, .46, .5, mat('#b08a5a'), 0, 0, 0); box(bx, .63, .012, .12, mat('#d8c49a'), 0, .235, 0); s.add(bx);
+  const setArms = (p, a) => { p.userData.arms.forEach(g => { g.rotation.x = -a; }); };
+  return { render() { S.render(); }, update(t, dur) { const arr = clamp((t - 4.6) / 1.6), lift = clamp((t - 6.1) / .5), wob = (1 - lift) * Math.sin(t * 7);
+    const wx = lerp(3.4, .82, ease(arr)); wo.position.set(wx, 0, 0); if (arr < 1 && t > 4.6) wo.userData.walk(t, 1.1); else { wo.userData.legs.forEach(l => l.rotation.x = 0); }
+    setArms(man, 1.0); if (t > 4.6 && arr >= 1) setArms(wo, 1.0 * lift); else if (t <= 4.6 || arr < 1) { if (t <= 4.6) setArms(wo, 0); }
+    bx.position.set(0, 1.0 + wob * .025, 0); bx.rotation.z = wob * .07; man.rotation.z = 0; man.position.y = 0; man.userData.head.rotation.x = (1 - lift) * .25;
+    camMove(S.cam, [.0, 1.45, 4.6], [.1, 1.35, 3.9], [.1, .95, 0], [.1, .95, 0], ease(t / dur)); return ''; } }; } };
+
+// 38 払うものが増えたテーブル：請求書2枚と空いたままの椅子
+SC[38] = { build() { const S = makeScene({ bg: '#0a090d', hemi: .45, exposure: 1.4, sky: '#8088a0', ground: '#241a14', bloom: .3, bloomTh: .85, fov: 30 }); const s = S.s;
+  diningRoom(s); pendant(s, 0, 0); lamp(s, '#8fa0cc', .45, 9, 2.2, 1.8, -3.2, false);
+  chair3(s, -1.15, .05, Math.PI / 2 + .25, '#4a4448'); chair3(s, 1.2, -.05, -Math.PI / 2 - .3, '#4a4448'); chair3(s, -.35, -.85, .1, '#4a4448'); chair3(s, .4, .95, Math.PI - .2, '#4a4448');
+  const tx = billTex(); const mk = (x, z, rz) => { const pl = plane(s, .3, .42, new THREE.MeshStandardMaterial({ map: tx, roughness: .95 }), x, .795, z); pl.rotation.x = -Math.PI / 2; pl.rotation.z = rz; pl.receiveShadow = true; };
+  mk(-.22, .02, .18); mk(.2, -.04, -.12);
+  return { render() { S.render(); }, update(t, dur) { camMove(S.cam, [2.6, 2.4, 4.2], [1.2, 1.75, 2.6], [0, .7, 0], [0, .78, 0], ease(t / dur)); return ''; } }; } };
+
+// 45 締め：夜のマンションに灯りがともる
+SC[45] = { build() { const S = makeScene({ bg: '#0e1834', hemi: .45, exposure: 1.2, sky: '#4a5a8a', ground: '#121216', bloom: .25, bloomTh: .9, fov: 34 }); const s = S.s;
+  box(s, 40, .02, 30, mat('#1c1d22'), 0, -.01, 0);
+  const wins = []; const r = rng(11);
+  for (const [bx0, bz, nx, ny] of [[-3.2, -2, 6, 9], [3.6, -4, 5, 11], [-8.5, -6, 5, 7]]) { const W = nx * 1.1 + .6, Hh = ny * 1.0 + .6; box(s, W, Hh, 3, mat('#4a4e5c'), bx0, Hh / 2, bz - 1.5);
+    for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) { const x = bx0 - W / 2 + .85 + i * 1.1, y = .9 + j * 1.0; const off = box(s, .62, .5, .02, mat('#151821'), x, y, bz + .01); const on = box(s, .62, .5, .02, glow(r() < .5 ? '#e8b46a' : '#f0c890', .55), x, y, bz + .02); on.visible = false; box(s, .9, .05, .25, mat('#3a3c44'), x, y - .33, bz + .1); wins.push([on, r()]); } }
+  sun(s, '#8aa0d8', .9, -5, 12, 14, 18);
+  return { render() { S.render(); }, update(t, dur) { const k = clamp(t / (dur - 1)); wins.forEach(([on, th]) => { on.visible = th < .25 + .5 * k; });
+    camMove(S.cam, [-1, 2.0, 24], [-1, 2.6, 21], [-1, 9.0, -3], [-1, 9.4, -3], ease(t / dur));
+    const a = clamp((t - .3) / .5), b = clamp((t - 2.0) / .5); return ovSvg(`<g opacity="${a}">${otxt(960, 260, '今日のネタバレは、ここまで', 64)}</g><g opacity="${b}">${otxt(960, 360, 'チャンネル登録・高評価をお願いします', 42, Y, false)}</g>`); } }; } };
 
 export const SCENES = SC;
