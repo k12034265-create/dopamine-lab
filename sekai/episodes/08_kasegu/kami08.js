@@ -61,4 +61,432 @@ SC[3] = K((t) => { const d = easeOut(clamp((t - 4.6) / 1.0)), lit = 38 - 34 * d;
   ref(SR1),
 ], t); }, 0, { enter: 'fade', zoom: 0 });
 
+// ===== 共通：折れ線グラフ =====
+const YRS = [1992, 1997, 2002, 2010, 2015, 2021, 2025];
+const GX0 = 330, GX1 = 1560, GY0 = 860, GY1 = 300;
+const gx = (y) => GX0 + (y - 1990) / (2026 - 1990) * (GX1 - GX0), gy = (v) => GY0 - v / 100 * (GY0 - GY1);
+const axes = (o = {}) => { let g = `<path d="M${GX0},${GY0} L${GX1},${GY0}" stroke="#6a6470" stroke-width="3"/>`;
+  for (const v of [0, 50, 100]) g += `<path d="M${GX0},${gy(v)} L${GX1},${gy(v)}" stroke="#ffffff" stroke-opacity=".07" stroke-width="2"/>` + txt(GX0 - 20, gy(v) + 10, v + '%', { size: 26, color: C.dim, anchor: 'end' });
+  for (const y of (o.years || [1992, 2002, 2015, 2025])) g += txt(gx(y), GY0 + 44, y + '年', { size: 26, color: C.dim });
+  return g; };
+// k: 0..1 で何点目まで描くか（なめらかに伸びる）。labels: 値を点の上に出す
+const line = (years, vals, col, k, o = {}) => { const n = years.length, f = k * (n - 1); let d = '', dots = '';
+  for (let i = 0; i < n; i++) { if (i > f + 1e-6) { const a = Math.floor(f), r = f - a; if (a < n - 1 && i === a + 1) d += ` L${gx(years[a]) + (gx(years[i]) - gx(years[a])) * r},${gy(vals[a]) + (gy(vals[i]) - gy(vals[a])) * r}`; break; }
+    d += (i ? ' L' : 'M') + gx(years[i]) + ',' + gy(vals[i]);
+    dots += `<circle cx="${gx(years[i])}" cy="${gy(vals[i])}" r="${o.r || 9}" fill="${col}"/>`;
+    if (o.labels && (o.labels === 'all' || o.labels.includes(i))) dots += txt(gx(years[i]), gy(vals[i]) + ((Array.isArray(o.below) ? o.below.includes(i) : o.below) ? 50 : -24), Math.round(vals[i]) + (o.unit ?? ''), { size: o.lsize || 34, color: col }); }
+  return `<path d="${d}" fill="none" stroke="${col}" stroke-width="${o.w || 7}" stroke-linejoin="round" stroke-linecap="round" opacity="${o.op ?? 1}"/>` + dots; };
+const MEN_ECO = [26.7, 30.8, 29.5, 38.7, 42.0, 48.2, 55.6], MEN_EDU = [29.8, 23.5, 21.0, 26.4, 30.6, 27.3, 28.2], MEN_JOB = [39.5, 35.8, 37.2, 43.4, 47.4, 46.6, 48.5];
+const WOM_ECO = [88.7, 90.9, 91.1, 93.9, 93.3, 91.6, 90.3];
+const leg = (x, y, col, s0) => `<rect x="${x}" y="${y - 22}" width="34" height="8" rx="4" fill="${col}"/>` + txt(x + 48, y - 8, s0, { size: 30, color: col, anchor: 'start' });
+
+// 4 別の格子：相手の稼ぎを気にする男性 27→56
+SC[4] = K((t) => { const a = easeOut(clamp((t - 5.2) / 1.6)), b = easeOut(clamp((t - 8.6) / 1.6)), lit = 27 * a + 29 * b, y25 = t > 8.4;
+  return R([
+    { at: 0, f: () => head('結婚するつもりの独身男性　100人', { y: 170 }) },
+    { at: .2, f: () => txt(CX - 560, 300, y25 ? '2025年' : '1992年', { size: 72, color: y25 ? Y : C.dim, serif: true }) },
+    { at: .2, slide: 0, f: () => grid100(CX - 234, 330, lit, Y, 52, 60, 1.25) },
+    { at: 5.2, slide: 0, f: () => counter(CX + 560, 560, lit, Y) + txt(CX + 560, 650, '「相手の女性の', { size: 38 }) + txt(CX + 560, 705, '稼ぎを気にする」', { size: 38 }) + (b > .95 ? txt(CX + 560, 790, '半分を超えた', { size: 34, color: Y }) : '') },
+    ref(SR1),
+  ], t); }, 0, { enter: 'fade', zoom: 0 });
+
+// 5 天秤：ずるい？ 仕方ない？
+SC[5] = K((t) => { const ang = 9 * Math.sin(t * 1.6) * clamp((t - .8) / .6);
+  const pan = (x, s0, col) => `<g transform="translate(${x},0)"><path d="M0,0 L-110,190 M0,0 L110,190" stroke="#8a8478" stroke-width="4"/><path d="M-150,190 Q0,260 150,190 Z" fill="#5a5560"/>${txt(0, 170, s0, { size: 56, color: col, serif: true })}</g>`;
+  return R([{ at: 0, slide: 0, f: () => `<g transform="translate(${CX},300)"><rect x="-10" y="0" width="20" height="520" fill="#6a6470"/><rect x="-140" y="510" width="280" height="30" rx="10" fill="#6a6470"/><circle r="22" fill="${Y}"/>`
+      + `<g transform="rotate(${ang})"><rect x="-460" y="-8" width="920" height="16" rx="8" fill="#8a8478"/>` + `<g transform="translate(0,0)">${'' }</g>`
+      + `<g transform="translate(-440,0) rotate(${-ang})">${pan(0, 'ずるい？', '#ff8a7a').replace('translate(0,0)', 'translate(0,0)')}</g><g transform="translate(440,0) rotate(${-ang})">${pan(0, '仕方ない？', '#9fc4ff')}</g></g></g>` }], t); }, 0, { enter: 'fade', zoom: 0 });
+
+// 6 質問用紙と出典カード
+SC[6] = K((t) => { const k = easeOut(clamp((t - .2) / .8));
+  const q = (y, s0, chk) => txt(60, y, s0, { size: 30, color: '#333', shadow: false, anchor: 'start' }) + [0, 1, 2].map(i => `<rect x="${600 + i * 70}" y="${y - 28}" width="34" height="34" rx="4" fill="none" stroke="#777" stroke-width="3"/>` + (chk === i && t > 3 + y / 200 ? `<path d="M${605 + i * 70},${y - 12} l10,12 l18,-24" stroke="#c43a3a" stroke-width="6" fill="none"/>` : '')).join('');
+  const sheet0 = `<g transform="translate(${CX - 700},${220 + (1 - k) * 600}) rotate(-3)"><rect width="820" height="600" rx="8" fill="#f1ece2"/>` + txt(410, 70, '結婚と子どもについての調査', { size: 40, color: '#222', shadow: false, serif: true })
+    + q(170, '問1 いずれ結婚するつもりですか', 0) + q(260, '問2 結婚相手の条件（経済力）', 1) + q(350, '問3 結婚相手の条件（家事・育児）', 0) + q(440, '問4 理想の人生は', 2) + q(530, '問5 子どもは何人ほしいですか', 1) + '</g>';
+  return R([
+    { at: 0, slide: 0, f: () => sheet0 },
+    { at: 2.0, f: () => txt(CX + 470, 330, '全国 1000 地区', { size: 50, color: Y }) + txt(CX + 470, 400, '独身の男女と夫婦', { size: 38 }) },
+    { at: 7.0, f: () => txt(CX + 470, 520, '5年に1度', { size: 50, color: Y }) },
+    { at: 10.0, f: (lt) => `<g transform="translate(${CX + 470},700) scale(${pop(lt / .4)})">` + card(-330, -90, 660, 200, { fill: 'rgba(240,200,90,.12)', stroke: Y }) + txt(0, -20, '第17回 出生動向基本調査', { size: 42, color: Y, serif: true }) + txt(0, 50, '2026年9月 公表', { size: 36 }) + txt(0, 92, '国立社会保障・人口問題研究所', { size: 24, color: C.dim }) + '</g>' },
+  ], t); }, 0, { enter: 'fade', zoom: 0 });
+
+// 7 4枚のカード
+SC[7] = K((t) => R([
+  { at: 0, f: () => head('結婚の割り勘の正体', { y: 220 }) },
+  ...[['①', '男が求める条件'], ['②', '消えた席'], ['③', '降りた理由'], ['④', '増えた請求書']].map(([n, s0], i) => ({ at: .5 + i * .6, f: (lt) => `<g transform="translate(${300 + i * 440},560) scale(${pop(lt / .4)})">` + card(-190, -150, 380, 300, { fill: 'rgba(255,255,255,.06)' }) + txt(0, -40, n, { size: 70, color: Y, serif: true }) + txt(0, 60, s0, { size: 40 }) + '</g>' })),
+], t), 1, { enter: 'fade', zoom: 0 });
+
+// 8 条件カード（男性→女性）＋3段階
+const CONDS = ['人がら', '容姿', '経済力', '職業', '学歴', '家事・育児'];
+SC[8] = K((t) => R([
+  { at: 0, f: () => head('男性が結婚相手の女性に求める条件', { y: 170 }) },
+  ...CONDS.map((c, i) => ({ at: .6 + i * .35, f: (lt) => `<g transform="translate(${CX - 540 + (i % 3) * 540},${380 + Math.floor(i / 3) * 190}) scale(${pop(lt / .4)})">` + card(-220, -70, 440, 140, { fill: c === '経済力' && t > 6 ? 'rgba(240,200,90,.18)' : 'rgba(255,255,255,.06)', stroke: c === '経済力' && t > 6 ? Y : undefined }) + txt(0, 16, c, { size: 48, color: c === '経済力' && t > 6 ? Y : C.fg }) + '</g>' })),
+  { at: 9.5, f: () => ['重視する', '考慮する', 'あまり関係ない'].map((s0, i) => `<g transform="translate(${CX - 460 + i * 460},800)">` + card(-190, -50, 380, 100, { fill: ['rgba(240,200,90,.25)', 'rgba(240,200,90,.1)', 'rgba(255,255,255,.04)'][i] }) + txt(0, 14, s0, { size: 40, color: i < 2 ? Y : C.dim }) + '</g>').join('') },
+  { at: 5.5, f: () => txt(CX, 260, '18〜34歳・いずれ結婚するつもりの独身者', { size: 30, color: C.dim }) },
+  ref(SR1),
+], t), 1, { enter: 'fade', zoom: 0 });
+
+// 9 折れ線：男性→女性の経済力 7点
+const ECO_T = [1.0, 6.5, 7.6, 8.7, 9.8, 10.9, 12.4];
+SC[9] = K((t) => { const n = ECO_T.filter(x => t >= x).length, k = n ? (n - 1 + clamp((t - ECO_T[n - 1]) / .6)) / 6 : 0;
+  return R([
+    { at: 0, f: () => head('女性の経済力を「重視・考慮する」男性', { y: 170 }) },
+    { at: 0, slide: 0, f: () => axes({ years: YRS }) },
+    { at: 1.0, slide: 0, f: () => line(YRS, MEN_ECO, M, Math.min(k, 1), { labels: [...Array(n).keys()] }) },
+    { at: 13.5, f: (lt) => `<g transform="translate(1720,${gy(55.6) - 20}) scale(${pop(lt / .4)})">${txt(0, 0, 'ほぼ2倍', { size: 52, color: Y, serif: true })}</g>` },
+    ref(SR1),
+  ], t); }, 1, { enter: 'fade', zoom: 0 });
+
+// 10 学歴は横ばい
+SC[10] = K((t) => R([
+  { at: 0, f: () => head('男性が女性に求める：経済力と学歴', { y: 170 }) },
+  { at: 0, slide: 0, f: () => axes({ years: YRS }) + line(YRS, MEN_ECO, M, 1, { labels: [0, 6], below: [0] }) + leg(1600, 330, M, '経済力') },
+  { at: .8, slide: 0, f: (lt) => line(YRS, MEN_EDU, '#8a8478', easeOut(lt / 2.2), { labels: easeOut(lt / 2.2) > .99 ? [0, 6] : [], below: [6], lsize: 30 }) + (lt > .5 ? leg(1600, 400, '#a49c90', '学歴') : '') },
+  { at: 6.5, f: () => txt(960, 400, '肩書きではなく、稼ぎそのもの', { size: 46, color: Y, serif: true }) },
+  ref(SR1),
+], t), 1, { enter: 'fade', zoom: 0 });
+
+// 11 職業も上がる
+SC[11] = K((t) => R([
+  { at: 0, f: () => head('男性が女性に求める：経済力・職業・学歴', { y: 170 }) },
+  { at: 0, slide: 0, f: () => axes({ years: YRS }) + line(YRS, MEN_ECO, M, 1, { labels: [6] }) + line(YRS, MEN_EDU, '#8a8478', 1, { op: .6 }) + leg(1600, 330, M, '経済力') + leg(1600, 470, '#a49c90', '学歴') },
+  { at: .5, slide: 0, f: (lt) => line(YRS, MEN_JOB, '#7fd1c1', easeOut(lt / 2.4), { labels: easeOut(lt / 2.4) > .99 ? [0, 6] : [], below: [6] }) + (lt > .4 ? leg(1600, 400, '#7fd1c1', '職業') : '') },
+  { at: 6.5, f: () => txt(960, 360, 'どんな会社か、より', { size: 40, color: C.dim }) + txt(960, 425, 'どれだけ稼げる仕事か', { size: 46, color: Y, serif: true }) },
+  ref(SR1),
+], t), 1, { enter: 'fade', zoom: 0 });
+
+// 12 56%を「重視7%＋考慮49%」に割る
+SC[12] = K((t) => { const sp = easeOut(clamp((t - 4.0) / 1.2)), W1 = 1100, x0 = CX - W1 / 2, w = (v) => v / 55.6 * W1;
+  return R([
+    { at: 0, f: () => head('「重視・考慮する」56%の中身（2025年）', { y: 170 }) },
+    { at: .3, slide: 0, f: (lt) => { const g = easeOut(lt / 1); return `<rect x="${x0}" y="420" width="${w(6.9) * g}" height="150" fill="${Y}"/><rect x="${x0 + w(6.9) * g + 14 * sp}" y="420" width="${w(48.7) * g}" height="150" fill="${Y}" opacity="${1 - .6 * sp}"/>` + (sp < .1 ? txt(CX, 520, '56%', { size: 80, color: '#1b1a20', shadow: false, serif: true }) : ''); } },
+    { at: 4.6, f: () => txt(x0 + w(6.9) / 2, 650, '重視する', { size: 40, color: Y }) + txt(x0 + w(6.9) / 2, 730, '7%', { size: 80, color: Y, serif: true })
+        + txt(x0 + w(6.9) + 14 + w(48.7) / 2, 650, '考慮する', { size: 40, color: '#e8dcc0' }) + txt(x0 + w(6.9) + 14 + w(48.7) / 2, 730, '49%', { size: 80, color: '#e8dcc0', serif: true }) },
+    { at: 10.2, f: () => txt(CX, 880 - 30, '絶対の条件ではなく「あったほうがいい」', { size: 42, color: C.fg, serif: true }) },
+    ref(SR1),
+  ], t); }, 1, { enter: 'fade', zoom: 0 });
+
+// 13 女性→男性の経済力（ピンク）
+SC[13] = K((t) => R([
+  { at: 0, f: () => head('相手の経済力を「重視・考慮する」割合', { y: 170 }) },
+  { at: 0, slide: 0, f: () => axes({ years: YRS }) + line(YRS, MEN_ECO, M, 1, { labels: [0, 6], below: true, op: .55 }) + leg(1600, 560, M, '男性→女性') },
+  { at: 1.5, slide: 0, f: (lt) => line(YRS, WOM_ECO, F, easeOut(lt / 3), { labels: easeOut(lt / 3) > .99 ? [0, 6] : [] }) + (lt > .4 ? leg(1600, 260, F, '女性→男性') : '') },
+  ref(SR1),
+], t), 1, { enter: 'fade', zoom: 0 });
+
+// 14 差が62→35ポイントに縮む／変わったのは男性
+const gapBr = (x, a, b, s0, col) => `<path d="M${x},${gy(a)} L${x + 20},${gy(a)} L${x + 20},${gy(b)} L${x},${gy(b)}" fill="none" stroke="${col}" stroke-width="4"/>` + txt(x + 40, (gy(a) + gy(b)) / 2 + 14, s0, { size: 36, color: col, anchor: 'start' });
+SC[14] = K((t) => R([
+  { at: 0, f: () => head('相手の経済力を「重視・考慮する」割合', { y: 170 }) },
+  { at: 0, slide: 0, f: () => axes({ years: YRS }) + line(YRS, WOM_ECO, F, 1, { op: .8 }) + line(YRS, MEN_ECO, M, 1) },
+  { at: .6, f: () => gapBr(gx(1992) - 70, 88.7, 26.7, '', '#e8dcc0') + txt(gx(1992) + 70, gy(57), '差 62', { size: 40, color: '#e8dcc0', anchor: 'start' }) },
+  { at: 2.0, f: () => gapBr(gx(2025) + 20, 90.3, 55.6, '差 35', Y) },
+  { at: 4.6, f: (lt) => `<g transform="translate(${CX - 80},${gy(70)}) scale(${pop(lt / .4)})">${txt(0, 0, '変わったのは、男性の方', { size: 54, color: Y, serif: true })}</g>` },
+  ref(SR1),
+], t), 1, { enter: 'fade', zoom: 0 });
+
+// ===== 第2章用：年の範囲が違う折れ線 =====
+const mkChart = (y0, y1, X0 = 330, X1 = 1560, Y0 = 860, Y1 = 300, vmax = 100) => { const fx = (y) => X0 + (y - y0) / (y1 - y0) * (X1 - X0), fy = (v) => Y0 - v / vmax * (Y0 - Y1);
+  const ax = (years, unit = '%', ticks = [0, 50, 100]) => { let g = `<path d="M${X0},${Y0} L${X1},${Y0}" stroke="#6a6470" stroke-width="3"/>`;
+    for (const v of ticks) g += `<path d="M${X0},${fy(v)} L${X1},${fy(v)}" stroke="#fff" stroke-opacity=".07" stroke-width="2"/>` + txt(X0 - 20, fy(v) + 10, v + unit, { size: 26, color: C.dim, anchor: 'end' });
+    for (const y of years) g += txt(fx(y), Y0 + 44, y + '年', { size: 26, color: C.dim }); return g; };
+  const ln = (years, vals, col, k, o = {}) => { const n = years.length, f = clamp(k) * (n - 1); let d = '', dots = '';
+    for (let i = 0; i < n; i++) { if (i > f + 1e-6) { const a = Math.floor(f), r = f - a; if (i === a + 1) d += ` L${fx(years[a]) + (fx(years[i]) - fx(years[a])) * r},${fy(vals[a]) + (fy(vals[i]) - fy(vals[a])) * r}`; break; }
+      d += (i ? ' L' : 'M') + fx(years[i]) + ',' + fy(vals[i]); if (!o.nodots) dots += `<circle cx="${fx(years[i])}" cy="${fy(vals[i])}" r="${o.r || 8}" fill="${col}"/>`;
+      if (o.labels && o.labels.includes(i)) dots += txt(fx(years[i]) + (o.dx || 0), fy(vals[i]) + (o.below ? 48 : -22), Math.round(vals[i]) + (o.unit ?? ''), { size: o.lsize || 34, color: col }); }
+    return `<path d="${d}" fill="none" stroke="${col}" stroke-width="${o.w || 7}" stroke-linejoin="round" stroke-linecap="round" opacity="${o.op ?? 1}"/>` + dots; };
+  return { fx, fy, ax, ln }; };
+const CY = [1987, 1992, 1997, 2002, 2005, 2010, 2015, 2021, 2025];
+const M_SEN = [37.9, 30.4, 20.7, 18.1, 12.5, 10.9, 10.1, 6.8, 4.2], M_SAI = [38.3, 44.2, 43.4, 46.8, 38.7, 39.1, 37.4, 29.0, 23.1], M_RYO = [10.5, 10.8, 17.0, 18.7, 28.2, 32.7, 33.9, 39.4, 39.2];
+const W_SEN = [33.6, 32.5, 20.6, 18.5, 18.9, 19.7, 18.2, 13.8, 10.2];
+const COL_SEN = '#c98a6a', COL_SAI = '#9fc4ff', COL_RYO = Y;
+const wallet = (x, y, s, col = '#b8874a') => `<g transform="translate(${x},${y}) scale(${s})"><rect x="-46" y="-30" width="92" height="60" rx="10" fill="${col}"/><rect x="10" y="-12" width="40" height="24" rx="6" fill="#8a6234"/><circle cx="34" cy="0" r="5" fill="${Y}"/></g>`;
+
+// 15 2人が向かい合い、相手の財布をのぞく
+SC[15] = K((t) => { const lk = clamp((t - 1.0) / .8), rk = clamp((t - 4.0) / .8);
+  return R([
+    { at: 0, slide: 0, f: () => person(CX - 380, 640, 120, M) + person(CX + 380, 640, 120, F, 'f') + wallet(CX - 300, 700, 1.1) + wallet(CX + 300, 700, 1.1) },
+    { at: 1.0, slide: 0, f: () => `<path d="M${CX + 330},470 Q${CX},380 ${CX - 270},${660}" fill="none" stroke="${F}" stroke-width="5" stroke-dasharray="14 12" opacity="${lk}"/>` + `<circle cx="${CX - 300}" cy="700" r="${80}" fill="none" stroke="${F}" stroke-width="5" opacity="${lk}"/>` },
+    { at: 4.0, slide: 0, f: () => `<path d="M${CX - 330},470 Q${CX},360 ${CX + 270},${660}" fill="none" stroke="${M}" stroke-width="5" stroke-dasharray="14 12" opacity="${rk}"/>` + `<circle cx="${CX + 300}" cy="700" r="${80}" fill="none" stroke="${M}" stroke-width="5" opacity="${rk}"/>` + txt(CX - 470, 430, '追いついた', { size: 36, color: M, anchor: 'end' }) },
+    { at: 1.4, f: () => txt(CX + 470, 430, '昔から', { size: 36, color: F, anchor: 'start' }) },
+    { at: 7.0, f: () => txt(CX, 250, '結婚の割り勘　1つ目の顔', { size: 52, color: Y, serif: true }) + txt(CX, 320, 'お互いの財布をのぞく', { size: 40 }) },
+  ], t); }, 1, { enter: 'fade', zoom: 0 });
+
+// 16 人生の道が5本
+const ROADS = ['専業主婦', '再就職', '両立', 'DINKs', '結婚せず働く'];
+SC[16] = K((t) => R([
+  { at: 0, f: () => head('男性が「結婚相手の女性」に望む人生', { y: 170 }) },
+  { at: .3, slide: 0, f: () => person(360, 640, 90, F, 'f') },
+  ...ROADS.map((r, i) => ({ at: .8 + i * .45, slide: 0, f: (lt) => { const y = 330 + i * 125, k = easeOut(lt / .6); return `<path d="M460,600 C700,600 700,${y} ${460 + 620 * k},${y}" fill="none" stroke="${i === 2 ? Y : '#8a8478'}" stroke-width="10" stroke-linecap="round" opacity=".8"/>` + (k > .9 ? txt(1120, y + 14, r, { size: 44, color: i === 2 ? Y : C.fg, anchor: 'start' }) : ''); } })),
+  ref(SR1),
+], t), 2, { enter: 'fade', zoom: 0 });
+
+// 17 3つの道の絵（働く＝金／家＝灰）
+const lifeBar = (y, segs, k) => { let x = 520, g = ''; const W1 = 1100;
+  for (const [w, col] of segs) { const ww = W1 * w * clamp(k * 1.2 - (x - 520) / W1); if (ww > 0) g += `<rect x="${x}" y="${y - 30}" width="${ww}" height="60" rx="8" fill="${col}"/>`; x += W1 * w; }
+  return g; };
+const WORK = Y, HOME = '#6a6470';
+SC[17] = K((t) => R([
+  { at: 0, f: () => head('3つの人生', { y: 170 }) + `<g opacity=".8">${txt(520, 280, '就職', { size: 28, color: C.dim, anchor: 'start' })}${txt(860, 280, '結婚・出産', { size: 28, color: C.dim })}${txt(1620, 280, '老後', { size: 28, color: C.dim, anchor: 'end' })}</g>` + `<rect x="1300" y="910" width="30" height="20" fill="${WORK}"/>` + txt(1340, 928, '働く', { size: 28, anchor: 'start' }) + `<rect x="1440" y="910" width="30" height="20" fill="${HOME}"/>` + txt(1480, 928, '家庭', { size: 28, anchor: 'start' }) },
+  { at: 1.5, slide: 0, f: (lt) => txt(470, 410, '専業主婦', { size: 44, color: COL_SEN, anchor: 'end' }) + lifeBar(400, [[.3, WORK], [.7, HOME]], easeOut(lt / 1.4)) },
+  { at: 5.2, slide: 0, f: (lt) => txt(470, 580, '再就職', { size: 44, color: COL_SAI, anchor: 'end' }) + lifeBar(570, [[.3, WORK], [.2, HOME], [.5, WORK]], easeOut(lt / 1.4)) },
+  { at: 9.8, slide: 0, f: (lt) => txt(470, 750, '両立', { size: 44, color: COL_RYO, anchor: 'end' }) + lifeBar(740, [[1, WORK]], easeOut(lt / 1.4)) },
+], t), 2, { enter: 'fade', zoom: 0 });
+
+// 18 1987年：3本の棒
+SC[18] = K((t) => { const B = [['専業主婦', 37.9, COL_SEN, 1.5], ['再就職', 38.3, COL_SAI, 3.4], ['両立', 10.5, COL_RYO, 6.0]];
+  return R([
+    { at: 0, f: () => head('男性が相手に望む人生（1987年）', { y: 170 }) },
+    { at: 0, slide: 0, f: () => `<path d="M460,820 L1460,820" stroke="#6a6470" stroke-width="3"/>` + B.map(([n, v, col, t0], i) => { const k = easeOut(clamp((t - t0) / .8)), x = 620 + i * 340, h = v * 11 * k;
+        return `<rect x="${x - 90}" y="${820 - h}" width="180" height="${h}" rx="8" fill="${col}"/>` + txt(x, 870, n, { size: 40, color: col }) + (k > .05 ? txt(x, 800 - h, Math.round(v * k) + '%', { size: 56, color: col, serif: true }) : ''); }).join('') },
+    ref(SR1),
+  ], t); }, 2, { enter: 'fade', zoom: 0 });
+
+// 19 3本の線が動き、両立が上に抜ける
+const CH2 = mkChart(1985, 2027, 330, 1560, 860, 300, 50);
+SC[19] = K((t) => { const k = easeOut(clamp((t - .3) / 5.5));
+  return R([
+    { at: 0, f: () => head('男性が相手に望む人生', { y: 170 }) },
+    { at: 0, slide: 0, f: () => CH2.ax([1987, 1997, 2005, 2015, 2025], '%', [0, 25, 50]) },
+    { at: 0, slide: 0, f: () => CH2.ln(CY, M_SEN, COL_SEN, k, { labels: k > .99 ? [0, 8] : [0], below: true }) + CH2.ln(CY, M_SAI, COL_SAI, k, { labels: k > .99 ? [0, 8] : [] }) + CH2.ln(CY, M_RYO, COL_RYO, k, { labels: k > .99 ? [0, 8] : [0], below: true, w: 9 }) },
+    { at: 0, f: () => leg(1600, 330, COL_RYO, '両立') + leg(1600, 390, COL_SAI, '再就職') + leg(1600, 450, COL_SEN, '専業主婦') },
+    { at: 7.0, f: (lt) => `<g transform="translate(${CH2.fx(2025) - 40},${CH2.fy(39.2) - 80}) scale(${pop(lt / .4)})">${txt(0, 0, '1位', { size: 52, color: Y, serif: true })}</g>` },
+    ref(SR1),
+  ], t); }, 2, { enter: 'fade', zoom: 0 });
+
+// 20 女性の理想：専業主婦 34→10
+SC[20] = K((t) => { const k = easeOut(clamp((t - .5) / 4));
+  return R([
+    { at: 0, f: () => head('女性が「理想」とする人生：専業主婦', { y: 170 }) },
+    { at: 0, slide: 0, f: () => CH2.ax([1987, 1997, 2005, 2015, 2025], '%', [0, 25, 50]) + CH2.ln(CY, M_SEN, COL_SEN, 1, { op: .35, nodots: true }) + txt(CH2.fx(2025) + 30, CH2.fy(4.2) + 10, '男性の希望', { size: 26, color: COL_SEN, anchor: 'start' }) },
+    { at: 0, slide: 0, f: () => CH2.ln(CY, W_SEN, F, k, { labels: k > .99 ? [0, 8] : [0] }) },
+    ref(SR1),
+  ], t); }, 2, { enter: 'fade', zoom: 0 });
+
+// 21 教室の40席：1席だけ光る（実際になりそうな人生＝専業主婦 2.6%）
+SC[21] = K((t) => { let g = ''; const lit = t > 6.5 ? 1 : 0;
+  for (let i = 0; i < 40; i++) { const c = i % 8, r = Math.floor(i / 8), x = CX - 520 + c * 150, y = 360 + r * 105, on = lit && i === 19;
+    g += `<rect x="${x - 50}" y="${y - 14}" width="100" height="44" rx="6" fill="${on ? Y : '#4a4752'}"/>` + `<circle cx="${x}" cy="${y - 34}" r="16" fill="${on ? F : '#5f5b66'}"/>`; }
+  return R([
+    { at: 0, f: () => head('女性が「実際になりそう」と思う人生：専業主婦', { y: 170 }) },
+    { at: .3, slide: 0, f: () => g + `<rect x="${CX - 400}" y="250" width="800" height="16" rx="8" fill="#2f4a3a"/>` },
+    { at: 3.4, f: () => txt(CX + 720, 560, '3%', { size: 110, color: Y, serif: true }) },
+    { at: 6.5, f: () => txt(CX + 720, 660, '40人に1人', { size: 46, color: Y }) },
+    ref(SR1),
+  ], t); }, 2, { enter: 'fade', zoom: 0 });
+
+// 22 専業主婦世帯と共働き世帯（1980〜2024）
+const HY = [1980, 1985, 1990, 1992, 1995, 1997, 2000, 2005, 2010, 2015, 2020, 2024];
+const H_SEN = [1114, 952, 897, 903, 955, 921, 916, 863, 797, 692, 574, 508], H_TOM = [614, 722, 823, 914, 908, 949, 942, 988, 1012, 1120, 1247, 1300];
+const CH3 = mkChart(1978, 2026, 330, 1560, 860, 300, 1400);
+SC[22] = K((t) => { const k = easeOut(clamp((t - 1.0) / 9));
+  return R([
+    { at: 0, f: () => head('専業主婦の世帯と、共働きの世帯（万世帯）', { y: 170 }) },
+    { at: 0, slide: 0, f: () => CH3.ax([1980, 1990, 2000, 2010, 2024], '', [0, 500, 1000]) },
+    { at: 0, slide: 0, f: () => CH3.ln(HY, H_SEN, COL_SEN, k, { labels: k > .99 ? [0, 11] : [0], below: false, r: 6 }) + CH3.ln(HY, H_TOM, Y, k, { labels: k > .99 ? [0, 11] : [0], below: true, r: 6 }) },
+    { at: .5, f: () => leg(1600, 330, Y, '共働き') + leg(1600, 390, COL_SEN, '専業主婦') },
+    { at: 11.5, f: () => `<rect x="${CH3.fx(1992) - 10}" y="300" width="${CH3.fx(1998) - CH3.fx(1992) + 20}" height="560" fill="#fff" opacity=".06"/>` + txt((CH3.fx(1992) + CH3.fx(1998)) / 2, 340, '1990年代に逆転', { size: 34, color: '#e8dcc0' }) },
+    { at: .6, ref: true, f: () => note(1880, 125, '労働政策研究・研修機構（総務省 労働力調査）', 'end') },
+  ], t); }, 2, { enter: 'fade', zoom: 0 });
+
+// 23 椅子2つ：財布が片方→両方
+const chair = (x, y, col) => `<g transform="translate(${x},${y})"><rect x="-70" y="-160" width="20" height="200" rx="6" fill="${col}"/><rect x="-70" y="-10" width="150" height="24" rx="6" fill="${col}"/><rect x="60" y="0" width="16" height="110" fill="${col}"/><rect x="-66" y="0" width="16" height="110" fill="${col}"/></g>`;
+SC[23] = K((t) => { const k = easeOut(clamp((t - 3.2) / .8));
+  return R([
+    { at: 0, slide: 0, f: () => chair(CX - 260, 640, '#8a8478') + chair(CX + 260, 640, '#8a8478') + txt(CX - 260, 800, '夫', { size: 40, color: M }) + txt(CX + 260, 800, '妻', { size: 40, color: F }) },
+    { at: .3, slide: 0, f: () => wallet(CX - 250, 600, 1.2) },
+    { at: 3.2, slide: 0, f: () => `<g transform="translate(0,${(1 - k) * -200})" opacity="${k}">${wallet(CX + 270, 600, 1.2)}</g>` },
+    { at: 3.6, f: () => txt(CX, 260, '誰が、稼ぎを持って座るか', { size: 50, color: Y, serif: true }) },
+  ], t); }, 2, { enter: 'fade', zoom: 0 });
+
+// 24 章タイトル：男が養う側を降りた理由
+SC[24] = K((t) => R([
+  { at: 0, f: () => txt(CX, 420, '第3章', { size: 40, color: C.dim }) },
+  { at: .2, f: (lt) => `<g transform="translate(${CX},560) scale(${pop(lt / .5)})">${txt(0, 0, 'なぜ男は、養う側を降りたのか', { size: 70, color: Y, serif: true })}</g>` },
+], t), 3, { enter: 'fade', zoom: 0 });
+
+// 25 給料：1997の山→長い谷→2024でやっと越える（確認できた年だけ点で結ぶ）
+const WG = [[1997, 467], [2009, 406], [2023, 460], [2024, 478]];
+SC[25] = K((t) => { const X0 = 360, X1 = 1560, Y0 = 840, Y1 = 320, fx = (y) => X0 + (y - 1994) / (2027 - 1994) * (X1 - X0), fy = (v) => Y0 - (v - 350) / 150 * (Y0 - Y1);
+  const T = [2.0, 7.0, 11.0, 12.5], n = T.filter(x => t >= x).length;
+  let d = '', g = '';
+  for (let i = 0; i < n; i++) { const [y, v] = WG[i], k = i ? easeOut(clamp((t - T[i]) / 1.2)) : 1, px = i ? fx(WG[i - 1][0]) + (fx(y) - fx(WG[i - 1][0])) * k : fx(y), py = i ? fy(WG[i - 1][1]) + (fy(v) - fy(WG[i - 1][1])) * k : fy(v);
+    d += (i ? ' L' : 'M') + px + ',' + py; if (k > .98) g += `<circle cx="${fx(y)}" cy="${fy(v)}" r="10" fill="${Y}"/>` + txt(fx(y) + (i === 2 ? 20 : 0), fy(v) + (i === 1 || i === 2 ? 56 : -26), v + '万円', { size: 36, color: i === 3 ? Y : C.fg, anchor: i === 2 ? 'start' : 'middle' }) + (y === 2023 ? '' : txt(fx(y), Y0 + 44, y + '年', { size: 26, color: C.dim })); }
+  return R([
+    { at: 0, f: () => head('会社員の平均の給料（1年間）', { y: 170 }) },
+    { at: 0, slide: 0, f: () => `<path d="M${X0},${Y0} L${X1},${Y0}" stroke="#6a6470" stroke-width="3"/>` + `<path d="${d}" fill="none" stroke="${Y}" stroke-width="7" stroke-linejoin="round"/>` + g },
+    { at: 4.0, slide: 0, f: () => `<path d="M${fx(1997)},${fy(467)} L${X1},${fy(467)}" stroke="#e8dcc0" stroke-width="3" stroke-dasharray="12 10" opacity=".6"/>` + txt(X1 + 10, fy(467) + 10, '1997年の山', { size: 28, color: '#e8dcc0', anchor: 'start' }) },
+    { at: 13.5, f: (lt) => `<g transform="translate(${fx(2011)},${fy(475)}) scale(${pop(lt / .4)})">${txt(0, 0, '27年かかって、やっと', { size: 50, color: Y, serif: true })}</g>` },
+    { at: 15.5, f: () => note(X1, 260, '※途中の年は代表的な年だけを結んでいます', 'end') },
+    { at: .6, ref: true, f: () => note(1880, 125, '国税庁 民間給与実態統計調査', 'end') },
+  ], t); }, 3, { enter: 'fade', zoom: 0 });
+
+// 26 階段を上る親の世代／平らな道を歩く子の世代
+SC[26] = K((t) => { const k1 = clamp((t - .3) / 5), k2 = clamp((t - 6.5) / 5); let st = '';
+  for (let i = 0; i < 6; i++) st += `<rect x="${200 + i * 110}" y="${560 - i * 50}" width="110" height="${300 + i * 50}" fill="#4a4752"/>`;
+  const si = Math.min(5, Math.floor(k1 * 6)), px = 255 + si * 110, py = 560 - si * 50;
+  return R([
+    { at: 0, slide: 0, f: () => st + txt(530, 920 - 40, '親の世代', { size: 40, color: C.fg }) + person(px, py - 117, 90, M) + (k1 > .3 ? txt(560, 760, '給料が毎年上がる', { size: 38, color: Y }) : '') },
+    { at: 6.2, slide: 0, f: () => `<rect x="1080" y="560" width="680" height="300" fill="#4a4752"/>` + txt(1420, 920 - 40, '今の20代・30代', { size: 40, color: C.fg }) + person(1140 + 560 * k2, 560 - 117, 90, M) + (k2 > .2 ? txt(1420, 660, '平らなまま', { size: 34, color: C.dim }) : '') },
+  ], t); }, 3, { enter: 'fade', zoom: 0 });
+
+// 27 結婚の障害：①結婚資金 ②住む家
+SC[27] = K((t) => R([
+  { at: 0, f: () => head('1年以内に結婚するとしたら、障害になるもの', { y: 170 }) },
+  { at: 2.0, out: 6.1, f: () => card(CX - 420, 340, 840, 160) + txt(CX - 330, 442, '1位', { size: 48, color: C.dim, serif: true }) + txt(CX + 40, 442, '？', { size: 64, color: C.dim, serif: true }) + card(CX - 420, 570, 840, 140) + txt(CX - 330, 658, '2位', { size: 44, color: C.dim, serif: true }) + txt(CX + 40, 658, '？', { size: 56, color: C.dim, serif: true }) },
+  { at: 6.5, f: (lt) => `<g transform="translate(${CX},420) scale(${pop(lt / .4)})">` + card(-420, -80, 840, 160, { fill: 'rgba(240,200,90,.16)', stroke: Y }) + txt(-330, 22, '1位', { size: 48, color: Y, serif: true }) + txt(40, 22, '結婚資金', { size: 64, color: Y, serif: true }) + '</g>' },
+  { at: 8.8, f: (lt) => `<g transform="translate(${CX},640) scale(${pop(lt / .4)})">` + card(-420, -70, 840, 140) + txt(-330, 18, '2位', { size: 44, color: C.fg, serif: true }) + txt(40, 18, '住む家', { size: 56, color: C.fg, serif: true }) + '</g>' },
+  { at: 6.8, f: () => txt(CX, 830 - 20, '男女とも同じ順位', { size: 34, color: C.dim }) },
+  ref(SR1),
+], t), 3, { enter: 'fade', zoom: 0 });
+
+// 28 1人で背負う大きな荷物 → 2人で持つ
+SC[28] = K((t) => { const k = easeOut(clamp((t - 5.5) / 1.2)), wob = (1 - k) * 6 * Math.sin(t * 6);
+  return R([
+    { at: 0, slide: 0, f: () => `<g transform="translate(${CX - 140 + 140 * k},${400 + wob})">` + `<rect x="-200" y="0" width="${400 + 0}" height="230" rx="16" fill="#8a6a3a"/>` + txt(0, 130, '2人の暮らし', { size: 48, color: '#f1ece2', shadow: false, serif: true }) + '</g>' + person(CX - 140 + 40 * k, 760, 110, M) },
+    { at: 5.2, slide: 0, f: (lt) => person(CX + 260 - 60 * k, 760, 104, F, 'f') },
+    { at: 1.0, f: () => txt(CX - 560, 560, '1人で背負う', { size: 40, color: C.dim }) },
+    { at: 6.4, f: () => txt(CX + 600, 560, '2人で持つ', { size: 44, color: Y }) },
+  ], t); }, 3, { enter: 'fade', zoom: 0 });
+
+// 29 「いい話？」→ もう1枚の請求書
+SC[29] = K((t) => R([
+  { at: .3, f: () => bubble(CX - 200, 330, 620, 140, '女性にとって、いい話？', { size: 52 }) },
+  { at: 6.0, f: () => txt(CX - 200, 560, '……半分は、その通り', { size: 48, color: C.fg }) },
+  { at: 9.6, slide: 0, f: (lt) => { const k = easeOut(lt / .9); return `<g transform="translate(${CX + 380 + (1 - k) * 700},380) rotate(6)"><rect width="420" height="520" rx="8" fill="#f1ece2"/>` + txt(210, 80, '請求書', { size: 52, color: '#222', shadow: false, serif: true }) + [0, 1, 2, 3].map(i => `<rect x="50" y="${150 + i * 70}" width="${320 - (i % 2) * 80}" height="18" rx="9" fill="#cfc8b8"/>`).join('') + '</g>'; } },
+  { at: 11.5, f: () => txt(CX + 590, 980 - 70, 'もう1枚', { size: 40, color: Y }) },
+], t), 3, { enter: 'fade', zoom: 0 });
+
+// 30 条件カード「家事・育児」が光る（女性→男性）
+SC[30] = K((t) => R([
+  { at: 0, f: () => head('女性が結婚相手の男性に求める条件', { y: 170 }) },
+  ...CONDS.map((c, i) => ({ at: .3 + i * .2, f: (lt) => { const on = c === '家事・育児' && t > 3.6; return `<g transform="translate(${CX - 540 + (i % 3) * 540},${430 + Math.floor(i / 3) * 190}) scale(${on ? 1.12 : pop(lt / .4)})">` + card(-220, -70, 440, 140, { fill: on ? 'rgba(239,127,168,.22)' : 'rgba(255,255,255,.06)', stroke: on ? F : undefined }) + txt(0, 16, c, { size: 48, color: on ? F : C.fg }) + '</g>'; } })),
+  { at: 4.0, f: () => txt(CX + 540, 860 - 20, 'この30年でいちばん伸びた', { size: 34, color: F }) },
+  ref(SR1),
+], t), 4, { enter: 'fade', zoom: 0 });
+
+// 31 「強く重視する」女性 44%→68%、3人に2人
+SC[31] = K((t) => { const B = [[1997, 43.6, .8], [2025, 68.4, 4.6]];
+  return R([
+    { at: 0, f: () => head('相手の家事・育児を「強く重視する」女性', { y: 170 }) },
+    { at: 0, slide: 0, f: () => `<path d="M420,820 L1120,820" stroke="#6a6470" stroke-width="3"/>` + B.map(([y, v, t0], i) => { const k = easeOut(clamp((t - t0) / .9)), x = 600 + i * 340, h = v * 7 * k;
+        return `<rect x="${x - 100}" y="${820 - h}" width="200" height="${h}" rx="8" fill="${i ? F : '#a8607c'}"/>` + txt(x, 870, y + '年', { size: 36, color: C.dim }) + (k > .05 ? txt(x, 800 - h, Math.round(v * k) + '%', { size: 64, color: i ? F : '#d79ab3', serif: true }) : ''); }).join('') },
+    { at: 7.6, slide: 0, f: () => [0, 1, 2].map(i => person(1360 + i * 150, 600, 80, i < 2 ? F : '#5f5b66', 'f')).join('') + txt(1510, 800, '3人に2人', { size: 52, color: F, serif: true }) },
+    ref(SR1),
+  ], t); }, 4, { enter: 'fade', zoom: 0 });
+
+// 32-34 請求書
+const bill = (x, y, title, col, rows, k = 1) => { let g = `<g transform="translate(${x},${y})"><rect x="-260" y="0" width="520" height="${170 + rows.length * 110}" rx="10" fill="#f1ece2"/>` + txt(0, 70, title, { size: 44, color: col, shadow: false, serif: true }) + `<rect x="-220" y="100" width="440" height="3" fill="#bbb"/>`;
+  rows.forEach(([item, sub, add], i) => { const a = clamp(k * rows.length - i); if (a <= 0) return; const yy = 170 + i * 110;
+    g += `<g opacity="${a}">` + txt(-220, yy, item, { size: 42, color: '#222', shadow: false, anchor: 'start' }) + txt(-220, yy + 42, sub, { size: 26, color: '#777', shadow: false, anchor: 'start' }) + (add ? `<g transform="translate(160,${yy - 10}) rotate(-10)"><rect x="-70" y="-34" width="140" height="62" rx="8" fill="none" stroke="#c43a3a" stroke-width="5"/>` + txt(0, 10, '追加', { size: 34, color: '#c43a3a', shadow: false }) + '</g>' : '') + '</g>'; });
+  return g + '</g>'; };
+const MB = [['稼ぎ', '女性の90%が見ている'], ['家事・育児', '強く重視する女性 68%', true]];
+const WB = [['家事・育児', '男性の89%が見ている'], ['稼ぎ', '男性の56%が見るように', true]];
+SC[32] = K((t) => R([
+  { at: 0, slide: 0, f: () => bill(CX, 260, '夫の請求書', M, MB.slice(0, t > 5.6 ? 2 : 1), 1) + person(CX - 480, 640, 100, M) },
+  ref(SR1),
+], t), 4, { enter: 'fade', zoom: 0 });
+SC[33] = K((t) => R([
+  { at: 0, slide: 0, f: () => bill(CX, 260, '妻の請求書', F, WB.slice(0, t > 5.0 ? 2 : 1), 1) + person(CX + 480, 640, 100, F, 'f') },
+  ref(SR1),
+], t), 4, { enter: 'fade', zoom: 0 });
+SC[34] = K((t) => R([
+  { at: 0, slide: 0, f: () => `<g transform="translate(93,60) scale(.85)">${bill(CX - 340, 300, '夫の請求書', M, MB)}${bill(CX + 460, 300, '妻の請求書', F, WB)}</g>` },
+  { at: 5.0, f: (lt) => `<g transform="translate(${CX},220) scale(${pop(lt / .4)})">${txt(0, 0, '割り勘なのに、どちらも増えた', { size: 56, color: Y, serif: true })}</g>` },
+], t), 4, { enter: 'fade', zoom: 0 });
+
+// 35 結婚の利点「子どもや家族をもてる」女性 50→32
+SC[35] = K((t) => { const k = easeOut(clamp((t - 5.5) / 1.6)), v = 49.8 - (49.8 - 31.6) * k;
+  return R([
+    { at: 0, f: () => head('結婚の利点：「自分の子どもや家族をもてる」', { y: 170 }) },
+    { at: .5, slide: 0, f: () => `<path d="M560,820 L1360,820" stroke="#6a6470" stroke-width="3"/><rect x="${CX - 130}" y="${820 - 49.8 * 9}" width="260" height="${49.8 * 9}" rx="8" fill="none" stroke="#a8607c" stroke-width="4" stroke-dasharray="12 10"/>` + `<rect x="${CX - 130}" y="${820 - v * 9}" width="260" height="${v * 9}" rx="8" fill="${F}"/>` + txt(CX, 800 - v * 9, Math.round(v) + '%', { size: 72, color: F, serif: true }) + txt(CX, 870, '女性', { size: 36, color: C.dim }) },
+    { at: 2.0, f: () => txt(CX + 320, 820 - 49.8 * 9 + 10, 'いちばん多かったころ 50%', { size: 32, color: '#d79ab3', anchor: 'start' }) },
+    ref(SR1),
+  ], t); }, 4, { enter: 'fade', zoom: 0 });
+
+// 36 一生結婚するつもりはない 男24・女22（100人格子×2）
+SC[36] = K((t) => { const a = easeOut(clamp((t - 6.5) / 1.4)), b = easeOut(clamp((t - 9.2) / 1.4));
+  return R([
+    { at: 0, f: () => head('「一生結婚するつもりはない」（18〜34歳の独身者）', { y: 170 }) },
+    { at: .3, slide: 0, f: () => grid100(CX - 700, 380, 24 * a, M, 46, 52, 1.1) + grid100(CX + 290, 380, 21.5 * b, F, 46, 52, 1.1) },
+    { at: 6.5, f: () => counter(CX - 490, 315, 24 * a, M, '人', 64) },
+    { at: 9.2, f: () => counter(CX + 500, 315, 22 * b, F, '人', 64) },
+    { at: 11.5, f: (lt) => `<g transform="translate(${CX},560) scale(${pop(lt / .4)})">${card(-150, -70, 300, 120, { fill: 'rgba(240,200,90,.15)', stroke: Y })}${txt(0, -10, '初めて', { size: 34, color: Y })}${txt(0, 36, '男女とも2割超', { size: 34, color: Y })}</g>` },
+    ref(SR1),
+  ], t); }, 4, { enter: 'fade', zoom: 0 });
+
+// 37 女性の予想：結婚せず働く 7→36（1位）
+const W_HIK = [7.1, 9.5, 9.3, 12.5, 15.6, 17.7, 21.0, 33.3, 36.1];
+SC[37] = K((t) => { const k = easeOut(clamp((t - 4.5) / 5));
+  return R([
+    { at: 0, f: () => head('女性が「実際になりそう」と思う人生：結婚せず働く', { y: 170 }) },
+    { at: 0, slide: 0, f: () => CH2.ax([1987, 1997, 2005, 2015, 2025], '%', [0, 25, 50]) + CH2.ln(CY, W_HIK, F, k, { labels: k > .99 ? [0, 8] : [0] }) },
+    { at: 10.5, f: (lt) => `<g transform="translate(${CH2.fx(2025) - 40},${CH2.fy(36.1) - 90}) scale(${pop(lt / .4)})">${txt(0, 0, 'いちばん多い答え', { size: 40, color: Y, serif: true })}</g>` },
+    ref(SR1),
+  ], t); }, 4, { enter: 'fade', zoom: 0 });
+
+// 38 テーブルと空いた椅子
+SC[38] = K((t) => { const op = clamp((t - 6.5) / 1.5);
+  const tbl = `<rect x="${CX - 300}" y="560" width="600" height="26" rx="8" fill="#8a6a3a"/><rect x="${CX - 270}" y="586" width="20" height="230" fill="#6e5530"/><rect x="${CX + 250}" y="586" width="20" height="230" fill="#6e5530"/>`
+    + [[-130, -6], [110, 7]].map(([dx, r]) => `<g transform="translate(${CX + dx},500) rotate(${r})"><rect x="-80" y="-56" width="160" height="112" rx="6" fill="#f1ece2"/>` + [0, 1, 2].map(i => `<rect x="-56" y="${-34 + i * 26}" width="${i === 2 ? 70 : 112}" height="10" rx="5" fill="${i === 2 ? '#c43a3a' : '#cfc8b8'}"/>`).join('') + '</g>').join('');
+  return R([
+    { at: 0, slide: 0, f: () => tbl + chair(CX - 440, 720, '#8a8478') + `<g transform="translate(${CX + 440},720) scale(-1,1)">${chair(0, 0, '#8a8478')}</g>` },
+    { at: 6.5, slide: 0, f: () => `<g opacity="${op}">${txt(CX, 300, '払うものが増えたテーブルに', { size: 46, color: C.fg, serif: true })}${txt(CX, 370, '座らない人が増えている', { size: 52, color: Y, serif: true })}</g>` },
+    { at: 1.0, f: () => note(CX, 930 - 30, '※請求書が原因だと、この調査だけでは言い切れない', 'middle') },
+  ], t); }, 4, { enter: 'fade', zoom: 0 });
+
+// 39 これまでの図が小さく並ぶ
+SC[39] = K((t) => R([
+  ...[['38人→4人', M], ['27%→56%', Y], ['両立が1位', Y], ['請求書が増えた', '#ff8a7a']].map(([s0, col], i) => ({ at: .2 + i * .4, f: (lt) => `<g transform="translate(${300 + i * 440},540) scale(${pop(lt / .4)})">${card(-190, -110, 380, 220)}${txt(0, 18, s0, { size: 46, color: col, serif: true })}</g>` })),
+], t), 5, { enter: 'fade', zoom: 0 });
+
+// 40 まとめの3行
+SC[40] = K((t) => R([
+  { at: .3, f: () => txt(380, 360, '①', { size: 50, color: Y, serif: true }) + txt(450, 360, '「妻は専業主婦で」の男性　100人中38人 → 4人', { size: 42, anchor: 'start' }) },
+  { at: 5.0, f: () => txt(380, 520, '②', { size: 50, color: Y, serif: true }) + txt(450, 520, '相手の稼ぎを見る男性　27% → 56%', { size: 42, anchor: 'start' }) },
+  { at: 8.4, f: () => txt(380, 680, '③', { size: 50, color: Y, serif: true }) + txt(450, 680, '女性は稼ぎを見続け、家事・育児も求めるように', { size: 42, anchor: 'start' }) },
+  ref(SR1),
+], t), 5, { enter: 'fade', zoom: 0 });
+
+// 41 男女の「両立」が並ぶ（39・37）
+SC[41] = K((t) => { const a = easeOut(clamp((t - 4.0) / 1)), b = easeOut(clamp((t - 8.0) / 1));
+  return R([
+    { at: 0, f: () => head('いちばん望まれている人生（2025年）', { y: 170 }) },
+    { at: 0, slide: 0, f: () => `<path d="M560,820 L1360,820" stroke="#6a6470" stroke-width="3"/>` + `<rect x="${CX - 300}" y="${820 - 39.2 * 10 * a}" width="240" height="${39.2 * 10 * a}" rx="8" fill="${M}"/>` + `<rect x="${CX + 60}" y="${820 - 36.5 * 10 * b}" width="240" height="${36.5 * 10 * b}" rx="8" fill="${F}"/>`
+        + (a > .05 ? txt(CX - 180, 800 - 39.2 * 10 * a, Math.round(39.2 * a) + '%', { size: 64, color: M, serif: true }) : '') + (b > .05 ? txt(CX + 180, 800 - 36.5 * 10 * b, Math.round(36.5 * b) + '%', { size: 64, color: F, serif: true }) : '')
+        + txt(CX - 180, 866, '男性が相手に望む', { size: 32, color: M }) + txt(CX + 180, 866, '女性の理想', { size: 32, color: F }) },
+    { at: 9.5, f: (lt) => `<g transform="translate(${CX},262) scale(${pop(lt / .4)})">${txt(0, 0, 'どちらも「両立」が1位', { size: 52, color: Y, serif: true })}</g>` },
+    ref(SR1),
+  ], t); }, 5, { enter: 'fade', zoom: 0 });
+
+// 42 2本の矢印が近づいて重なる
+SC[42] = K((t) => { const k = ease(clamp((t - 7.0) / 4));
+  const lab = (x, y, s0, col) => txt(x, y, s0, { size: 40, color: col });
+  return R([
+    { at: 0, slide: 0, f: () => txt(400, 330, '1987年', { size: 52, color: C.dim, serif: true }) + lab(400, 430, '男性の1位', M) + lab(400, 490, '専業主婦・再就職', M) + lab(400, 640, '女性の1位', F) + lab(400, 700, '専業主婦', F) },
+    { at: 3.8, slide: 0, f: () => txt(1520, 330, '2025年', { size: 52, color: Y, serif: true }) + `<g opacity="${clamp((t - 3.8) / .6)}">` + arrow(700, 470, 1180, 470 + 90 * k, M, 1, 8) + arrow(700, 680, 1180, 680 - 120 * k, F, 1, 8) + '</g>' },
+    { at: 7.0, f: () => `<g transform="translate(1500,${560})">${card(-200, -80, 400, 160, { fill: 'rgba(240,200,90,.15)', stroke: Y })}${txt(0, 18, '両立', { size: 72, color: Y, serif: true })}</g>` },
+    { at: 11.5, f: () => txt(CX, 880 - 20, '男と女が思い描く結婚は、むしろ近づいている', { size: 44, color: C.fg, serif: true }) },
+    ref(SR1),
+  ], t); }, 5, { enter: 'fade', zoom: 0 });
+
+// 43 レシート「2人で払う」に戻る
+SC[43] = K((t) => { const rec = `<g transform="translate(${CX - 260},200)"><path d="M0,0 L520,0 L520,620 ${[...Array(13)].map((_, i) => `L${520 - (i + .5) * 40},${i % 2 ? 620 : 640}`).join(' ')} L0,620Z" fill="#f1ece2"/>`
+    + txt(260, 72, '結婚のお会計', { size: 46, color: '#222', shadow: false, serif: true }) + `<rect x="40" y="100" width="440" height="3" fill="#bbb"/>`
+    + txt(60, 260, '稼ぎ', { size: 40, color: '#333', shadow: false, anchor: 'start' }) + txt(470, 260, '2人', { size: 44, color: '#7a5a10', shadow: false, anchor: 'end', serif: true })
+    + txt(60, 380, '家のこと', { size: 40, color: '#333', shadow: false, anchor: 'start' }) + txt(470, 380, '2人', { size: 44, color: '#7a5a10', shadow: false, anchor: 'end', serif: true })
+    + `<rect x="40" y="440" width="440" height="3" fill="#bbb"/>` + txt(60, 520, '足りないもの', { size: 34, color: '#c43a3a', shadow: false, anchor: 'start' }) + (t > 4.5 ? txt(470, 520, '給料・時間', { size: 40, color: '#c43a3a', shadow: false, anchor: 'end', serif: true }) : '') + '</g>';
+  return R([{ at: 0, slide: 0, f: () => rec + person(CX - 480, 640, 100, M) + person(CX + 480, 640, 100, F, 'f') }], t); }, 5, { enter: 'fade', zoom: 0 });
+
+// 44 コメントのアイコン
+SC[44] = K((t) => R([
+  { at: .3, f: () => bubble(CX - 470, 380, 940, 150, 'あなたは、結婚相手に稼ぎを求める？', { size: 46 }) },
+  { at: 4.5, f: (lt) => `<g transform="translate(${CX},680) scale(${pop(lt / .4)})">${card(-260, -60, 520, 120, { fill: 'rgba(255,255,255,.08)' })}${txt(0, 16, 'コメント欄で教えてね', { size: 44, color: Y })}</g>` },
+], t), 5, { enter: 'fade', zoom: 0 });
+
+// 45 締め
+SC[45] = K((t) => R([
+  { at: .2, f: () => txt(CX, 460, '今日のネタバレは、ここまで', { size: 60, serif: true }) },
+  { at: 2.0, f: () => txt(CX, 600, 'チャンネル登録・高評価をお願いします', { size: 40, color: Y }) },
+], t), 5, { enter: 'fade', zoom: 0 });
+
 export const SCENES = SC;
