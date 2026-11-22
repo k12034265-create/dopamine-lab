@@ -1,7 +1,7 @@
 """Original procedural pictures for reveal-type videos. pic(name, w, h) -> float32 (h,w,3) RGB in 0..1"""
 import numpy as np, colorsys
 
-TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま', 'tulips': 'チューリップ畑', 'wave': '大波と富士'}
+TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま', 'tulips': 'チューリップ畑', 'wave': '大波と富士', 'xmastree': 'クリスマスツリー'}
 
 
 def _hsv(h, s, v):
@@ -190,4 +190,42 @@ def pic(name, w, h, seed=0):
         for k in range(12):
             px = c2x - 0.05 + 0.18 * rng.random(); py = c2y - r2 + 0.15 * rng.random()
             img[np.hypot(X - px, Y - py) < 0.011] = (0.97, 0.97, 0.93)
+    elif name == 'xmastree':
+        # クリスマスツリー（夜・雪原・星）
+        ar = h / w
+        top = np.array([0.03, 0.05, 0.18]); bot = np.array([0.12, 0.18, 0.42])
+        img[:] = top + (bot - top) * np.clip(v / 0.8, 0, 1)[..., None]
+        n = max(4, int(w * h * 0.02))
+        sx, sy = rng.integers(0, w, n), rng.integers(0, int(h * 0.8), n)
+        for x, y in zip(sx, sy):
+            img[y, x] = (0.8, 0.86, 0.98)
+        gnd = v > 0.84 - 0.02 * np.sin(u * 6)
+        img[gnd] = (0.85, 0.9, 0.98)
+        img[gnd & (v > 0.93)] = (0.68, 0.76, 0.92)
+        # trunk
+        img[(np.abs(u - 0.5) < 0.06) & (v > 0.76) & (v < 0.88)] = (0.45, 0.27, 0.12)
+        # three tiers of green triangles
+        tree = np.zeros_like(u, bool)
+        for (ty, by, hw) in ((0.18, 0.42, 0.24), (0.32, 0.60, 0.34), (0.48, 0.78, 0.44)):
+            m = (v > ty) & (v < by) & (np.abs(u - 0.5) < hw * (v - ty) / (by - ty))
+            tree |= m
+        img[tree] = (0.10, 0.50, 0.22)
+        img[tree & (u > 0.5 + 0.02 * np.sin(v * 40))] = (0.07, 0.40, 0.18)
+        # garland (yellow diagonal bands)
+        gar = tree & (np.abs(((v - (u - 0.5) * 0.5) * 9) % 1 - 0.5) < 0.06)
+        img[gar] = (1.0, 0.82, 0.25)
+        # ornaments
+        orn = [(0.42, 0.36, (0.95, 0.15, 0.2)), (0.56, 0.31, (0.2, 0.5, 1.0)), (0.36, 0.53, (1.0, 0.8, 0.15)),
+               (0.62, 0.50, (0.95, 0.15, 0.2)), (0.48, 0.47, (0.9, 0.4, 0.85)), (0.30, 0.71, (0.2, 0.5, 1.0)),
+               (0.50, 0.66, (0.95, 0.15, 0.2)), (0.70, 0.70, (1.0, 0.8, 0.15)), (0.40, 0.62, (0.9, 0.4, 0.85)), (0.60, 0.61, (0.2, 0.5, 1.0))]
+        for cx, cy, c in orn:
+            img[np.hypot(u - cx, (v - cy) * ar) < 0.032] = c
+        # star on top
+        ang = np.arctan2(v * ar - 0.16 * ar, u - 0.5); rr = np.hypot(u - 0.5, (v - 0.16) * ar)
+        img[rr < 0.05 + 0.035 * np.cos(ang * 5 + np.pi / 2)] = (1.0, 0.9, 0.2)
+        # presents
+        for cx, c in ((0.27, (0.95, 0.2, 0.25)), (0.73, (0.25, 0.55, 1.0))):
+            box = (np.abs(u - cx) < 0.08) & (v > 0.80) & (v < 0.89)
+            img[box] = c
+            img[box & ((np.abs(u - cx) < 0.012) | (np.abs(v - 0.845) < 0.008))] = (1.0, 0.88, 0.3)
     return np.clip(img, 0, 1)
