@@ -494,7 +494,7 @@ SC[24] = { build() { const S = makeScene({ bg: '#0a0c14', hemi: .7, exposure: 1.
 const cityStreet = (s, o = {}) => { const r = rng(o.seed || 9); box(s, 10, .02, 80, mat(o.road || '#2a2a30'), 0, -.01, -30); box(s, 2, .06, 80, mat(o.walk || '#3e3e46'), -4, .03, -30); box(s, 2, .06, 80, mat(o.walk || '#3e3e46'), 4, .03, -30);
   const signs = [];
   for (let i = 0; i < 12; i++) for (const sx of [-1, 1]) { const z = 2 - i * 6, w = 3.6 + r() * 1.4, h = 6 + r() * 14, x = sx * (7.2 + r() * .8); box(s, w, h, 5, mat(o.night ? ['#2a2c36', '#30323c', '#26282f'][(r() * 3) | 0] : ['#9aa2ae', '#b8bcc4', '#8890a0'][(r() * 3) | 0]), x, h / 2, z);
-    for (let k = 0; k < Math.floor(h / 1.2); k++) box(s, .02, .35, w * .8, o.night ? glow(r() < .55 ? '#e8b878' : '#1a1c24', r() < .55 ? .3 : 0) : mat('#5a6a80', { m: .4, r: .2 }), x - sx * 2.51, 1 + k * 1.2, z);
+    for (let k = 0; k < Math.floor(h / 1.2); k++) for (let m = 0; m < 3; m++) box(s, .03, .6, .9, o.night ? glow(r() < .55 ? '#e8b878' : '#1a1c24', r() < .55 ? .3 : 0) : mat('#4a5a70', { m: .4, r: .2 }), x - sx * (w / 2 + .01), 1.2 + k * 1.2, z - 1.6 + m * 1.6);
     if (o.night && r() < .6) { const c = ['#ff5a8a', '#5ad0ff', '#ffb43a', '#8aff8a'][(r() * 4) | 0]; signs.push(box(s, .12, 1.0 + r() * .8, .4, glow(c, .9), x - sx * 2.7, 3 + r() * 2, z + 1.5)); } }
   return signs; };
 SC[38] = { build() { const S = makeScene({ bg: '#0a0e1c', hemi: .55, exposure: 1.35, sky: '#6a78b0', ground: '#1a1a20', bloom: .25, bloomTh: .88, fov: 38, fog: ['#0a0e1c', 18, 60] }); const s = S.s; sun(s, '#8fa0d8', .5, 4, 14, 8, 20);
@@ -509,7 +509,7 @@ SC[39] = { build() { const S = makeScene({ bg: '#9fc0e0', hemi: .9, exposure: 1.
   cityStreet(s, { night: false, road: '#5a5a60', walk: '#8a8680', seed: 12 });
   const yo = human(s, { top: '#3a8a7a', bottom: '#2a2f3a', face: false }); yo.rotation.y = Math.PI; box(yo, .3, .36, .14, mat('#2a2a2a'), 0, 1.25, -.16);
   return { render() { S.render(); }, update(t, dur) { const z = 1 - t * 1.0; yo.position.set(-3.8, 0, z); yo.userData.walk(t, 1.1);
-    const k = ease(t / dur); camMove(S.cam, [-3.0, 1.8, z + 4.2], [-3.2, 2.7, z + 5.4], [-3.8, 1.5, z - 4], [-3.8, 2.6, z - 10], k); return ''; } }; } };
+    const k = ease(t / dur); camMove(S.cam, [-3.1, 1.9, z + 4.0], [-3.2, 2.3, z + 4.6], [-3.8, 0.9, z - 4], [-3.8, 1.2, z - 8], k); return ''; } }; } };
 
 // 45 改札に戻る：夜の駅、人が改札を通っていく
 SC[45] = { build() { const S = makeScene({ bg: '#0c0e16', hemi: .75, exposure: 1.3, sky: '#c8d0e0', ground: '#3a3a40', bloom: .35, bloomTh: .8, fov: 34 }); const s = S.s;
@@ -517,8 +517,8 @@ SC[45] = { build() { const S = makeScene({ bg: '#0c0e16', hemi: .75, exposure: 1
   for (let i = 0; i < 5; i++) box(s, 2.2, .04, .3, glow('#f4f6ff', 1.4), -4 + i * 2, 3.94, -1);
   box(s, 6, .7, .1, glow('#26313f', .5), 0, 3.2, -3.85);
   for (let i = 0; i < 6; i++) { const x = -3.75 + i * 1.5; box(s, .32, 1.0, 1.6, mat('#d8dce0', { m: .3, r: .4 }), x, .5, 0); box(s, .2, .04, .5, glow('#ffcf6a', 1.6), x, 1.02, .3); box(s, .2, .2, .02, glow(i % 2 ? '#5ad0ff' : '#ff6a8a', 1.4), x, .85, .81); }
-  const ppl = []; const r = rng(8); for (let i = 0; i < 7; i++) { const p = human(s, { top: ['#2b3140', '#4a3a34', '#3a8a7a', '#22262e', '#7a5a8a'][i % 5], bottom: '#22252c', face: false }); ppl.push([p, -3.0 + (i % 5) * 1.5, r() * 6, 2.5 + r() * 3]); p.rotation.y = Math.PI; }
-  return { render() { S.render(); }, update(t, dur) { ppl.forEach(([p, x, ph, st]) => { const z = 4 - ((t * .9 + ph) % 9); p.position.set(x, 0, z); p.userData.walk(t + ph, 1); });
+  const ppl = []; const r = rng(8); for (let i = 0; i < 7; i++) { const p = human(s, { top: ['#2b3140', '#4a3a34', '#3a8a7a', '#22262e', '#7a5a8a'][i % 5], bottom: '#22252c', face: false }); ppl.push([p, [-3.0, -1.5, 0][i % 3], r() * 6, 3 + i * .9]); p.rotation.y = Math.PI; }
+  return { render() { S.render(); }, update(t, dur) { ppl.forEach(([p, x, ph, z0]) => { const z = z0 - t * .9; p.position.set(x, 0, z); p.visible = z > -3.5; p.userData.walk(t + ph, 1); });
     camMove(S.cam, [5.5, 2.4, 6.5], [3.5, 2.0, 5.2], [-.5, 1.0, 0], [-.5, 1.0, 0], ease(t / dur)); return ''; } }; } };
 
 // 48 締め：夜のマンションに灯り
@@ -544,7 +544,7 @@ SC[1] = { build() { const S = makeScene({ bg: '#c8d4e4', hemi: 1.0, exposure: 1.
   const tb = new THREE.Group(); box(tb, 1.4, 1.1, 1.1, mat('#6a5428', { r: .6 }), 0, .55, 0); box(tb, .9, .04, .2, mat('#1b1a20'), 0, 1.11, 0); tb.position.set(3.2, 0, 2.2); s.add(tb);
   const man = human(s, { top: M, bottom: '#2a2f3a', face: false }); man.rotation.y = Math.PI;
   const drops = []; [5.4, 6.3, 7.2, 8.1, 9.0, 9.9].forEach((t0, i) => { const o = i % 2 ? clock3(s) : house3(s, .8); o.visible = false; drops.push([o, t0]); });
-  return { render() { S.render(); }, update(t, dur) { const z = 3.5 - Math.min(t, 3.6) * 1.2; man.position.set(-.75, 0, z); if (t < 3.6) man.userData.walk(t, 1); else man.userData.legs.forEach(l => l.rotation.x = 0);
+  return { render() { S.render(); }, update(t, dur) { const z = 3.5 - Math.min(t, 4.6) * 1.2; man.position.set(-1.5, 0, z); if (t < 4.6) man.userData.walk(t, 1); else man.userData.legs.forEach(l => l.rotation.x = 0);
     drops.forEach(([o, t0]) => { const k = clamp((t - t0) / .8); o.visible = t > t0 && k < 1; o.position.set(3.2 + (1 - k) * .4, 3.2 - 2.1 * k * k, 2.2); o.rotation.y = t * 2; });
     camMove(S.cam, [1.2, 2.3, 8.5], [1.6, 2.1, 7.6], [.6, 1.1, 0], [1.2, 1.1, 0], ease(t / dur));
     const a = clamp((t - 3.5) / .4), b = clamp((t - 5.2) / .4);
