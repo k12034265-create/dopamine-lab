@@ -35,3 +35,16 @@ npx remotion render src/index.ts <CompositionID> out/x.mp4 \
 - 今：kami.js でシーンごとにブラウザを開いて撮影 → ffmpegでつなぐ／緑幕合成は comp.sh。
 - Remotion：シーンも動画素材もナレーションも1つのタイムラインで扱える。緑幕合成が不要（素材動画を直接下に敷ける）。部品（数字カウント、カード、地図、グラフ）を共通コンポーネントにして毎回使い回せる。
 - サンプル：`src/Test.tsx`（研究室の動画＋ローポリ卵＋「ライバルは2億5000万匹」カウントアップ＋ナレーション）。
+
+## 人間モデル（2026-11-24 テスト済み、src/Human.tsx・HumanTest.tsx）
+- モデル：three.js公式サンプル（Mixamo製、`https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/<名前>.glb`）
+  - Xbot（マネキン）：agree / headShake / idle / run / sad_pose / sneak_pose / walk
+  - Soldier（兵士）：Idle / Run / Walk
+  - Michelle（女性）：SambaDance のみ
+- `useModel('X.glb')` で読み込み → `<Human gltf f fps steps pos rotY>`。steps に「どの動きを何フレーム目から」を並べると10フレームでなめらかに切り替わる。
+- **ハマりどころ（必ず守る）**
+  1. モデルは全部読み込み終わってから `<ThreeCanvas>` を出す（`{a && b && <ThreeCanvas>}`）。先に出すと後から読んだモデルが写らない。
+  2. continueRender はモデルが画面に反映された後（useEffect＋requestAnimationFrame）。
+  3. カメラは `Cam` 部品で描画前に毎フレーム設定（useEffectだと並列書き出しの最初の1枚がずれる）。
+  4. Soldier は後ろ向きのモデル → rotY に π を足す。
+- 8秒の書き出しは約1分50秒（人間2体＋影）。
