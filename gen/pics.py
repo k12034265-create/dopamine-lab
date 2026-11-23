@@ -1,7 +1,7 @@
 """Original procedural pictures for reveal-type videos. pic(name, w, h) -> float32 (h,w,3) RGB in 0..1"""
 import numpy as np, colorsys
 
-TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま', 'tulips': 'チューリップ畑', 'wave': '大波と富士', 'xmastree': 'クリスマスツリー', 'momiji': '紅葉と鳥居'}
+TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま', 'tulips': 'チューリップ畑', 'wave': '大波と富士', 'xmastree': 'クリスマスツリー', 'momiji': '紅葉と鳥居', 'heart': 'しま模様のハート'}
 
 
 def _hsv(h, s, v):
@@ -266,4 +266,28 @@ def pic(name, w, h, seed=0):
         for cx, cy, r, c in ((0.20, 0.62, 0.05, (1.0, 0.75, 0.15)), (0.83, 0.70, 0.05, (0.95, 0.25, 0.1)),
                              (0.55, 0.20, 0.045, (0.95, 0.3, 0.1)), (0.42, 0.90, 0.05, (1.0, 0.6, 0.1)), (0.75, 0.92, 0.045, (0.9, 0.2, 0.1))):
             leaf(cx, cy, r, c)
+    elif name == 'heart':
+        # シンプルな形：虹色のしま模様（層）で積み上がった大きなハート。背景は落ち着いた紺〜紫
+        ar = h / w
+        top = np.array([0.10, 0.10, 0.25]); bot = np.array([0.22, 0.12, 0.32])
+        img[:] = top + (bot - top) * v[..., None]
+        x = (u - 0.5) * 2.35; y = -(v - 0.53) * 2.35 * ar
+        f = (x * x + y * y - 1) ** 3 - x * x * y ** 3
+        ins = f < 0
+        # 層は水平のしま（砂が下から積もる層に見えるように、少し波打たせる）
+        band = ((v + 0.008 * np.sin(u * 18)) * 20).astype(int)
+        cols = [_hsv(0.97 - 0.07 * k, 0.75, 0.98) for k in range(9)]
+        for k in range(9):
+            img[ins & (band % 9 == k)] = cols[k]
+        # 白い縁取り
+        f2 = (x * x / 1.06 + y * y / 1.06 - 1) ** 3 - x * x / 1.06 * (y / 1.03) ** 3
+        img[(f2 < 0) & ~ins] = (1.0, 0.95, 0.92)
+        # 下の地面：砂の層（0秒から色が見えるように）
+        gb = ((v + 0.01 * np.sin(u * 11 + 1)) * 40).astype(int)
+        for k in range(6):
+            img[(v > 0.84 + 0.01 * np.sin(u * 11 + 1)) & (gb % 6 == k)] = _hsv(0.55 + 0.08 * k, 0.6, 0.85)
+        # 小さな星
+        for _ in range(40):
+            cx, cy = rng.random(), rng.random()
+            img[(np.abs(u - cx) < 0.004) & (np.abs(v - cy) < 0.004 / ar) & ~(f2 < 0)] = (1, 1, 0.85)
     return np.clip(img, 0, 1)
