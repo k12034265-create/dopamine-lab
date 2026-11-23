@@ -269,6 +269,161 @@ SC[19] = { build() { const S = makeScene({ bg: '#a8c4e0', hemi: 1.0, exposure: 1
   const car = kei(s, '#e8e4dc', -40, .5, Math.PI / 2); car.scale.setScalar(1.4);
   return { render() { S.render(); }, update(t, dur) { car.position.x = -40 + t * 9; const a = .3 + t / dur * .9; S.cam.position.set(Math.cos(a) * 34, 26, Math.sin(a) * 34); S.cam.lookAt(0, 0, 0); return ''; } }; } };
 
+// ===== 第3章 =====
+const walker = (x, y, col = C.fg, ph = 0) => `<g transform="translate(${x},${y})"><circle cy="-62" r="14" fill="${col}"/><path d="M0,-46 v40 M0,-6 l${-10 + 6 * Math.sin(ph)},34 M0,-6 l${10 - 6 * Math.sin(ph)},34 M0,-36 l-14,22 M0,-36 l14,22" stroke="${col}" stroke-width="7" stroke-linecap="round" fill="none"/><path d="M14,-14 v40" stroke="${col}" stroke-width="5"/></g>`;
+// 27 家 → 店（500m）。歩く人が途中で止まる
+SC[27] = K((t) => { const k = clamp((t - .6) / 4), x = 420 + 520 * easeOut(k), stop = k >= 1;
+  const houseI = `<g transform="translate(330,600)"><rect x="-70" y="-60" width="140" height="110" fill="#e8dcc8"/><path d="M-90,-56 L0,-130 L90,-56 Z" fill="#8a5a44"/><rect x="-20" y="0" width="40" height="50" fill="#6a4a3a"/></g>`;
+  const shop = `<g transform="translate(1600,600)"><rect x="-110" y="-110" width="220" height="160" fill="#d8e0e8"/><rect x="-120" y="-140" width="240" height="44" rx="6" fill="${GRN}"/>${txt(0, -108, '食料品店', { size: 30, color: '#fff', shadow: false })}<rect x="-80" y="-60" width="160" height="70" fill="#9ab8d0"/></g>`;
+  let g = houseI + shop + `<path d="M420,660 H1480" stroke="${C.gray}" stroke-width="6" stroke-dasharray="18 12"/>` + txt(950, 730, '500m以上', { size: 46, color: Y, serif: true });
+  g += walker(x, 650, stop ? '#cfa8a0' : C.fg, stop ? 0 : t * 9) + (stop && t > 5 ? `<g transform="translate(${x + 40},520) scale(${pop(clamp((t - 5) / .3))})">${txt(0, 0, '…', { size: 70, color: RED })}</g>` : '');
+  g += t > 2.5 ? `<g transform="translate(330,800)">` + card(-170, -45, 340, 90, { fill: 'rgba(20,18,26,.85)' }) + txt(0, 14, '65歳以上・車なし', { size: 34 }) + '</g>' : '';
+  return R([{ at: 0, slide: 0, f: () => g }, { at: 8.9, f: () => `<g transform="translate(960,260) scale(${pop(clamp((t - 8.9) / .4))})">` + card(-420, -70, 840, 140, { fill: 'rgba(20,18,26,.9)', stroke: Y }) + txt(0, 20, '食料品アクセス困難人口', { size: 58, color: Y, serif: true }) + '</g>' }, ref('農林水産政策研究所（2024）')], t); }, 3, { enter: 'fade', zoom: 0 });
+// 28 904万人 → 4人に1人 → 75歳以上は3人に1人
+SC[28] = K((t) => { const lit1 = t > 3.6, lit2 = t > 6.5;
+  let g = roll(960, 330, 0, 904, t, .2, 1.6, { unit: '万人', size: 110, color: Y }) + txt(960, 200, '2020年・全国', { size: 40, color: C.dim });
+  for (let i = 0; i < 4; i++) { if (t < 3.4) break; const on = lit1 && i === 0; g += `<g transform="translate(${300 + i * 130},${720 + Math.sin(t * 2 + i) * 4})">` + person(0, 0, 48, on ? Y : '#5a5662') + '</g>'; }
+  if (t > 3.6) g += txt(495, 860, '65歳以上の4人に1人', { size: 40, color: Y });
+  for (let i = 0; i < 3; i++) { if (t < 6.3) break; const on = lit2 && i === 0; g += `<g transform="translate(${1250 + i * 150},${720 + Math.sin(t * 2 + i) * 4})">` + person(0, 0, 48, on ? RED : '#5a5662') + '</g>'; }
+  if (t > 6.5) g += txt(1400, 860, '75歳以上は3人に1人近く', { size: 40, color: RED });
+  return R([{ at: 0, slide: 0, f: () => g }, ref('農林水産政策研究所（2024）')], t); }, 3, { enter: 'fade', zoom: 0 });
+// 29 実写（車の中の高齢の男性）→ 免許証と家の線が切れる
+const OV29 = (t) => (t > 2.0 ? solidCard(410, 760, 1100, 110, stx(960, 835, '運転が危なくなっても、免許を返すと…', 48, '#fff')) : '');
+SC[29] = K((t) => { const cut = clamp((t - 8.6) / .6); const dests = [['買い物', 330], ['病院', 560], ['役所', 790]];
+  let g = `<g transform="translate(560,560)">` + `<rect x="-200" y="-125" width="400" height="250" rx="18" fill="#e6efe6" stroke="#7aa888" stroke-width="5"/><rect x="-200" y="-125" width="400" height="46" rx="18" fill="#5a9a6a"/>` + txt(0, -92, '運転免許証', { size: 28, color: '#fff', shadow: false }) + `<rect x="80" y="-60" width="90" height="110" rx="8" fill="#c8d0c8"/>` + '</g>';
+  dests.forEach(([s0, y], i) => { const gap = cut * 60; g += `<path d="M760,560 L${1000 - gap},${y}" stroke="${Y}" stroke-width="5" stroke-dasharray="12 8" stroke-dashoffset="${-t * 30}" opacity="${1 - cut * .6}"/>` + `<path d="M${1060 + gap},${y} L1250,${y}" stroke="${Y}" stroke-width="5" opacity="${1 - cut * .6}"/>` + card(1250, y - 50, 260, 100, { fill: 'rgba(20,18,26,.85)', stroke: cut > .5 ? '#5a5662' : Y }) + txt(1380, y + 16, s0, { size: 40, color: cut > .5 ? C.dim : C.fg }) + (cut > 0 ? `<g transform="translate(1030,${y}) scale(${pop(cut)})">${txt(0, 18, '✕', { size: 56, color: RED, shadow: false })}</g>` : ''); });
+  return R([{ at: 7.8, slide: 0, f: () => g }, { at: 10.5, f: () => txt(960, 900, '住民票を返すのと、ほとんど同じ', { size: 46, color: Y, serif: true }) }], t); }, 3, { enter: 'fade', zoom: 0 });
+// 31 車にお金の札が貼られていく → 台数分
+const carIcon = (x, y, s = 1, col = Y) => `<g transform="translate(${x},${y}) scale(${s})"><rect x="-130" y="-50" width="260" height="90" rx="24" fill="${col}"/><rect x="-80" y="-104" width="160" height="62" rx="18" fill="${col}"/><rect x="-62" y="-92" width="54" height="40" rx="6" fill="#2a3440"/><rect x="8" y="-92" width="54" height="40" rx="6" fill="#2a3440"/><circle cx="-76" cy="44" r="28" fill="#333"/><circle cx="76" cy="44" r="28" fill="#333"/></g>`;
+const TAGS = [['ガソリン 約10万円/年', 2.6, -330, -170], ['車の購入費', 5.5, 330, -190], ['車検', 6.2, -360, 60], ['保険', 6.9, 360, 40], ['税金', 7.6, 0, 170]];
+SC[31] = K((t) => { const cx = 760, s0 = 1;
+  let g = carIcon(cx, 560, s0);
+  TAGS.forEach(([s1, t0, dx, dy], i) => { if (t < t0) return; const k = pop(clamp((t - t0) / .35)), w = s1.length * 34 + 50; g += `<g transform="translate(${cx + dx * s0},${560 + dy * s0}) rotate(${i % 2 ? 4 : -4}) scale(${k * s0})"><rect x="${-w / 2}" y="-34" width="${w}" height="68" rx="10" fill="#f3ecdc"/><circle cx="${-w / 2 + 18}" cy="0" r="7" fill="#c8b894"/>${txt(10, 13, s1, { size: 34, color: '#2a2420', shadow: false })}</g>`; });
+  [0, 1, 2].forEach(i => { const t0 = 9.9 + i * .5; if (t < t0) return; g += `<g opacity="${clamp((t - t0) / .3)}">` + carIcon(1340 + i * 190, 600 + (i % 2) * 30, .55, ['#e8c070', '#c84a3a', '#4a7aa8'][i]) + '</g>'; });
+  return R([{ at: 0, f: () => head('車にかかるお金', { y: 200 }) }, { at: 0, slide: 0, f: () => g }, { at: 10.4, f: () => txt(1530, 800, '1人1台なら、人数分', { size: 46, color: Y, serif: true }) }, ref(SR_KK)], t); }, 3, { enter: 'fade', zoom: 0 });
+// 32 積み木：東京は家賃が高く、地方は車が高い（数字は出さない）
+SC[32] = K((t) => { const k1 = ease(clamp((t - .3) / 1.2)), k2 = ease(clamp((t - 4.7) / 1.2));
+  const col = (x, rent, car, kk, lab, lc) => { const base = 820, rh = rent * kk, ch = car * kk; return `<rect x="${x - 130}" y="${base - rh}" width="260" height="${rh}" rx="8" fill="#8a7aa8"/>` + (rh > 60 ? txt(x, base - rh / 2 + 14, '家賃', { size: 38, color: '#fff', shadow: false }) : '') + `<rect x="${x - 130}" y="${base - rh - ch - 8}" width="260" height="${ch}" rx="8" fill="${Y}"/>` + (ch > 60 ? txt(x, base - rh - ch / 2 + 6, '車', { size: 38, color: '#2a2420', shadow: false }) : '') + txt(x, 890, lab, { size: 44, color: lc }); };
+  return R([{ at: 0, f: () => head('暮らしのお金の中身（イメージ）', { y: 200 }) }, { at: 0, slide: 0, f: () => `<path d="M440,820 h1040" stroke="${C.gray}" stroke-width="4"/>` + col(700, 420, 70, k1, '東京', BLUE) + col(1220, 230, 70 + 190 * k2, k1, '地方', Y) }, { at: 4.7, f: () => txt(1220, 300, '車で払っている', { size: 44, color: Y, serif: true }) }], t); }, 3, { enter: 'fade', zoom: 0 });
+
+// ===== 第4章 =====
+// 33 実写（路面電車の運転席から）＋ 章題
+const OV33 = (t) => solidCard(360, 60, 1200, 190, stx(960, 120, '第4章', 36, '#ff8a3d', false) + stx(960, 205, '宇都宮の路面電車という実験', 66, Y)) + solidCard(1500, 860, 380, 60, stx(1690, 900, '※映像はイメージです', 28, '#cfc8bc', false));
+// 34 路線図：宇都宮駅 → 芳賀町 14.6km（線が伸びる）
+const STOPS = 19;
+const lineMap = (t, k, west = 0) => { const x0 = 520, x1 = 1640, y = 560; let g = '';
+  g += `<path d="M260,${y + 200} Q700,${y + 120} 1000,${y + 230} T1800,${y + 160}" stroke="#3a5a7a" stroke-width="26" fill="none" opacity=".6"/>` + txt(1460, y + 260, '鬼怒川', { size: 28, color: '#7a9aba' });
+  if (west > 0) g += `<path d="M${x0},${y} L${x0 - 330 * west},${y + 20 * west}" stroke="${Y}" stroke-width="12" stroke-dasharray="20 14" opacity=".9"/>` + (west > .6 ? txt(x0 - 260, y - 50, '西側（計画）', { size: 34, color: Y }) : '');
+  g += `<path d="M${x0},${y} L${x0 + (x1 - x0) * k},${y - 40 * k}" stroke="${Y}" stroke-width="16" stroke-linecap="round"/>`;
+  for (let i = 0; i < STOPS; i++) { const f = i / (STOPS - 1); if (f > k + .001) break; g += `<circle cx="${x0 + (x1 - x0) * f}" cy="${y - 40 * f}" r="9" fill="#fff" stroke="${Y}" stroke-width="4"/>`; }
+  g += `<g transform="translate(${x0},${y})"><rect x="-26" y="-26" width="52" height="52" rx="8" fill="#e8e4dc"/></g>` + txt(x0, y + 80, '宇都宮駅', { size: 40 }) + (k > .98 ? txt(x1, y + 40, '芳賀町', { size: 40 }) : '');
+  const tx = x0 + (x1 - x0) * ((t * .06) % 1) * k; g += `<rect x="${tx - 30}" y="${y - 40 * (tx - x0) / (x1 - x0) - 16}" width="60" height="32" rx="10" fill="#f0c020" stroke="#222" stroke-width="3"/>`;
+  return g; };
+SC[34] = K((t) => { const k = ease(clamp((t - .4) / 4.5));
+  return R([{ at: 0, f: () => head('ライトライン（2023年8月開業）', { y: 200 }) }, { at: 0, slide: 0, f: () => lineMap(t, k) }, { at: 3.0, f: () => roll(1100, 400, 0, 14.6, t, 3.0, 1.5, { unit: 'km', size: 80, color: Y, dec: 1 }) }, { at: 6.9, f: () => txt(1100, 800, `停留場 ${STOPS}か所`, { size: 40, color: C.fg }) }, { at: 9.2, f: () => stampR(1500, 300, '75年ぶりの新路線', t, 9.2, RED, 44) }, ref('宇都宮ライトレール')], t); }, 4, { enter: 'fade', zoom: 0 });
+// 35 疑う声の吹き出し
+const DOUBT = [['車社会で乗る人いる？', 560, 380, .2], ['渋滞がひどくなる', 1380, 430, .9], ['税金のむだでは？', 700, 720, 1.6], ['どうせガラガラ', 1300, 760, 2.3]];
+SC[35] = K((t) => R([{ at: 0, slide: 0, f: () => DOUBT.map(([s0, x, y, t0], i) => t < t0 ? '' : `<g transform="translate(${x},${y + Math.sin(t * 2 + i) * 6}) scale(${pop(clamp((t - t0) / .35))})"><path d="M-260,-60 h520 a24,24 0 0 1 24,24 v72 a24,24 0 0 1 -24,24 h-440 l-40,40 v-40 h-40 a24,24 0 0 1 -24,-24 v-72 a24,24 0 0 1 24,-24 Z" fill="rgba(255,255,255,.08)" stroke="${C.dim}" stroke-width="3"/>${txt(0, 14, s0, { size: 40 })}</g>`).join('') }, { at: 3.0, f: () => txt(960, 200, '開業前は、疑う声も多かった', { size: 48, color: Y, serif: true }) }], t), 4, { enter: 'fade', zoom: 0 });
+// 36 2025年度557万人 → 累計1500万人（7か月早い）
+SC[36] = K((t) => R([
+  { at: 2.1, f: () => `<g transform="translate(520,460)">` + card(-280, -150, 560, 300, { fill: 'rgba(20,18,26,.85)' }) + txt(0, -70, '2025年度の利用者', { size: 38, color: C.dim }) + roll(0, 60, 0, 557, t, 2.1, 1.4, { unit: '万人', size: 100, color: Y }) + '</g>' },
+  { at: 5.3, f: () => `<g transform="translate(1340,460)">` + card(-330, -150, 660, 300, { fill: 'rgba(20,18,26,.85)', stroke: Y }) + txt(0, -70, '累計（2026年7月）', { size: 38, color: C.dim }) + roll(0, 60, 0, 1500, t, 5.3, 2.4, { unit: '万人', size: 110, color: Y }) + '</g>' },
+  { at: 10.3, f: () => stampR(1340, 760, '見込みより7か月早い', t, 10.3, RED, 46) },
+  { at: 0, f: () => head('予測を上回った', { y: 200 }) }, ref('宇都宮ライトレール（2026）／共同通信（2026年7月）'),
+], t), 4, { enter: 'fade', zoom: 0 });
+// 37 実写（休日の通り）＋ 休日は想定の約2倍
+const OV37 = (t) => (t > 1.9 ? solidCard(560, 60, 800, 130, stx(960, 148, '休日の利用：想定の約2倍', 58, Y)) : '') + solidCard(1500, 860, 380, 60, stx(1690, 900, '※映像はイメージです', 28, '#cfc8bc', false));
+// 38 家から外へ伸びる矢印が増える
+SC[38] = K((t) => { const n = 1 + Math.min(2, Math.floor(clamp((t - 1.2) / 3) * 3)); let g = `<g transform="translate(700,580)"><rect x="-90" y="-70" width="180" height="140" fill="#e8dcc8"/><path d="M-115,-66 L0,-160 L115,-66 Z" fill="#8a5a44"/><rect x="-25" y="10" width="50" height="60" fill="#6a4a3a"/></g>`;
+  const ends = [[1380, 380], [1460, 600], [1380, 820]]; for (let i = 0; i < n; i++) { const t0 = i ? 1.2 + i * 1.0 : .3, k = easeOut(clamp((t - t0) / .7)); g += arrow(820, 580, 820 + (ends[i][0] - 820), 580 + (ends[i][1] - 580), Y, k, 8); const ph = ((t - t0) * .5) % 1; if (k >= 1) g += `<circle cx="${820 + (ends[i][0] - 820) * ph}" cy="${580 + (ends[i][1] - 580) * ph}" r="9" fill="${Y}"/>`; }
+  return R([{ at: 0, f: () => head('外に出かける回数が増えた', { y: 200 }) }, { at: 0, slide: 0, f: () => g }, { at: .5, f: () => txt(700, 760, '高齢の人', { size: 38 }) + txt(700, 820, '免許・車がない人', { size: 38, color: C.dim }) }, ref('宇都宮市（2026）整備効果')], t); }, 4, { enter: 'fade', zoom: 0 });
+// 39 通学に満足 18% → 66%
+SC[39] = K((t) => { const b1 = easeOut(clamp((t - .4) / .8)), b2 = easeOut(clamp((t - 2.6) / 1.4)); const bar = (x, v, k, lab, col) => `<rect x="${x - 120}" y="${820 - 560 * v / 100 * k}" width="240" height="${560 * v / 100 * k}" rx="10" fill="${col}"/>` + txt(x, 890, lab, { size: 40, color: col }) + (k > .2 ? txt(x, 800 - 560 * v / 100 * k, Math.round(v * k) + '%', { size: 72, color: col, serif: true }) : '');
+  return R([{ at: 0, f: () => head('通学に満足している学生', { y: 200 }) }, { at: 0, slide: 0, f: () => `<path d="M560,820 h800" stroke="${C.gray}" stroke-width="4"/>` + bar(760, 18, b1, '開業前', '#8a8494') + (t > 2.6 ? bar(1160, 66, b2, '開業後', Y) : '') }, ref('宇都宮市（2026）整備効果')], t); }, 4, { enter: 'fade', zoom: 0 });
+// 40 東は実線、西は点線（2036年開業目標）
+SC[40] = K((t) => R([{ at: 0, f: () => head('まだ、線は1本だけ', { y: 200 }) }, { at: 0, slide: 0, f: () => lineMap(t, 1, ease(clamp((t - 7.2) / 1.2))) }, { at: 7.6, f: () => `<g transform="translate(260,380) scale(${pop(clamp((t - 7.6) / .4))})">` + card(-170, -55, 340, 110, { fill: 'rgba(20,18,26,.9)', stroke: Y }) + txt(0, 16, '2036年 開業目標', { size: 36, color: Y }) + '</g>' }, ref('宇都宮市')], t), 4, { enter: 'fade', zoom: 0 });
+
+// ===== エピローグ =====
+const MINI = [['車の地図', Y], ['ガソリン代', '#e8c070'], ['消えたバス', BLUE], ['車がない人', RED], ['路面電車', GRN]];
+SC[42] = K((t) => R([...MINI.map(([s0, col], i) => ({ at: .1 + i * .35, dx: 0, slide: 0, f: () => `<g transform="translate(${260 + i * 350},${560 + Math.sin(t * 2 + i) * 6}) scale(${pop(clamp((t - .1 - i * .35) / .4))})">` + card(-150, -120, 300, 240, { fill: 'rgba(255,255,255,.05)', stroke: col }) + txt(0, 14, s0, { size: 38, color: col, serif: true }) + '</g>' }))], t), 5, { enter: 'fade', zoom: 0 });
+// 43 地図の数字 → ガソリン缶
+SC[43] = K((t) => { const v = [cen([18, 9, 13])[0], cen([18, 9, 13])[1], 1.9]; const P = vp(v, 640, 560); const fills = { 18: Y, 9: Y, 13: BLUE };
+  const labs = [[18, '福井 1.65台', -150, -70, Y], [9, '栃木 1.53台', 120, -140, Y], [13, '東京 0.4台', 140, 90, BLUE]].map(([c, s0, dx, dy, col], i) => { if (t < .3 + i * .6) return ''; const p = P(pc(c)); return `<g transform="translate(${p[0] + dx},${p[1] + dy}) scale(${pop(clamp((t - .3 - i * .6) / .4))})">` + card(-130, -40, 260, 80, { fill: 'rgba(20,18,26,.88)', stroke: col }) + txt(0, 14, s0, { size: 34, color: col }) + '</g>'; }).join('');
+  let g = jmap2(v, { ox: 640, oy: 560, fills, base: '#8a8494' }) + labs;
+  if (t > 6.1) { const n = 1 + 3.5 * ease(clamp((t - 6.3) / 2)); let c = can(100, 700, 1, '#5a7ab0'); for (let i = 0; i < 5; i++) { const f = clamp(n - i); if (f > 0) c += can(400 + i * 175, 700, i === 4 ? Math.min(f, .5) : f); } g += `<g opacity="${clamp((t - 6.1) / .4)}"><g transform="translate(1110,240) scale(.62)">${c}</g>` + txt(1172, 800, '東京23区', { size: 30, color: BLUE }) + txt(1530, 810, '宇都宮 4.5倍', { size: 44, color: Y, serif: true }) + '</g>'; }
+  return R([{ at: 0, slide: 0, bg: true, f: () => g }], t); }, 5, { enter: 'fade', zoom: 0 });
+// 44 回る輪 ＋ 免許証が重なる
+const LOOP2 = [['家が散らばる', 0], ['車を買う', 3.4], ['バスが減る', 5.4]];
+SC[44] = K((t) => { const cx = 960, cy = 560, r = 250, rot = t * 26; let g = `<g transform="rotate(${rot} ${cx} ${cy})"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${Y}" stroke-width="8" stroke-dasharray="40 26" opacity=".7"/></g>`;
+  LOOP2.forEach(([s0, t0], i) => { if (t < t0) return; const a = -Math.PI / 2 + i * 2 * Math.PI / 3, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r; g += `<g transform="translate(${x},${y}) scale(${pop(clamp((t - t0) / .4))})">` + card(-170, -55, 340, 110, { fill: 'rgba(20,18,26,.92)', stroke: Y }) + txt(0, 14, s0, { size: 40 }) + '</g>'; });
+  if (t > 7.7) { const k = pop(clamp((t - 7.7) / .5)); g += `<g transform="translate(${cx},${cy - 40}) scale(${k * .6}) rotate(-6)"><rect x="-190" y="-120" width="380" height="240" rx="18" fill="#e6efe6" stroke="#7aa888" stroke-width="5"/><rect x="-190" y="-120" width="380" height="46" rx="18" fill="#5a9a6a"/>${txt(0, -86, '運転免許証', { size: 28, color: '#fff', shadow: false })}</g>` + stampR(cx + 70, cy + 10, '住民票', t, 8.3, RED, 34); }
+  return R([{ at: 0, slide: 0, f: () => g }], t); }, 5, { enter: 'fade', zoom: 0 });
+// 46 コメント
+SC[46] = K((t) => R([
+  { at: 0, f: () => `<g transform="translate(960,470) scale(${pop(clamp(t / .5))})"><path d="M-420,-150 h840 a40,40 0 0 1 40,40 v200 a40,40 0 0 1 -40,40 h-680 l-90,70 v-70 h-70 a40,40 0 0 1 -40,-40 v-200 a40,40 0 0 1 40,-40 Z" fill="rgba(240,200,90,.12)" stroke="${Y}" stroke-width="6"/>` + txt(0, -40, 'あなたの家に、車は何台？', { size: 50, serif: true }) + txt(0, 40, 'もし明日、運転できなくなったら？', { size: 44, serif: true, color: Y }) + '</g>' },
+  { at: 8.0, f: () => txt(960, 800, 'コメント欄で、住んでいる県と一緒に', { size: 44, color: C.fg }) },
+], t), 5, { enter: 'fade', zoom: 0 });
+// 47 締め
+SC[47] = K((t) => R([
+  { at: 0, f: () => txt(960, 460, '今日のネタバレは、ここまで', { size: 64, serif: true }) },
+  { at: 1.9, f: () => `<g transform="translate(960,640) scale(${pop(clamp((t - 1.9) / .4))})"><rect x="-230" y="-56" width="460" height="112" rx="56" fill="#e0453a"/>${txt(0, 18, 'チャンネル登録', { size: 50, color: '#fff', shadow: false })}</g>` },
+], t), 5, { enter: 'fade', zoom: 0 });
+
+// ===== 3D（後半） =====
+// 26 第3章：夕暮れのバス停。ベンチに高齢の人。車が手前の道を通り過ぎる（車線 z=-1.2/1.2、歩道 z=3.2〜5）
+SC[26] = { build() { const S = makeScene({ bg: '#d89878', hemi: .8, exposure: 1.15, sky: '#f0b890', ground: '#5a5048', bloom: .25, bloomTh: .8, fov: 36, fog: ['#d8a080', 18, 55] }); const s = S.s; sun(s, '#ffb880', 1.6, -14, 5, -6, 30);
+  box(s, 80, .02, 40, mat('#6a6a50', { r: .95 }), 0, -.02, 4); box(s, 80, .04, 5, mat('#3a3a40', { r: .8 }), 0, 0, 0);
+  for (let i = -20; i <= 20; i++) box(s, 1, .045, .1, mat('#d8d0c0'), i * 2.2, 0, 0);
+  box(s, 80, .2, 1.8, mat('#a8a49c', { r: .9 }), 0, .1, 4.1);
+  const bench = new THREE.Group(); box(bench, 1.6, .06, .45, mat('#7a5233'), 0, .5, 0); box(bench, 1.6, .4, .05, mat('#7a5233'), 0, .82, .22); for (const sx of [-.7, .7]) box(bench, .06, .5, .45, mat('#333'), sx, .25, 0); bench.position.set(-.6, .2, 4.3); s.add(bench);
+  cyl(s, .05, .05, 2.2, mat('#5a5a60'), 1.1, 1.3, 3.6, 8); const sign = cyl(s, .35, .35, .05, mat('#e8e4dc'), 1.1, 2.5, 3.6, 20); sign.rotation.x = Math.PI / 2;
+  box(s, 2.6, .08, 1.4, mat('#4a4a52'), -.6, 2.3, 4.4); for (const x of [-1.8, .6]) cyl(s, .05, .05, 2.1, mat('#4a4a52'), x, 1.25, 4.9, 6);
+  const old = human(s, { face: false, pose: 'sit', top: '#7a6a5a', bottom: '#4a4440', hair: '#d8d4cc' }); old.position.set(-.6, .2, 4.25); old.rotation.y = Math.PI; old.scale.setScalar(.85);
+  const cars = [['#e8e4dc', -1.2, 1, 0], ['#c84a3a', 1.2, -1, 1.4], ['#4a7aa8', -1.2, 1, 2.6], ['#e8c060', 1.2, -1, 3.4]].map(([c, z, d, t0]) => ({ g: kei(s, c, 0, z, d > 0 ? Math.PI / 2 : -Math.PI / 2), z, d, t0 }));
+  for (const [x, z] of [[-9, 10], [6, 11], [13, 9], [-17, 13]]) { const h = house(s, x, z, .9, '#d8ccb8', '#4a3a34', true); h.rotation.y = Math.PI; }
+  return { render() { S.render(); }, update(t, dur) { cars.forEach(c => { const x = -26 + 18 * (t - c.t0); c.g.position.x = c.d > 0 ? x : -x; c.g.visible = Math.abs(x) < 26; });
+    camMove(S.cam, [3.4, 1.7, -7.5], [2.6, 1.6, -7.0], [-.4, 1.0, 3.6], [-.6, 1.0, 3.8], ease(t / dur));
+    const a = clamp((t - .3) / .5); return ovSvg(`<g opacity="${a}"><rect width="1920" height="360" fill="url(#topg)"/>${otxt(960, 160, '第3章', 34, '#ff8a3d', false)}${otxt(960, 250, '車を持てない人に何が起きるか', 64, Y)}</g>`); } }; } };
+
+// 30 夜の田舎道：自転車のライトが1つ、遠くのコンビニへ（道は z 方向、ほかの物は道の外）
+SC[30] = { build() { const S = makeScene({ bg: '#0a0e1a', hemi: .18, exposure: 1.3, sky: '#1a2438', ground: '#0a0a0a', bloom: .6, bloomTh: .4, fov: 40, fog: ['#0a1020', 10, 60] }); const s = S.s;
+  box(s, 120, .02, 120, mat('#1a2418', { r: .95 }), 0, -.02, -30); box(s, 3, .03, 100, mat('#2a2a30', { r: .85 }), 0, 0, -30);
+  for (let i = 0; i < 20; i++) box(s, .1, .035, 1.2, mat('#6a6a60'), 0, 0, 2 - i * 4);
+  const shop = new THREE.Group(); box(shop, 7, 3, 4, mat('#d8dce0'), 0, 1.5, 0); box(shop, 6.4, 1.6, .05, glow('#f4f8ff', .8), 0, 1.2, 2.03); box(shop, 7.2, .6, .1, glow('#4ab070', .7), 0, 2.8, 2.05); shop.position.set(5.5, 0, -48); s.add(shop); lamp(s, '#e8f0ff', 2, 14, 5.5, 3, -44, false);
+  for (const z of [-14, -30]) { cyl(s, .06, .06, 4, mat('#333'), -2.2, 2, z, 6); ball(s, .18, glow('#ffd8a0', 2), -2.2, 4, z, 1); lamp(s, '#ffd8a0', 2.5, 9, -2.2, 3.8, z, false); }
+  for (let i = 0; i < 6; i++) { const x = (i % 2 ? 1 : -1) * (8 + i * 3), z = -10 - i * 8; box(s, 3, 2.2, 2.6, mat('#2a2a30'), x, 1.1, z); box(s, .5, .5, .04, glow('#ffc880', 1.4), x, 1.3, z + 1.32); }
+  const bike = new THREE.Group(); const fm = mat('#3a3a40', { m: .5 }); for (const dz of [-.5, .5]) { const w = new THREE.Mesh(new THREE.TorusGeometry(.32, .04, 6, 16), fm); w.rotation.y = Math.PI / 2; w.position.set(0, .34, dz); bike.add(w); } box(bike, .05, .05, 1.0, fm, 0, .6, 0); ball(bike, .1, glow('#fff8e0', 4), 0, .7, -.55, 1); const rear = ball(bike, .06, glow('#ff3020', 3), 0, .62, .55, 1);
+  const rider = human(bike, { face: false, top: '#3a4a6a', bottom: '#2a2a34' }); rider.position.set(0, .35, .05); rider.scale.setScalar(.8); rider.rotation.y = Math.PI; s.add(bike); const bl = lamp(s, '#fff4d0', 3, 8, 0, .8, 0, false);
+  return { render() { S.render(); }, update(t, dur) { const z = 1 - t * 2.2; bike.position.set(.6, 0, z); bl.position.set(.6, .7, z - 1.5);
+    camMove(S.cam, [1.6, 2.4, 7], [1.4, 2.6, z + 6.5], [0, .8, -10], [0, .8, -40], ease(t / dur)); return ''; } }; } };
+
+// 41 夕方の大通り：停留場に灯り、人が2人。路面電車が通り過ぎる（線路 z=0、車両の幅 ±1.3、ホーム z=1.6〜2.8）
+SC[41] = { build() { const S = makeScene({ bg: '#c8907a', hemi: .8, exposure: 1.15, sky: '#f0b898', ground: '#4a4a48', bloom: .35, bloomTh: .75, fov: 36, fog: ['#d0a088', 20, 70] }); const s = S.s; sun(s, '#ffb888', 1.6, -16, 7, 14, 30);
+  box(s, 120, .02, 40, mat('#5a5a58', { r: .9 }), 0, -.02, 0); box(s, 120, .03, 3.2, mat('#7a8a6a', { r: .95 }), 0, 0, 0);
+  for (const z of [-.72, .72]) box(s, 120, .08, .1, mat('#8a8a90', { m: .6 }), 0, .05, z);
+  box(s, 14, .25, 1.2, mat('#b8b4ac'), 2, .12, 2.2); box(s, 14, .02, .15, mat('#e8d060'), 2, .26, 1.68);
+  box(s, 6, .08, 1.4, mat('#4a4a52'), 2, 2.6, 2.4); for (const x of [-.6, 4.6]) cyl(s, .05, .05, 2.4, mat('#4a4a52'), x, 1.45, 2.8, 6);
+  const sl = box(s, 4.5, .06, .3, glow('#fff0c8', .1), 2, 2.52, 2.4); const stopLamp = lamp(s, '#ffe8b8', 0, 7, 2, 2.3, 2.4, false);
+  const p1 = human(s, { face: false, top: '#5a6a8a', bottom: '#2a2a34' }); p1.position.set(1.2, .25, 2.5); p1.rotation.y = Math.PI;
+  const p2 = human(s, { face: false, top: '#a85a4a', bottom: '#3a3440', hairStyle: 'long' }); p2.position.set(2.4, .25, 2.4); p2.rotation.y = Math.PI * .9;
+  for (let i = 0; i < 7; i++) { const x = -30 + i * 10, h = 5 + (i % 3) * 2.5; box(s, 7, h, 5, mat(['#c8bca8', '#b8b0a0', '#d0c4b0'][i % 3], { r: .9 }), x, h / 2, -14); for (let r = 0; r < Math.floor(h / 2); r++) for (const dx of [-2, 0, 2]) box(s, .9, .8, .05, glow('#ffd8a0', ((i + r + dx) % 3) ? .9 : .05), x + dx, 1.4 + r * 2, -11.47); }
+  
+  const tram = new THREE.Group(); for (let k = 0; k < 3; k++) { const x = k * 6.2; box(tram, 6, 2.2, 2.5, mat(k % 2 ? '#222' : '#f0c020', { r: .5 }), x, 1.4, 0); box(tram, 5.4, .8, 2.52, glow('#fff0c8', .6), x, 1.7, 0); } box(tram, 18.6, .18, 2.3, mat('#333'), 6.2, .3, 0); s.add(tram);
+  return { render() { S.render(); }, update(t, dur) { tram.position.x = -40 + (t - 2) * 7; tram.visible = t > 2 && t < 13;
+    const on = clamp((t - .5) / 1.2); sl.material.emissiveIntensity = .1 + 2.2 * on; stopLamp.intensity = 4 * on;
+    camMove(S.cam, [7, 2.2, 11], [5, 2.0, 10], [1, 1.2, 0], [0, 1.2, 0], ease(t / dur)); return ''; } }; } };
+
+// 45 冒頭の郊外の家：車が1台ずつ消え、家だけが残る
+SC[45] = { build() { const S = makeScene({ bg: '#c89070', hemi: .8, exposure: 1.1, sky: '#f0b890', ground: '#5a5a48', bloom: .2, bloomTh: .85, fov: 36, fog: ['#d0a080', 20, 60] }); const s = S.s; sun(s, '#ffb880', 1.6, -10, 5, 8, 30);
+  box(s, 60, .02, 40, mat('#6a7a4a', { r: .95 }), 0, -.01, -6); box(s, 60, .03, 3, mat('#3a3a40', { r: .8 }), 0, 0, 4.2);
+  for (let i = -14; i <= 14; i++) box(s, .8, .035, .08, mat('#d8d0c0'), i * 2, 0, 4.2);
+  box(s, 7, .04, 4, mat('#8a8680', { r: .9 }), 1.2, .01, 1.2); house(s, -3.2, -.4, 1, '#efe6d4', '#5a3a2e', true);
+  const cars = [['#e8c060', 3.5], ['#4a7aa8', 2.2], ['#c84a3a', .9], ['#e8e4dc', -.4]].map(([c, x]) => kei(s, c, x, 1.1, Math.PI));
+  for (const [x, z] of [[-12, -8], [9, -9], [14, -6], [-16, -12], [6, -16]]) house(s, x, z, .9, '#e0d6c4', '#4a3a34', true);
+  for (const [x, z] of [[-7, 2], [6, -2]]) { cyl(s, .12, .16, 2, mat('#5a4636'), x, 1, z, 6); ball(s, 1.0, mat('#5a7a44'), x, 2.6, z, 1); }
+  return { render() { S.render(); }, update(t, dur) { cars.forEach((c, i) => { const k = ease(clamp((t - 7.5 - i * .9) / .6)); c.scale.setScalar(Math.max(.001, 1 - k)); c.visible = k < 1; });
+    camMove(S.cam, [1.2, 3.6, 13], [1.2, 3.0, 10.5], [0, 1, 0], [0, .9, 1], ease(t / dur)); return ''; } }; } };
+
 // 写真を場面の頭に重ねる
 const PH = [[13, 'P13', 0, 4.8, '昔は、車は「ぜいたく品」だった']];
 for (const [i, n, T0, T1, cap] of PH) { const old = SC[i];
@@ -281,7 +436,10 @@ SC[22] = { kind: 'kami', build() { return { render() {}, update(t, dur) { const 
 
 // 実写動画の場面：緑（#00ff00）で塗り、べた塗りのカードだけ上に置く。あとでffmpegで差し替え
 SC[0] = K(() => '', 0, { enter: 'fade', zoom: 0 }); SC[4] = K(() => '', 1, { enter: 'fade', zoom: 0 }); SC[24] = K(() => '', 2, { enter: 'fade', zoom: 0 });
-const GV = [[0, 0, 99, OV0], [4, 0, 99, OV4], [9, 0, 2.8, OV9], [24, 0, 99, OV24]];
+SC[30] = K(() => '', 3, { enter: 'fade', zoom: 0 });
+const OV30 = (t) => (t > 2.5 ? solidCard(560, 60, 800, 110, stx(960, 135, '免許を取る前の高校生も', 52, '#fff')) : '') + (t > 7.6 ? solidCard(360, 760, 1200, 120, stx(960, 840, '行ける範囲 ＝ 親が送り迎えできる範囲', 54, Y)) : '');
+SC[33] = K(() => '', 4, { enter: 'fade', zoom: 0 }); SC[37] = K(() => '', 4, { enter: 'fade', zoom: 0 });
+const GV = [[0, 0, 99, OV0], [4, 0, 99, OV4], [9, 0, 2.8, OV9], [24, 0, 99, OV24], [29, 0, 7.8, OV29], [30, 0, 99, OV30], [33, 0, 99, OV33], [37, 0, 99, OV37]];
 for (const [i, T0, T1, ov] of GV) { const old = SC[i];
   SC[i] = { kind: 'kami', build() { const b = old.build(); return { render() {}, update(t, dur) { const base = b.update(t, dur);
     return (t >= T0 && t < T1) ? base + '<div style="position:absolute;left:0;top:0;width:1920px;height:944px;background:#00ff00"></div>' + ovSvg(ov(t)) : base; } }; } }; }
