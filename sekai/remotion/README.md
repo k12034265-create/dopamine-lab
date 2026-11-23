@@ -48,3 +48,11 @@ npx remotion render src/index.ts <CompositionID> out/x.mp4 \
   3. カメラは `Cam` 部品で描画前に毎フレーム設定（useEffectだと並列書き出しの最初の1枚がずれる）。
   4. Soldier は後ろ向きのモデル → rotY に π を足す。
 - 8秒の書き出しは約1分50秒（人間2体＋影）。
+
+## 追加モデル（2026-11-24 比較済み、src/Gallery.tsx）
+- RobotExpressive（three.js公式、CC0）：Dance / Death / Idle / Jump / No / Punch / Running / Sitting / Standing / ThumbsUp / Walking / WalkJump / Wave / Yes ＋ 表情（怒り・驚き・悲しみ）。scale 0.33 で人と同じくらい。
+- readyplayer.me（three.js公式サンプル。帽子・口ひげ・スーツの紳士）：動きなし → `RetargetHuman`（src/Retarget.tsx）で Xbot の動きを毎フレーム写す。
+  - 写し方は「骨自身の向きで見た回転の変化」：Wt = dRest × sRest⁻¹ × Ws（ワールドの差で写すと腕が背中に回った）。基準は skeleton.pose() の初期姿勢。
+  - 骨名は Xbot の `mixamorig` を外すと一致（Mixamo系の人間モデルなら同じ方法で全部使える）。
+- kira（ドラコ圧縮）は部屋ごとのシーンで単体では使えない。CesiumMan は小さく簡素。→ 不採用。
+- ドラコ圧縮のモデルは `public/draco/` に three の decoder を置いて読む（useModel 対応済み）。
