@@ -19,3 +19,5 @@
 | 2026-11-21 | 砂を流し込んだら、有名なあの絵になる…？ | 砂（大波と富士・新しい絵 wave）26秒 | 2026-11-24 20:00 予約 | https://youtube.com/shorts/e2RyFlivROQ |
 | 2026-11-22 | 満タンになるたびに2つに分裂…最後は何個？ | 満タン分裂 seed3（新型・初投稿）26秒 | 2026-11-25 12:00 予約 | https://youtube.com/shorts/FDD_hbS-UNY |
 | 2026-11-22 | 砂を流し込んだら、冬のあの景色になる…？ | 砂（クリスマスツリー・新しい絵 xmastree）26秒 | 2026-11-25 20:00 予約 | https://youtube.com/shorts/WZ9f68YkveY |
+| 2026-11-23 | 紙を折って開いたら、何が出る？ | デカルコマニー seed7（新型・初投稿・蝶）26秒 | 2026-11-26 12:00 予約 | https://youtube.com/shorts/hGMruEtx89Y |
+| 2026-11-23 | 砂を流し込んだら、日本のどんな景色になる？ | 砂（紅葉と鳥居・新しい絵 momiji）26秒 | 2026-11-26 20:00 予約 | https://youtube.com/shorts/fbTi9nMLnO0 |
