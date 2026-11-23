@@ -1,7 +1,7 @@
 """Original procedural pictures for reveal-type videos. pic(name, w, h) -> float32 (h,w,3) RGB in 0..1"""
 import numpy as np, colorsys
 
-TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま', 'tulips': 'チューリップ畑', 'wave': '大波と富士', 'xmastree': 'クリスマスツリー'}
+TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま', 'tulips': 'チューリップ畑', 'wave': '大波と富士', 'xmastree': 'クリスマスツリー', 'momiji': '紅葉と鳥居'}
 
 
 def _hsv(h, s, v):
@@ -228,4 +228,42 @@ def pic(name, w, h, seed=0):
             box = (np.abs(u - cx) < 0.08) & (v > 0.80) & (v < 0.89)
             img[box] = c
             img[box & ((np.abs(u - cx) < 0.012) | (np.abs(v - 0.845) < 0.008))] = (1.0, 0.88, 0.3)
+    elif name == 'momiji':
+        # 紅葉と鳥居（秋の夕方・山・赤い鳥居・舞う葉）
+        ar = h / w
+        top = np.array([0.45, 0.62, 0.92]); bot = np.array([1.0, 0.82, 0.55])
+        img[:] = top + (bot - top) * np.clip(v / 0.6, 0, 1)[..., None]
+        # far mountains (orange/red trees)
+        m1 = v > 0.48 - 0.07 * np.sin(u * 5 + 0.3) - 0.03 * np.sin(u * 13)
+        img[m1] = (0.85, 0.42, 0.18)
+        m2 = v > 0.58 - 0.05 * np.sin(u * 7 + 2) - 0.02 * np.sin(u * 19)
+        img[m2] = (0.55, 0.10, 0.12)
+        # tree clumps texture (irregular)
+        nz = np.sin(u * 37 + np.sin(v * 23) * 2) + np.sin(v * 41 + np.sin(u * 29) * 2) + 0.6 * np.sin((u + v) * 71)
+        img[m2 & (nz > 0.6)] = (0.95, 0.55, 0.12)
+        img[m2 & (nz < -0.9)] = (0.35, 0.40, 0.15)
+        # stone path / ground
+        gnd = v > 0.82
+        img[gnd] = (0.55, 0.45, 0.35)
+        path = gnd & (np.abs(u - 0.5) < 0.07 + 0.5 * (v - 0.82))
+        img[path] = (0.78, 0.72, 0.62)
+        # torii
+        red = (0.88, 0.12, 0.1)
+        img[(np.abs(u - 0.30) < 0.035) & (v > 0.36) & (v < 0.84)] = red
+        img[(np.abs(u - 0.70) < 0.035) & (v > 0.36) & (v < 0.84)] = red
+        kas = (v > 0.30 - 0.03 * ((u - 0.5) / 0.38) ** 2) & (v < 0.35 - 0.02 * ((u - 0.5) / 0.38) ** 2) & (np.abs(u - 0.5) < 0.38)
+        img[kas] = (0.12, 0.08, 0.08)
+        img[(v > 0.35) & (v < 0.38) & (np.abs(u - 0.5) < 0.33)] = red
+        img[(v > 0.44) & (v < 0.47) & (np.abs(u - 0.5) < 0.27)] = red
+        img[(np.abs(u - 0.5) < 0.03) & (v > 0.38) & (v < 0.44)] = red
+        # big maple leaves in the corners + falling leaves
+        def leaf(cx, cy, r, c):
+            ang = np.arctan2((v - cy) * ar, u - cx); rr = np.hypot(u - cx, (v - cy) * ar)
+            lobes = r * (0.35 + 0.65 * np.abs(np.cos(ang * 2.5 + np.pi / 4)) ** 2.2)
+            img[(rr < lobes) & ~((ang > 1.2) & (ang < 1.95) & (rr > r * 0.3))] = c
+        leaf(0.12, 0.10, 0.16, (0.95, 0.25, 0.1))
+        leaf(0.90, 0.16, 0.13, (1.0, 0.65, 0.1))
+        for cx, cy, r, c in ((0.20, 0.62, 0.05, (1.0, 0.75, 0.15)), (0.83, 0.70, 0.05, (0.95, 0.25, 0.1)),
+                             (0.55, 0.20, 0.045, (0.95, 0.3, 0.1)), (0.42, 0.90, 0.05, (1.0, 0.6, 0.1)), (0.75, 0.92, 0.045, (0.9, 0.2, 0.1))):
+            leaf(cx, cy, r, c)
     return np.clip(img, 0, 1)
