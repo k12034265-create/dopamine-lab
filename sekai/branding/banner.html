@@ -1,0 +1,34 @@
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;width:2560px;height:1440px;overflow:hidden;background:#0c0c0e;font-family:'Noto Serif CJK JP',serif">
+<style>
+.c{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+</style>
+<!-- 横に伸びる日食の光（コロナの帯） -->
+<div class="c" style="width:3400px;height:900px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(255,140,60,.0) 38%,rgba(255,140,60,.22) 47%,rgba(255,120,40,.08) 58%,rgba(0,0,0,0) 70%)"></div>
+<!-- 統計っぽい点の格子 -->
+<svg width="2560" height="1440" style="position:absolute;left:0;top:0">
+  <defs><radialGradient id="fd" cx="50%" cy="50%" r="55%"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".45" stop-color="#fff" stop-opacity=".0"/><stop offset=".75" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+  <mask id="m"><rect width="2560" height="1440" fill="url(#fd)"/></mask>
+  <radialGradient id="cor" cx="50%" cy="50%" r="50%"><stop offset=".52" stop-color="#ff9a4a" stop-opacity="0"/><stop offset=".6" stop-color="#ffb070" stop-opacity=".95"/><stop offset=".7" stop-color="#ff7a2a" stop-opacity=".55"/><stop offset="1" stop-color="#ff6a1a" stop-opacity="0"/></radialGradient></defs>
+  <g mask="url(#m)" fill="#e8b48a" opacity=".55">
+  </g>
+  <g id="dots" mask="url(#m)" opacity=".5"></g>
+  <!-- 左の日食の瞳 -->
+  <g transform="translate(790,720)">
+    <circle r="190" fill="url(#cor)"/>
+    <circle r="112" fill="#0c0c0e"/>
+    <path d="M-230,0 Q0,-150 230,0 Q0,150 -230,0 Z" fill="none" stroke="#f3e6da" stroke-width="3.5" opacity=".9"/>
+    <circle r="78" fill="#050506" stroke="#2a2a30" stroke-width="2"/>
+    <g stroke="#d8d0c8" stroke-width="1.6" fill="none" opacity=".75"><ellipse rx="78" ry="78"/><ellipse rx="40" ry="78"/><ellipse rx="12" ry="78"/><path d="M-78,0 h156 M-72,-30 h144 M-72,30 h144"/></g>
+    <circle cx="44" cy="-30" r="7" fill="#fff"/>
+  </g>
+</svg>
+<div style="position:absolute;left:1050px;top:590px;color:#f6efe6;font-size:122px;font-weight:900;letter-spacing:6px;text-shadow:0 0 30px rgba(255,140,60,.45),0 4px 0 #000">世界のネタバレ</div>
+<div style="position:absolute;left:1056px;top:760px;color:#ffb57a;font-family:'Noto Sans CJK JP';font-weight:700;font-size:44px;letter-spacing:2px">「なんとなく」の正体を、データでネタバレ</div>
+<div style="position:absolute;left:1056px;top:832px;width:900px;height:3px;background:linear-gradient(90deg,#ff8a3d,rgba(255,138,61,0))"></div>
+<script>
+const g=document.getElementById('dots');let s='';let r=7;const rnd=()=>{r=(r*16807)%2147483647;return r/2147483647};
+for(let x=40;x<2560;x+=56)for(let y=40;y<1440;y+=56){const v=rnd();s+=`<circle cx="${x}" cy="${y}" r="${v>.93?4:1.8}" fill="${v>.93?'#ffa060':'#9a8a7c'}"/>`;}
+g.innerHTML=s;
+</script>
+</body></html>
