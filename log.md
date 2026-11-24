@@ -21,3 +21,5 @@
 | 2026-11-22 | 砂を流し込んだら、冬のあの景色になる…？ | 砂（クリスマスツリー・新しい絵 xmastree）26秒 | 2026-11-25 20:00 予約 | https://youtube.com/shorts/WZ9f68YkveY |
 | 2026-11-23 | 紙を折って開いたら、何が出る？ | デカルコマニー seed7（新型・初投稿・蝶）26秒 | 2026-11-26 12:00 予約 | https://youtube.com/shorts/hGMruEtx89Y |
 | 2026-11-23 | 砂を流し込んだら、日本のどんな景色になる？ | 砂（紅葉と鳥居・新しい絵 momiji）26秒 | 2026-11-26 20:00 予約 | https://youtube.com/shorts/fbTi9nMLnO0 |
+| 2026-11-24 | 立体ドミノ748枚、倒し切ったら最後に何が出る？ | 3Dドミノ（富士山）seed5・26秒版 | 2026-11-27 12:00 予約 | https://youtube.com/shorts/Kl1Xbp7zoTI |
+| 2026-11-24 | 虹色の砂を流し込んだら、何の形になる？ | 砂（しま模様のハート・新しい絵 heart）seed31・26秒 | 2026-11-27 20:00 予約 | https://youtube.com/shorts/98C9VSCSJEo |
