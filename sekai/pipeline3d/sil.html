@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:transparent}</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three'; import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+const R=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true}); R.setSize(600,900); R.setClearColor(0,0); document.body.appendChild(R.domElement);
+const G=await new GLTFLoader().loadAsync('/pipeline3d/models/Xbot.glb');
+const s=new THREE.Scene(); const m=new THREE.MeshBasicMaterial({color:'#ffffff'});
+G.scene.traverse(o=>{if(o.isMesh){o.material=m;o.frustumCulled=false;}}); s.add(G.scene);
+const cam=new THREE.OrthographicCamera(-.6,.6,1.95,.15,-10,10); cam.position.set(0,0,5);
+const mixer=new THREE.AnimationMixer(G.scene);
+// pose(clip, time, rotY)
+window.POSE=(clip,t,ry)=>{mixer.stopAllAction(); const c=G.animations.find(a=>a.name===clip); const a=mixer.clipAction(c); a.play(); a.time=t; mixer.update(0); G.scene.rotation.y=ry; R.render(s,cam); return true;};
+window.READY=true;
+</script></body></html>
