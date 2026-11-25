@@ -1,7 +1,8 @@
 """満タンになるたびに2つに分かれる（非ボール型）。
 1つの箱に色水が注がれ、満タンになると箱が2つに割れて水は半分ずつに。また注がれて満タン→分裂…を
 繰り返し、最後は256個の箱が虹色のモザイクになる。0秒で水がすでに注がれている状態から始まる。
-使い方: python gen/fillsplit.py SEED 出力.mp4 [--dur 26] [--levels 8]
+使い方: python gen/fillsplit.py SEED 出力.mp4 [--dur 26] [--levels 8] [--pic 絵の名前]
+  --pic を付けると、分裂が進むほど箱の色が pics.py の絵に近づき、最後のモザイクが絵になる（絵当て版）。
   SEED は色の並び（色相の回転・向き）と水面の揺れだけを変える。
 """
 import sys, os
@@ -14,6 +15,9 @@ if '--dur' in ARGS:
     _i = ARGS.index('--dur'); DUR_ = float(ARGS[_i + 1]); del ARGS[_i:_i + 2]
 if '--levels' in ARGS:
     _i = ARGS.index('--levels'); LEVELS = int(ARGS[_i + 1]); del ARGS[_i:_i + 2]
+PIC = None
+if '--pic' in ARGS:
+    _i = ARGS.index('--pic'); PIC = ARGS[_i + 1]; del ARGS[_i:_i + 2]
 import lib
 lib.DUR = DUR_; lib.NF = int(DUR_ * 60)
 from lib import *
@@ -58,6 +62,22 @@ def rects(L):
         for c in range(cols):
             out.append((AX + c * bw + gap / 2, AY + r * bh + gap / 2, bw - gap, bh - gap, r, c))
     return out
+
+
+PICIMG = None
+if PIC:
+    import pics
+    _p = pics.pic(PIC, AWd // 4, AHt // 4)          # RGB 0..1
+    PICIMG = np.pad(np.cumsum(np.cumsum(_p, 0), 1), ((1, 0), (1, 0), (0, 0)))
+
+
+def pic_col(x, y, w, h):
+    """mean picture colour (BGR uint8 tuple) over a box"""
+    a0 = int(np.clip((x - AX) / 4, 0, AWd // 4 - 1)); b0 = int(np.clip((y - AY) / 4, 0, AHt // 4 - 1))
+    a1 = int(np.clip((x + w - AX) / 4, a0 + 1, AWd // 4)); b1 = int(np.clip((y + h - AY) / 4, b0 + 1, AHt // 4))
+    S = PICIMG
+    m = (S[b1, a1] - S[b0, a1] - S[b1, a0] + S[b0, a0]) / ((a1 - a0) * (b1 - b0))
+    return np.array([m[2], m[1], m[0]]) * 255
 
 
 def parent_index(L, r, c):
@@ -162,6 +182,13 @@ for f in range(min(NF, LIMIT)):
     for i, (x, y, w, h, fill, hu) in enumerate(boxes):
         col = hsv(hu, 0.78, 1.0)
         dark = hsv(hu, 0.85, 0.55)
+        if PIC:
+            # picture emerges as the boxes get smaller (fully the picture at the last level)
+            lv = L + (sp if sp is not None else 0.0)
+            wgt = min(1.0, (lv / LEVELS) ** 1.6)
+            pc = pic_col(x, y, w, h)
+            col = tuple(int(v_) for v_ in np.array(col, float) * (1 - wgt) + pc * wgt)
+            dark = tuple(int(v_) for v_ in np.array(dark, float) * (1 - wgt) + pc * 0.72 * wgt)
         x0, y0, x1, y1 = int(x), int(y), int(x + w), int(y + h)
         cv2.rectangle(lay, (x0, y0), (x1, y1), (38, 34, 44), -1)
         # water with a wobbly surface
@@ -197,7 +224,7 @@ for f in range(min(NF, LIMIT)):
     cnt = count_at(t)
     put(img, '満タンになるたび分裂…', 540, 170, 80)
     if t < T_END:
-        put(img, '最後は何個になる？', 540, 280, 66, (255, 226, 60), 1 + 0.04 * np.sin(t * 5))
+        put(img, '最後は何の絵になる？' if PIC else '最後は何個になる？', 540, 280, 66, (255, 226, 60), 1 + 0.04 * np.sin(t * 5))
         bump = 1.0
         for (ts, tf, LL) in events:
             if LL < LEVELS and 0 <= t - tf - SPLIT * 0.25 < 0.4:
@@ -206,7 +233,7 @@ for f in range(min(NF, LIMIT)):
     else:
         s = 1 + 1.4 * np.exp(-(t - T_END) * 7)
         put(img, f'{cnt}個！', 540, 280, 96, (255, 226, 60), s)
-        put(img, '予想は当たった？', 540, 1835, 66)
+        put(img, '何の絵か当たった？' if PIC else '予想は当たった？', 540, 1835, 66)
     if flash > 0.02:
         img = cv2.addWeighted(img, 1.0, np.full_like(img, 255), flash, 0)
     if f == 0:
