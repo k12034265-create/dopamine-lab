@@ -58,3 +58,4 @@
 - 10ショート「大人になると、友達は減る？」予約 11/26 20:00 https://youtube.com/shorts/Tr5oXRhftVA
 - 11ショート「地方は、車が1人1台？」予約 11/27 20:00 https://youtube.com/shorts/xnF0tcBPd-g
 - 12ショート「卵子は、精子を選んでいる？」予約 11/28 20:00 https://youtube.com/shorts/SdedZdaGHDo
+- 2026-11-25 タイトルから「〜で調べた結果」を外した（KOH指定）：04マスク・05地方女性・06仲人・07成績・08稼ぐ妻・09東京・10友達
