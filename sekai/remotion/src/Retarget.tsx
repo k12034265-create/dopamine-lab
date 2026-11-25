@@ -7,9 +7,9 @@ import {Step} from './Human';
 // 方法：元の骨の「初期姿勢からの回転（ワールド）」を、先の骨の初期姿勢に掛ける。初期姿勢の違いを吸収できる。
 const qW = (o: THREE.Object3D) => { const q = new THREE.Quaternion(); o.getWorldQuaternion(q); return q; };
 
-export const RetargetHuman = ({src, dst, f, fps, steps, pos, rotY, fade = 10, scale = 1}: {
+export const RetargetHuman = ({src, dst, f, fps, steps, pos, rotY, fade = 10, scale = 1, armDown = 0}: {
   src: any; dst: any; f: number; fps: number; steps: Step[];
-  pos: (f: number) => [number, number, number]; rotY: (f: number) => number; fade?: number; scale?: number;
+  pos: (f: number) => [number, number, number]; rotY: (f: number) => number; fade?: number; scale?: number; armDown?: number;
 }) => {
   const rig = useMemo(() => {
     const s = SkeletonUtils.clone(src.scene) as THREE.Object3D;   // 動きを再生する見えない元モデル
@@ -46,10 +46,13 @@ export const RetargetHuman = ({src, dst, f, fps, steps, pos, rotY, fade = 10, sc
   s.updateMatrixWorld(true);
 
   // 先のモデルに写す（親→子の順。親のワールド回転は自前で追う）
-  const world = new Map<any, THREE.Quaternion>();
+  const world = new Map<any, THREE.Quaternion>(); const extra = new Map<any, THREE.Quaternion>();
   for (const p of pairs) {
     // 骨自身の向きで見た回転の変化を写す（Mixamo系は骨の軸がそろっている）
-    const Wt = p.dRest.clone().multiply(p.sRest.clone().invert()).multiply(qW(p.s));
+    let Wt = p.dRest.clone().multiply(p.sRest.clone().invert()).multiply(qW(p.s));
+    let ex = extra.get(p.d.parent);
+    if (armDown && /^(Left|Right)Arm$/.test(p.d.name)) ex = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), armDown);
+    if (ex) { Wt = ex.clone().multiply(Wt); extra.set(p.d, ex); }
     const parentW = world.get(p.d.parent) ?? p.pRest;
     p.d.quaternion.copy(parentW.clone().invert().multiply(Wt));
     world.set(p.d, Wt);
