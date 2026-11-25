@@ -23,3 +23,5 @@
 | 2026-11-23 | 砂を流し込んだら、日本のどんな景色になる？ | 砂（紅葉と鳥居・新しい絵 momiji）26秒 | 2026-11-26 20:00 予約 | https://youtube.com/shorts/fbTi9nMLnO0 |
 | 2026-11-24 | 立体ドミノ748枚、倒し切ったら最後に何が出る？ | 3Dドミノ（富士山）seed5・26秒版 | 2026-11-27 12:00 予約 | https://youtube.com/shorts/Kl1Xbp7zoTI |
 | 2026-11-24 | 虹色の砂を流し込んだら、何の形になる？ | 砂（しま模様のハート・新しい絵 heart）seed31・26秒 | 2026-11-27 20:00 予約 | https://youtube.com/shorts/98C9VSCSJEo |
+| 2026-11-25 | 同じ色を全部つなげたら、マスは全部埋まる？ | 線つなぎ seed3（新型・初投稿）26秒 | 2026-11-28 12:00 予約 | https://youtube.com/shorts/f1nmqpnq__0 |
+| 2026-11-25 | 砂を流し込んだら、空に何が浮かぶ？ | 砂（気球と街並み・新しい絵 balloons）seed41・26秒 | 2026-11-28 20:00 予約 | https://youtube.com/shorts/DrnqRsXZMcU |
