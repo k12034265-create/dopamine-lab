@@ -1,7 +1,7 @@
 """Original procedural pictures for reveal-type videos. pic(name, w, h) -> float32 (h,w,3) RGB in 0..1"""
 import numpy as np, colorsys
 
-TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま', 'tulips': 'チューリップ畑', 'wave': '大波と富士', 'xmastree': 'クリスマスツリー', 'momiji': '紅葉と鳥居', 'heart': 'しま模様のハート'}
+TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま', 'tulips': 'チューリップ畑', 'wave': '大波と富士', 'xmastree': 'クリスマスツリー', 'momiji': '紅葉と鳥居', 'heart': 'しま模様のハート', 'balloons': '気球と街並み'}
 
 
 def _hsv(h, s, v):
@@ -290,4 +290,43 @@ def pic(name, w, h, seed=0):
         for _ in range(40):
             cx, cy = rng.random(), rng.random()
             img[(np.abs(u - cx) < 0.004) & (np.abs(v - cy) < 0.004 / ar) & ~(f2 < 0)] = (1, 1, 0.85)
+    elif name == 'balloons':
+        # カラフルな街並み（下・0秒から色が見える）の上に、しま模様の気球が浮かぶ空
+        ar = h / w
+        top = np.array([0.35, 0.62, 0.95]); mid = np.array([0.75, 0.85, 1.0]); bot = np.array([1.0, 0.78, 0.6])
+        t = v[..., None]
+        img[:] = np.where(t < 0.45, top + (mid - top) * (t / 0.45), mid + (bot - mid) * np.clip((t - 0.45) / 0.3, 0, 1))
+        # 雲
+        for cx, cy, s in ((0.2, 0.3, 1.0), (0.78, 0.5, 0.8), (0.55, 0.12, 0.7)):
+            for dx, dy, r in ((-0.06, 0.01, 0.05), (0, -0.01, 0.065), (0.06, 0.01, 0.05)):
+                img[np.hypot(u - cx - dx * s, (v - cy - dy * s) * ar) < r * s] = (1.0, 1.0, 1.0)
+        # 家並み：色とりどりの家＋三角屋根＋窓
+        cols = [_hsv(hh, 0.7, 0.95) for hh in (0.0, 0.08, 0.15, 0.33, 0.55, 0.62, 0.78, 0.9)]
+        xs = np.cumsum(rng.uniform(0.09, 0.15, 14)); xs = np.concatenate([[-0.02], xs])
+        for i in range(len(xs) - 1):
+            x0, x1 = xs[i], xs[i + 1]
+            if x0 > 1: break
+            hy = 0.74 + rng.uniform(-0.04, 0.03)
+            col = cols[i % len(cols)]
+            body = (u >= x0) & (u < x1) & (v > hy)
+            img[body] = col
+            cxh = (x0 + x1) / 2; half = (x1 - x0) / 2
+            roof = (v <= hy) & (v > hy - half / ar * 0.9 * (1 - np.abs(u - cxh) / half)) & (np.abs(u - cxh) < half)
+            img[roof] = _hsv(0.02 + 0.5 * (i % 2), 0.75, 0.55)
+            for wy in (hy + 0.03, hy + 0.08):
+                for wx in (x0 + (x1 - x0) * 0.3, x0 + (x1 - x0) * 0.7):
+                    img[(np.abs(u - wx) < 0.012) & (np.abs(v - wy) < 0.012 / ar * 1.3)] = (1.0, 0.95, 0.6)
+        img[v > 0.955] = (0.85, 0.55, 0.4)
+        img[(v > 0.955) & ((xx.astype(int) + (yy.astype(int) // 2) * 2) % 6 == 0)] = (0.7, 0.4, 0.3)
+        # 気球（しま模様）
+        for cx, cy, r, h0 in ((0.3, 0.42, 0.17, 0.0), (0.72, 0.25, 0.13, 0.55), (0.82, 0.58, 0.08, 0.15), (0.12, 0.13, 0.07, 0.75)):
+            dx = (u - cx) / r; dy = (v - cy) * ar / r
+            env = (dx ** 2 + dy ** 2 < 1) | ((dy >= 0) & (dy < 1.45) & (np.abs(dx) < np.sqrt(np.clip(1 - (dy / 1.45) ** 2, 0, 1)) * (1 - dy / 1.45 * 0.65)))
+            stripe = ((dx + 1.2) * 3.0).astype(int)
+            for k in range(7):
+                img[env & (stripe % 3 == k % 3)] = _hsv(h0 + 0.13 * (k % 3), 0.8, 0.98)
+            bas = (np.abs(u - cx) < 0.22 * r) & (dy > 1.65) & (dy < 1.95)
+            img[bas] = (0.5, 0.3, 0.15)
+            for sx in (-0.2, 0.2):
+                img[(np.abs(u - cx - sx * r * (1 + 0 * dy)) < 0.004) & (dy > 1.4) & (dy <= 1.65)] = (0.3, 0.2, 0.15)
     return np.clip(img, 0, 1)
