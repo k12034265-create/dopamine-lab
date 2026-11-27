@@ -121,6 +121,23 @@
 - 砂の新しい絵は「誰でも知っている」もの（季節ならクリスマスツリー・雪だるま風など、自作ドット絵）。
 - 予約済みの短尺（約14〜15秒）・3Dドミノ・砂（夕焼け・チューリップ）の継続率で、尺と「答えを最後まで隠す」方式の効果を確認する。目標は継続率50%以上。
 
+## 見本チャンネル FonoSynthesis（KOH指定・2026-11-27 調査）
+@FonoSynthesis（UCH9ZGTeKrWwgE1GVORJsWPg）。登録1,170人・55本（10月末開始）。KOHが「次の見本」に指定。**型と構成だけを学ぶ。映像・剣のデザイン・曲はコピーしない。**
+| 動画 | 尺 | 再生 | 公開 |
+|---|---|---|---|
+| Every Ball Duplicates… Until It EXPLODES 💥（見本の1本） | 67s | **122.6万**・高評価1.3万 | 11/2 |
+| Every Single Bounce Clones the Ball… Until the Hexagon EXPLODES 💥 | 30s | 1.2万 | 11/8 |
+| Can You Guess the Song? 4 Marbles Play It（同じタイトルで十数本） | 約30s | 0.15千〜7千 | 10/27〜 |
+| Two Presses Crush One Ball... Every Ball Duplicates 💥 | 37s | 5.7千 | 11/3 |
+| One Ball Enters the Black Hole… Two Come Out 🌀 | 30s | 5.5千 | 11/15 |
+| Every Time Two Balls Collide, Both Duplicate… Until the Circle EXPLODES 💥 | 29s | 5.4千 | 11/15 |
+| x3 Weight vs x2 Balls / Ball Grows… / Portal… / Planets Merge… / Sand Draw Sound | 17〜35s | 2.0〜2.7千 | 10/31〜11/15 |
+- **122万回の1本の中身（フレームを0・3・15・40・58・62・65秒で確認）：** 真っ黒の背景に白い細線の円だけ。0秒は円の中にボール1個と、中心で回る光る剣。剣が壁に押しつけたボールが2個に分かれる（「×2」の小さな表示）。1→2→4→…と倍々で増え、パステル4色の玉が円を埋めていく。最後（約63秒）に円が壊れて玉が外へ飛び散り、カメラが引いて終わる。**テロップは0。** 尺67秒（Shortsとしては長いのに伸びた）。
+- コメントは「数えてみた：2の25乗」「1→2→4→8→16→28（32じゃない？）」など**倍々を数える・計算する**ものが多い。見ている人が自分で数えたくなる＝コメントが増える（63件）。
+- 共通点：①0秒は「1個だけ」でルールが一目で分かる ②倍々（指数）で増えるので、毎秒画面が変わり続ける ③タイトルが「毎回○○が増える…ついに爆発💥」で、**オチ（爆発）をタイトルで約束**して最後まで見せる ④背景は真っ黒・色は淡いパステル4色・図形は線だけで極端にシンプル ⑤タイトル末尾は `💥 #satisfying` で固定。
+- **大事な注意：** 同じ仕組みの続編（6本）は2.6千〜1.2万で、122万は再現できていない。このチャンネルの普段の再生（1〜7千）はドーパミンラボ（1〜2千）と同じくらい。**仕組みをまねれば必ず伸びるわけではない**。1本の大当たりはおすすめに乗った運の要素が大きい（仮説）。
+- ドーパミンラボへの持ち込み方（仮説・KOHの確認待ち）：ボール系は禁止なので、**ボールを使わずに「倍々で増える→容器がいっぱい→ついに壊れる」**の構成だけを使う。例：切るたびに2つに分かれるキューブ／宝石／細胞が箱を埋めて、最後に箱が割れる。テロップは冒頭の問い1つだけ（または無し）、黒背景＋パステル4色、×2表示、増えた数のカウンター。尺はCLAUDE.mdの25〜35秒が今のルール（見本は67秒）。
+
 ## 外部調査（2026-11-27、YouTube検索・今週の新着）
 - 「satisfying animation shorts」：「Satisfying Infinite Loop Bricks」4.6万、「Oddly Satisfying Cube Loop You Can't Stop Watching」3.4万、「0% To 90% softness」3.1万、「Can You Spot Where the Loop Resets?」1.7万、「Every layer grows over the last one, forever」1.6万、「Golden Egg Breaks & Rebuilds」1.6万。
 - 「perfect fit puzzle animation」：「Perfect Fit: Gear, Key, Puzzle Piece With 0.5 Pixels to Spare」28万、「ピース12個、枠はひとつ。最後の1個、入る？」2.8万、「Perfect Fit Every Time」1.4万、「This Puzzle Solves Itself... Then Explodes」1.1万、「Perfect Fit… Except One 😳」3.2千。
