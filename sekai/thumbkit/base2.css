@@ -1,0 +1,5 @@
+html,body{margin:0;width:1280px;height:720px;overflow:hidden;background:#0d0c10}
+.b{position:absolute;left:0;width:1280px;text-align:center;font-family:'Noto Sans CJK JP';font-weight:900;line-height:1.02;letter-spacing:-3px;white-space:nowrap;color:#fff;-webkit-text-stroke:18px #000;paint-order:stroke fill}
+.r{color:#ff2d3a}.y{color:#ffd23a}.p{color:#ff6fa8}
+.pill{position:absolute;padding:6px 26px;border-radius:40px;font-family:'Noto Sans CJK JP';font-weight:900;font-size:46px;background:#ffd23a;color:#111}
+.bg{position:absolute;inset:0;background-size:cover}
