@@ -130,3 +130,10 @@
 - 終了画面：他の本編1本＋登録ボタン。人気が出た動画の終了画面には、伸びていない動画を置く。
 - 48時間後：クリック率5%以下ならタイトル・サムネを変える。維持率グラフで離脱が大きい区間を確認。
 - 台本：最初の30秒でメインキーワード（例「親の年収」「成績」）を必ず声に出す。締めで次の動画をすすめる。
+
+## 説明書イラスト風の3D（manualkit、2026-11-28）
+- 14話「初任給」説明書版と同じ絵柄（白地・線画・斜め上から・人は球の外形）を作る土台を `sekai/manualkit/` に作り直した（14話の元の部品 iso.js・rig.js などは別の作業場所にあり、リポジトリに無かったため）。
+  - `iso.js`＝立体（box・cyl・blob・faceText・poly3）と2D部品（label・tag・magnifier・cross）／`rig.js`＝人（person、姿勢 stand・hips・scratch・hold・walk・armsUp、泥棒は THIEF）／`ui.js`＝字幕・章ラベル・円グラフ／`render.py`＝書き出し。
+  - 使い方：`EP=episodes/NN SCENES=/episodes/NN/filmNN.js python3 manualkit/render.py 0,1,2 [--snap p20,p55,p90]`。見本は `episodes/18_ryushutsu/film18.js`。2Dなので1場面20〜40秒で書き出せる。
+  - 実写は緑（#00ff00）の窓を描いて、`work/comp.sh` で合成する。地図は `pipeline3d/maps.json` を Path2D で描く。
+- 注意：奥行きは x+z の大きい方が手前。画面の下端（字幕の上）は y=944。人の後ろに立たせると画面の上に出るので、人は物の横か手前に置く。ラベルは人の頭にかぶらない位置に置く。
