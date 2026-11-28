@@ -90,11 +90,11 @@ for x in TL:
     for d in dirs:
         p = f'{d}/sfx_c{i:02d}.json'
         if os.path.exists(p): cues = [(c['t'], c['type']) for c in json.load(open(p))]; break
-    cues += manual.get(i, [])
+    if os.environ.get('NOMANUAL') != '1': cues += manual.get(i, [])
     lastt = -9
     for ct, kind in sorted(cues):
-        if ct > x['dur'] - .3 or ct - lastt < .25: continue
-        lastt = ct; s = int((x['start'] + ct) * SR); w = sfx(kind) * VOL.get(kind, .1)
+        if ct > x['dur'] - .3 or ct - lastt < float(os.environ.get('SFXGAP', '.25')): continue
+        lastt = ct; s = int((x['start'] + ct) * SR); w = sfx(kind) * VOL.get(kind, .1) * float(os.environ.get('SFXVOL', '1'))
         fx[s:s + len(w)] += w; used.append(kind)
 fx = fx[:N]
 if os.environ.get('SFX', '0') != '1': fx[:] = 0; used = []  # KOH: 効果音は全部なし（うるさい）

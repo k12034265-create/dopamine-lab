@@ -37,7 +37,9 @@ async def main(ids, snaps):
                 await fr(i, k / FPS); ff.stdin.write(await pg.screenshot(type='jpeg', quality=92))
             ff.stdin.close()
             if ff.wait() == 0: os.replace(tmp, fn)
-            open(f'{OUT}/sfx_c{i:02d}.json', 'w').write('[]'); print('done', i, sc['frames'], round(time.time() - t0, 1), flush=True)
+            cues = await pg.evaluate('(i)=>Object.values(window.__SFX[i]||{})', i)
+            if i > 0 and TL[i - 1]['part'] != sc['part']: cues.append({'t': 0.15, 'type': 'chime'})
+            import json as _j; open(f'{OUT}/sfx_c{i:02d}.json', 'w').write(_j.dumps(cues)); print('done', i, sc['frames'], round(time.time() - t0, 1), flush=True)
         await b.close()
 args = sys.argv[1:]; snaps = None
 if '--snap' in args: j = args.index('--snap'); snaps = args[j + 1].split(','); args = args[:j] + args[j + 2:]
