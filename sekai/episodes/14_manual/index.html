@@ -1,0 +1,6 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#F4F1EA;overflow:hidden}canvas{display:block}</style></head><body><canvas id="c" width="1920" height="1080"></canvas>
+<script type="module">
+const g=document.getElementById('c').getContext('2d'); const F=await import('./film.js'); const TL=await F.load();
+await document.fonts.load('700 40px "Noto Sans CJK JP"','給料'); await document.fonts.load('900 40px "Noto Sans CJK JP"','1'); await document.fonts.load('500 40px "Noto Sans CJK JP"','1');
+window.TL=TL; window.render=(t)=>{ try{F.render(g,t); return 'ok';}catch(e){return 'ERR '+e.message+' '+(e.stack||'').split('\n')[1];} }; window.thumb=(n)=>{ try{F.thumb(g,n); return 'ok';}catch(e){return 'ERR '+e.message;} }; window.READY=true;
+</script></body></html>
