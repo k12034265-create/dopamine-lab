@@ -1,7 +1,7 @@
 <!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#F4F1EA;overflow:hidden}canvas{display:block}</style></head><body><canvas id="c" width="1920" height="1080"></canvas>
 <script type="module">
 const g=document.getElementById('c').getContext('2d'); const q=new URLSearchParams(location.search); const F=await import(q.get('scenes')); const U=await import('/manualkit/ui.js'); const I=await import('/manualkit/iso.js');
-if(F.load) await F.load();
+if(F.load2) await F.load2(); else if(F.load) await F.load();
 for(const w of [500,700,900]) await document.fonts.load(`${w} 40px "Noto Sans CJK JP"`,'給料1');
 window.__SFX={}; window.FRAME=(i,t,dur,subs,chap)=>{ try{ const SF=(window.__SFX[i]=window.__SFX[i]||{}); g.setTransform(1,0,0,1,0,0); g.globalAlpha=1; U.frameBg(g); let st=''; for(const [a,b,x] of subs) if(a<=t && t<b+0.15) st=x;
   const S={sfx:(t0,type)=>{ if(t0>=0) SF[type+'@'+t0.toFixed(2)]={t:+t0.toFixed(2),type}; },i,t,dur,subs,subText:st,chap,src:(F.SRC||{})[i]||'',sub:(n)=>subs[Math.min(n,subs.length-1)][0],k:(t0,d=.5)=>I.ease(I.cl((t-t0)/d)),e:(t0,d=.5)=>I.eo(I.cl((t-t0)/d))};

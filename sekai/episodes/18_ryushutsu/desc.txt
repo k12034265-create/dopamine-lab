@@ -1,0 +1,31 @@
+ニトリ、ドコモ、無印良品…なぜ今、個人情報の流出が立て続けに起きているのか？
+データと各社の発表から、「流出ラッシュ」の正体をネタバレします！
+
+▼目次
+0:00 プロローグ：あなたの個人情報は、もう2回漏れている
+1:10 第1章：流出の件数は減ったのに、人数は倍
+3:41 第2章：流出を隠せなくなった（2022年の報告義務化）
+4:49 第3章：泥棒は「合鍵屋」＝委託先を狙う
+7:01 第4章：弱点を知っていたのに、直せない
+10:10 第5章：漏れたパスワードが、次の流出の鍵になる
+12:51 第6章：流出のドミノを止める1枚
+
+▼参考文献
+東京商工リサーチ (2026) https://www.tsr-net.co.jp/data/detail/1202348_1527.html
+個人情報保護委員会 (2026) https://www.ppc.go.jp/aboutus/report/annual_report_2025/
+警察庁 (2026) https://www.npa.go.jp/hakusyo/r08/honbun/html/cc3314000.html
+Verizon (2026) https://www.verizon.com/about/news/breach-industry-wide-dbir-finds
+IBM (2026) https://www.ibm.com/reports/data-breach
+ニトリHD (2026) https://www.nitorihd.co.jp/news/items/2b702dbe4d438f7fef74945d68e5bd27.pdf
+NTTドコモ (2026) https://www.docomo.ne.jp/info/notice/page/261106_00_m.html
+良品計画 (2026) https://www.watch.impress.co.jp/docs/news/2154921.html
+ユミルリンク (2026) https://scan.netsecurity.ne.jp/article/2026/11/20/56860.html
+アララ (2026) https://scan.netsecurity.ne.jp/article/2026/11/12/56759.html
+GMOインターネットグループ会見 (2026) https://atmarkit.itmedia.co.jp/ait/articles/2611/03/news014.html
+トレンドマイクロ (2026) https://atmarkit.itmedia.co.jp/ait/articles/2604/30/news045.html
+NHK (2026) https://news.web.nhk/newsweb/na/nd-20261106de71859
+
+※2026年11月時点の公表情報をもとにしています。各社の調査は継続中で、数字は変わる可能性があります。
+音声：VOICEVOX:青山龍星
+
+#個人情報流出 #解説 #世界のネタバレ #情報漏えい #ランサムウェア #パスワード #サイバー攻撃 #パスキー #セキュリティ
