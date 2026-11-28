@@ -1,4 +1,5 @@
-"""砂を流し込むと絵になる。usage: python3 sand.py SEED PIC OUT [--dur 秒]
+"""砂を流し込むと絵になる。usage: python3 sand.py SEED PIC OUT [--dur 秒] [--ghost]
+--ghost: 0秒から絵の輪郭をうっすら表示（砂が積もるにつれて輪郭が埋まる。sandcastle 向け）
 --dur を20秒未満にすると短尺モード：砂は注ぎ口ごとの仮の色で積もり、
 満杯になった最後の約2.8秒で下から色が変わって絵が出る（答えを最後まで隠す）。"""
 import sys, os
@@ -9,6 +10,8 @@ DUR_ = 26.0
 if '--dur' in ARGS:
     _i = ARGS.index('--dur'); DUR_ = float(ARGS[_i + 1]); del ARGS[_i:_i + 2]
 SHORT = DUR_ < 20
+GHOST = '--ghost' in ARGS   # 0秒から絵の輪郭をうっすら見せる（途中で予想できる→最後に答え合わせ）
+if GHOST: ARGS.remove('--ghost')
 import lib
 lib.DUR = DUR_; lib.NF = int(DUR_ * 60)
 from lib import *
@@ -24,7 +27,7 @@ X0 = (W - GWc * CS) // 2
 Y0 = 330
 STEPS = 4 if SHORT else 3
 SPREAD = 4 if SHORT else 2
-PRE = 70 if SHORT else 240   # frames simulated before the video starts (start mid-pour)
+PRE = 70 if SHORT else (400 if GHOST else 240)  # ghost: 0秒で城の土台の色がもう見えている   # frames simulated before the video starts (start mid-pour)
 TOTAL = PRE + NF
 REVEAL = 2.8                 # short mode: seconds left after the box is full
 RATE = 24.0 if SHORT else 32.0
@@ -111,6 +114,13 @@ hid = np.zeros((nid + 1, 3), np.uint8)
 for gid in range(nid):
     c = NOZ[src[gid]] * (0.82 + 0.18 * rng.random())
     hid[gid] = (np.clip(c[::-1], 0, 1) * 255).astype(np.uint8)
+if GHOST:
+    if PIC in pics.MASKS:
+        _m = (pics.MASKS[PIC] * 255).astype(np.uint8)
+    else:
+        _m = cv2.cvtColor((np.clip(picture[..., ::-1], 0, 1) * 255).astype(np.uint8), cv2.COLOR_BGR2GRAY)
+    _e = cv2.Canny(cv2.resize(_m, (GWc * CS, GHc * CS), interpolation=cv2.INTER_NEAREST), 40, 110)
+    GEDGE = cv2.dilate(_e, np.ones((3, 3), np.uint8)) > 0
 gy = np.full(nid + 1, GHc, np.int32)
 for gid, (y, x) in final.items():
     gy[gid] = y
@@ -161,6 +171,10 @@ for f in range(NF):
     else:
         cell = cols[idx]
     big = cv2.resize(cell, (GWc * CS, GHc * CS), interpolation=cv2.INTER_NEAREST)
+    if GHOST and t < TDONE:
+        emp = cv2.resize((G < 0).astype(np.uint8), (GWc * CS, GHc * CS), interpolation=cv2.INTER_NEAREST) > 0
+        m = GEDGE & emp
+        big[m] = int(150 + 40 * np.sin(t * 3))
     lay = np.zeros((H, W, 3), np.uint8)
     lay[Y0:Y0 + GHc * CS, X0:X0 + GWc * CS] = big
     cv2.rectangle(lay, (X0 - 6, Y0 - 6), (X0 + GWc * CS + 6, Y0 + GHc * CS + 6), (90, 80, 100), 3)
@@ -169,7 +183,7 @@ for f in range(NF):
     img = glow(bg, lay, 0.3 if t < TDONE else (0.3 + 0.05 * np.sin(t * 4) if SHORT else 0.4 + 0.1 * np.sin(t * 4)), 4)
     if t < TDONE:
         put(img, '砂を流し込むと…', 540, 175, 90)
-        put(img, '何の絵になる？', 540, 280, 60, (255, 226, 60), 1 + 0.04 * np.sin(t * 5))
+        put(img, 'この輪郭、何になる？' if GHOST else '何の絵になる？', 540, 280, 60, (255, 226, 60), 1 + 0.04 * np.sin(t * 5))
     else:
         s = 1 + 1.4 * np.exp(-(t - TDONE) * 7)
         _tt = pics.TITLES[PIC] + 'でした！'

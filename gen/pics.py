@@ -1,7 +1,9 @@
 """Original procedural pictures for reveal-type videos. pic(name, w, h) -> float32 (h,w,3) RGB in 0..1"""
 import numpy as np, colorsys
 
-TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま', 'tulips': 'チューリップ畑', 'wave': '大波と富士', 'xmastree': 'クリスマスツリー', 'momiji': '紅葉と鳥居', 'heart': 'しま模様のハート', 'balloons': '気球と街並み'}
+TITLES = {'sunset': '夕焼けの海', 'stars': '星空', 'fireworks': '花火', 'fuji': '富士山', 'snowman': '雪だるま', 'tulips': 'チューリップ畑', 'wave': '大波と富士', 'xmastree': 'クリスマスツリー', 'momiji': '紅葉と鳥居', 'heart': 'しま模様のハート', 'balloons': '気球と街並み', 'sandcastle': '砂のお城'}
+
+MASKS = {}  # 形の輪郭（sand.py --ghost 用）。pic() が対応する絵だけ入れる
 
 
 def _hsv(h, s, v):
@@ -329,4 +331,41 @@ def pic(name, w, h, seed=0):
             img[bas] = (0.5, 0.3, 0.15)
             for sx in (-0.2, 0.2):
                 img[(np.abs(u - cx - sx * r * (1 + 0 * dy)) < 0.004) & (dy > 1.4) & (dy <= 1.65)] = (0.3, 0.2, 0.15)
+    elif name == 'sandcastle':
+        # 砂→砂の城（素材そのものが形になる）。城は虹色の砂の層でできていて、0秒から色が見える
+        ar = h / w
+        top = np.array([0.20, 0.22, 0.48]); mid = np.array([0.95, 0.60, 0.55])
+        img[:] = top + (mid - top) * np.clip(v / 0.6, 0, 1)[..., None]
+        img[(v > 0.60) & (v <= 0.70)] = (0.15, 0.45, 0.75)
+        img[(v > 0.60) & (v <= 0.70) & (((xx.astype(int) + yy.astype(int) * 3) % 9) == 0)] = (0.7, 0.9, 1.0)
+        img[v > 0.70] = (0.93, 0.80, 0.55)
+        img[(v > 0.70) & ((xx.astype(int) * 7 + yy.astype(int) * 13) % 11 == 0)] = (0.82, 0.66, 0.42)
+        cas = np.zeros((h, w), bool)
+        def box(x0, x1, y0, y1):
+            return (u >= x0) & (u < x1) & (v >= y0) & (v < y1)
+        def crenel(x0, x1, y, n):
+            m = np.zeros((h, w), bool); wd = (x1 - x0) / (2 * n - 1)
+            for k in range(n):
+                m |= box(x0 + 2 * k * wd, x0 + (2 * k + 1) * wd, y - 0.025, y)
+            return m
+        cas |= box(0.14, 0.86, 0.66, 0.90) | crenel(0.14, 0.86, 0.66, 7)
+        cas |= box(0.34, 0.66, 0.40, 0.66) | crenel(0.34, 0.66, 0.40, 4)
+        for cx in (0.16, 0.84):
+            cas |= box(cx - 0.08, cx + 0.08, 0.52, 0.90)
+            cone = (v < 0.52) & (v > 0.52 - 0.11 * (1 - np.abs(u - cx) / 0.09)) & (np.abs(u - cx) < 0.09)
+            cas |= cone
+        cone = (v < 0.40) & (v > 0.40 - 0.15 * (1 - np.abs(u - 0.5) / 0.12)) & (np.abs(u - 0.5) < 0.12)
+        cas |= cone
+        band = ((v + 0.006 * np.sin(u * 20)) * 34).astype(int)
+        cols = [_hsv(hh, 0.55, 0.97) for hh in (0.98, 0.07, 0.13, 0.33, 0.52, 0.62, 0.78)]
+        for k in range(7):
+            img[cas & (band % 7 == k)] = cols[k]
+        MASKS['sandcastle'] = cas.copy()
+        door = (np.abs(u - 0.5) < 0.06) & (v > 0.78) & (v < 0.90) | (np.hypot((u - 0.5), (v - 0.78) * ar * 0.9) < 0.06) & (v <= 0.78)
+        img[door & cas] = (0.30, 0.18, 0.15)
+        for wx, wy in ((0.42, 0.50), (0.58, 0.50), (0.16, 0.66), (0.84, 0.66), (0.28, 0.76), (0.72, 0.76)):
+            img[(np.abs(u - wx) < 0.018) & (np.abs(v - wy) < 0.02) & cas] = (0.30, 0.18, 0.15)
+        for cx, ty in ((0.16, 0.41), (0.84, 0.41), (0.5, 0.25)):
+            img[(np.abs(u - cx) < 0.006) & (v > ty - 0.07) & (v < ty)] = (0.35, 0.25, 0.2)
+            img[(u > cx) & (u < cx + 0.08 - (np.abs(v - (ty - 0.055)) * 3)) & (np.abs(v - (ty - 0.055)) < 0.02)] = (0.95, 0.15, 0.2)
     return np.clip(img, 0, 1)
